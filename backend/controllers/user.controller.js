@@ -1,0 +1,249 @@
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const Joi = require("joi");
+const User = require("../models/User");
+const {
+  successResponse,
+  errorResponse,
+  catchResponse,
+} = require("../utils/response");
+
+// Joi validation schema
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+// @route POST /api/auth/login
+// @desc Login user
+// @access Public
+async function login(req, res) {
+  try {
+    // Validate request body
+    const { error, value } = loginSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return err(res, 400, "Validation error", errors);
+    }
+
+    const { email, password, rememberMe } = value;
+
+    // Check if user exists and is active
+    const user = await User.findOne({ email, isActive: true });
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return errorResponse(res, 400, "Invalid email or password");
+    }
+
+    // User authenticated, create token
+    const payload = {
+      user: {
+        id: user.id,
+        role: user.role,
+      },
+    };
+    const tokenExpiration = rememberMe ? "7d" : "1h";
+
+    const token = await signJwt(payload, process.env.JWT_SECRET, {
+      expiresIn: tokenExpiration,
+    });
+
+    // Update last login
+    user.lastLogin = Date.now();
+    await user.save();
+
+    // Prepare user data for response
+    const userData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      fullName: user.fullName,
+      token,
+    };
+
+    // Send success response with token and user data
+    return successResponse(res, userData, "Login successful");
+  } catch (err) {
+    console.error("Login Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
+// Joi validation schema for registration
+const registerSchema = Joi.object({
+  username: Joi.string().alphanum().min(3).max(30).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  role: Joi.string().valid("employee", "hr", "admin").default("employee"),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  department: Joi.string().required(),
+  employeeId: Joi.string().required(),
+  phoneNumber: Joi.string().allow(""),
+  isActive: Joi.boolean().default(true),
+});
+
+// @route POST /api/auth/register
+// @desc Register new user
+// @access Public
+async function register(req, res) {
+  try {
+    // Validate request body
+    const { error, value } = registerSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, "Validation error", errors);
+    }
+
+    const {
+      username,
+      email,
+      password,
+      role,
+      firstName,
+      lastName,
+      department,
+      employeeId,
+      phoneNumber,
+      isActive,
+    } = value;
+
+    // Check if user already exists
+    let existingUser = await User.findOne({
+      $or: [{ email }, { username }, { employeeId }],
+    });
+    if (existingUser) {
+      return errorResponse(res, 400, "User already exists");
+    }
+
+    // Create new user
+    const newUser = new User({
+      username,
+      email,
+      password, // Password will be hashed by the pre-save hook
+      role,
+      firstName,
+      lastName,
+      department,
+      employeeId,
+      phoneNumber,
+      isActive,
+    });
+
+    // Save user to database
+    await newUser.save();
+
+    // Create and sign JWT token
+    const payload = {
+      user: {
+        id: newUser.id,
+        role: newUser.role,
+      },
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    // Prepare user data for response
+    const userData = {
+      id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+      fullName: newUser.fullName,
+      employeeId: newUser.employeeId,
+      department: newUser.department,
+      isActive: newUser.isActive,
+      token,
+    };
+
+    // Send success response
+    return successResponse(res, userData, "User registered successfully");
+  } catch (err) {
+    console.error("Registration Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
+// @route GET /api/profile
+// @desc Get user profile
+// @access Private
+async function getProfile(req, res) {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+
+    return successResponse(res, user, "Profile retrieved successfully");
+  } catch (err) {
+    console.error("Get Profile Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
+// @route PUT /api/profile
+// @desc Update user profile
+// @access Private
+async function updateProfile(req, res) {
+  try {
+    // Validate request body
+    const { error, value } = updateProfileSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, "Validation error", errors);
+    }
+
+    const { firstName, lastName, department, phoneNumber } = value;
+
+    // Find and update the user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (department) user.department = department;
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+
+    await user.save();
+
+    // Prepare updated user data for response
+    const updatedUserData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      fullName: user.fullName,
+      employeeId: user.employeeId,
+      department: user.department,
+      phoneNumber: user.phoneNumber,
+      isActive: user.isActive,
+    };
+
+    return successResponse(
+      res,
+      updatedUserData,
+      "Profile updated successfully"
+    );
+  } catch (err) {
+    console.error("Update Profile Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
+module.exports = { login, register,  getProfile, updateProfile };
