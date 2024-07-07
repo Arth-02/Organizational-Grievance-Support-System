@@ -2,12 +2,16 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import LoginImage from "../assets/Images/Login.jpg";
 import { login } from "../api/user.api";
+import { useNavigate } from "react-router-dom";
+import { setToken } from "../utils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  const navigate = useNavigate();
 
   const validateEmail = (email) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,9 +47,18 @@ const Login = () => {
 
     if (isEmailValid && isPasswordValid) {
       try {
-        await login(email, password);
-      } catch (error) {
-        toast.error("An error occurred. Please try again.");
+        const response = await login(email, password);
+        setToken(response.data.data.token, response.data.data.role);
+        toast.success("Login successful");
+        navigate("/dashboard");
+      } 
+      catch (error) {
+        if (Array.isArray(error.response.data.message)) {
+          error.response.data.message.forEach(errorMsg => toast.error(errorMsg));
+          return
+        }
+        const errorMessage = error.response.data.message || "An error occurred. Please try again." 
+        toast.error(errorMessage);
       }
     } else {
       toast.error("Please fill out the form correctly");

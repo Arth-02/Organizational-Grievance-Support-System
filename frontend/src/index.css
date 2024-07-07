@@ -1,3 +1,89 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+
+    --primary: #fff;
+    --primary-foreground: #000;
+
+    --secondary: #000;
+    --secondary-foreground: #fff;
+
+    --background: #f9f9f9;
+    --foreground: #000;
+
+    --muted: #f1f1f1;
+    --muted-foreground: #000;
+
+    --muted-hover: #e1e1e1;
+    --muted-hover-foreground: #000;
+
+    --success: #00ff0032;
+    --success-foreground: #00ff00;
+
+    --warning: #ffcc0032;
+    --warning-foreground: #ffcc00;
+
+    --danger: #ff000050;
+    --danger-foreground: #ff0000;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --primary: #000;
+    --primary-foreground: #fff;
+
+    --secondary: #fff;
+    --secondary-foreground: #000;
+
+    --background: #000;
+    --foreground: #fff;
+
+    --muted: #111;
+    --muted-foreground: #fff;
+
+    --success: #00ff0032;
+    --success-foreground: #00ff00;
+
+    --warning: #ffcc0032;
+    --warning-foreground: #ffcc00;
+
+    --danger: #ff000050;  
+    --danger-foreground: #ff0000;
+
+    --radius: 0.5rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    visibility: visible;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.dropdown-menu.fadeIn {
+  animation: fadeIn 0.5s forwards;
+}
+
+.dropdown-menu.fadeOut {
+  animation: fadeOut 0.5s forwards;
+}

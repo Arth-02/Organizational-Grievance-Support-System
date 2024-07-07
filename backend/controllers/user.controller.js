@@ -1,7 +1,6 @@
-const express = require("express");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-const User = require("../models/User");
+const User = require("../models/user.model");
 const {
   successResponse,
   errorResponse,
@@ -23,9 +22,10 @@ async function login(req, res) {
     const { error, value } = loginSchema.validate(req.body, {
       abortEarly: false,
     });
+    console.log('data',req.body)
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return err(res, 400, "Validation error", errors);
+      return errorResponse(res, 400, errors);
     }
 
     const { email, password, rememberMe } = value;
@@ -39,7 +39,7 @@ async function login(req, res) {
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return errorResponse(res, 400, "Invalid email or password");
+      return errorResponse(res, 400, "Invalid password");
     }
 
     // User authenticated, create token
@@ -51,7 +51,7 @@ async function login(req, res) {
     };
     const tokenExpiration = rememberMe ? "7d" : "1h";
 
-    const token = await signJwt(payload, process.env.JWT_SECRET, {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: tokenExpiration,
     });
 
@@ -102,7 +102,7 @@ async function register(req, res) {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, "Validation error", errors);
+      return errorResponse(res, 400, errors);
     }
 
     const {
