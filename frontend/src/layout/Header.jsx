@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User, User2 } from "lucide-react";
 import { logout } from "../utils";
 import { Link } from "react-router-dom";
 import useOutsideClick from "../hooks/useOutSideClick";
@@ -25,16 +25,9 @@ const Header = () => {
         />
         <h1>Google</h1>
       </div>
-      <div className="relative" ref={menuRef}>
-        <Bell size={24} className="cursor-pointer" />
-        <img
-          src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
-          alt="User"
-          width={50}
-          height={50}
-          className="rounded-full cursor-pointer"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        />
+      <div className="relative flex items-center gap-1" ref={menuRef}>
+        <Bell size={34} className="cursor-pointer p-2 hover:bg-muted rounded-lg transition-colors duration-300" />
+        <User2 size={34} className="cursor-pointer p-2 hover:bg-muted hover:text-red rounded-lg transition-colors duration-300" onClick={() => setIsMenuOpen(!isMenuOpen)} />
         <div
           className={`absolute top-full mt-2 right-0 flex flex-col bg-muted text-muted-foreground p-2 min-w-40 rounded-lg shadow-md ${
             isMenuOpen ? "flex" : "hidden"
