@@ -9,8 +9,8 @@ const {
 
 // Joi validation schema
 const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
+  email: Joi.string().trim().email().required(),
+  password: Joi.string().trim().required(),
 });
 
 // @route POST /api/auth/login
@@ -22,7 +22,6 @@ async function login(req, res) {
     const { error, value } = loginSchema.validate(req.body, {
       abortEarly: false,
     });
-    console.log('data',req.body)
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
@@ -49,7 +48,7 @@ async function login(req, res) {
         role: user.role,
       },
     };
-    const tokenExpiration = rememberMe ? "7d" : "1h";
+    const tokenExpiration = rememberMe ? "15d" : "8d";
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: tokenExpiration,
@@ -79,15 +78,15 @@ async function login(req, res) {
 
 // Joi validation schema for registration
 const registerSchema = Joi.object({
-  username: Joi.string().alphanum().min(3).max(30).required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  role: Joi.string().valid("employee", "hr", "admin").default("employee"),
-  firstName: Joi.string().required(),
-  lastName: Joi.string().required(),
-  department: Joi.string().required(),
-  employeeId: Joi.string().required(),
-  phoneNumber: Joi.string().allow(""),
+  username: Joi.string().trim().alphanum().min(3).max(30).required(),
+  email: Joi.string().trim().email().required(),
+  password: Joi.string().trim().min(6).required(),
+  role: Joi.string().trim().valid("employee", "hr", "admin").default("employee"),
+  firstName: Joi.string().trim().required(),
+  lastName: Joi.string().trim().required(),
+  department: Joi.string().trim().required(),
+  employeeId: Joi.string().trim().required(),
+  phoneNumber: Joi.string().trim().allow(""),
   isActive: Joi.boolean().default(true),
 });
 
@@ -199,15 +198,23 @@ async function getProfile(req, res) {
 async function updateProfile(req, res) {
   try {
     // Validate request body
-    const { error, value } = updateProfileSchema.validate(req.body, {
+    console.log(req.user);
+    const { error, value } = registerSchema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, "Validation error", errors);
     }
-
-    const { firstName, lastName, department, phoneNumber } = value;
+    if (req.user.role !== "admin") {
+      delete value.role;
+      delete value.isActive;
+      delete value.employeeId;
+      delete value.username;
+      delete value.department;
+    }
+    
+    
 
     // Find and update the user
     const user = await User.findById(req.user.id);
