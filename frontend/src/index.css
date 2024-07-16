@@ -5,16 +5,16 @@
 @layer base {
   :root {
 
-    --primary: #fff;
+    --primary: #FEFEFE;
     --primary-foreground: #000;
-
-    --secondary: #000;
-    --secondary-foreground: #fff;
+    
+    --secondary: #D5ECFA;
+    --secondary-foreground: #00;
 
     --background: #f9f9f9;
     --foreground: #000;
 
-    --muted: #f1f1f1;
+    --muted: #F4F4F4;
     --muted-foreground: #000;
 
     --muted-hover: #e1e1e1;
@@ -25,7 +25,7 @@
 
     --warning: #ffcc0032;
     --warning-foreground: #ffcc00;
-
+     
     --danger: #ff000050;
     --danger-foreground: #ff0000;
 
