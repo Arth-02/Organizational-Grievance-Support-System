@@ -58,14 +58,6 @@ const UserSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
 // Pre-save hook to hash password before saving
