@@ -180,7 +180,7 @@ async function register(req, res) {
 // @access Private
 async function getProfile(req, res) {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password -__v -createdAt -updatedAt -lastLogin -isActive ");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -192,59 +192,44 @@ async function getProfile(req, res) {
   }
 }
 
+// Joi validation schema for updating profile
+const updateProfileSchema = Joi.object({
+  firstName: Joi.string().trim().required(),
+  lastName: Joi.string().trim().required(),
+  phoneNumber: Joi.string().trim().allow(""),
+  email: Joi.string().trim().email().required(),
+  username: Joi.string().trim().alphanum().min(3).max(30).required(),
+});
+
 // @route PUT /api/profile
 // @desc Update user profile
 // @access Private
 async function updateProfile(req, res) {
   try {
-    // Validate request body
-    console.log(req.user);
-    const { error, value } = registerSchema.validate(req.body, {
+    const { error, value } = updateProfileSchema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, "Validation error", errors);
     }
-    if (req.user.role !== "admin") {
-      delete value.role;
-      delete value.isActive;
-      delete value.employeeId;
-      delete value.username;
-      delete value.department;
-    }
-    
-    
-
     // Find and update the user
     const user = await User.findById(req.user.id);
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
+    const { firstName, lastName, email, phoneNumber, username } = value;
 
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
-    if (department) user.department = department;
+    if (email) user.email = email;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (username) user.username = username;
 
     await user.save();
-
-    // Prepare updated user data for response
-    const updatedUserData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      fullName: user.fullName,
-      employeeId: user.employeeId,
-      department: user.department,
-      phoneNumber: user.phoneNumber,
-      isActive: user.isActive,
-    };
-
     return successResponse(
       res,
-      updatedUserData,
+      {},
       "Profile updated successfully"
     );
   } catch (err) {

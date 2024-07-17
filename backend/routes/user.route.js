@@ -8,7 +8,7 @@ const {
 const { checkRole } = require("../middlewares/admin.middleware");
 const { ADMIN, HR, EMPLOYEE } = require("../utils/constant");
 
-router.get("/profile", getProfile);
+router.get("/profile",checkRole([ADMIN,HR,EMPLOYEE]) ,getProfile);
 
 router.post("/login", login);
 router.post("/register", checkRole([ADMIN]), register);
