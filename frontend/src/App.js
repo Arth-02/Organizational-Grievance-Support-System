@@ -1,10 +1,10 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Login from "./Components/Login";
-import Dashboard from "./Components/Dashboard";
+import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 import axios from "axios";
-import PrivateRoute from "./Components/PrivateRoute";
+import PrivateRoute from "./components/PrivateRoute";
 import Layout from "./layout/Layout";
 import Reports from "./pages/Reports";
 
