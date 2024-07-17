@@ -21,6 +21,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
+      select: false,
     },
     role: {
       type: String,
@@ -62,6 +63,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
@@ -82,14 +84,6 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
-// Virtual for full name
-UserSchema.virtual("fullName").get(function () {
-  return `${this.firstName} ${this.lastName}`;
-});
-
-// Ensure virtuals are included when converting document to JSON
-UserSchema.set("toJSON", { virtuals: true });
 
 const User = mongoose.model("User", UserSchema);
 

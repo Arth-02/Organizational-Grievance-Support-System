@@ -180,7 +180,8 @@ async function register(req, res) {
 // @access Private
 async function getProfile(req, res) {
   try {
-    const user = await User.findById(req.user.id).select("-password -__v -createdAt -updatedAt -lastLogin -isActive ");
+    console.log(req.user.id);
+    const user = await User.findById(req.user.id).select("-createdAt -updatedAt -lastLogin -isActive");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
