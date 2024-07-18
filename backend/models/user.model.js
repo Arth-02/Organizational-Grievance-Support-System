@@ -24,9 +24,9 @@ const UserSchema = new mongoose.Schema(
       select: false,
     },
     role: {
-      type: String,
-      enum: ["employee", "hr", "admin"],
-      default: "employee",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      required: [true, "Role is required"],
     },
     firstName: {
       type: String,
@@ -59,6 +59,10 @@ const UserSchema = new mongoose.Schema(
     },
     lastLogin: {
       type: Date,
+    },
+    specialpermissions: {
+      type: [Number],
+      default: [],
     },
   },
   {

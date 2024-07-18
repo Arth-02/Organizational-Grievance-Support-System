@@ -6,6 +6,21 @@ const {
   errorResponse,
   catchResponse,
 } = require("../utils/response");
+const {
+  PERMISSIONS,
+  ADD_USER,
+  UPDATE_USER,
+  DELETE_USER,
+  VIEW_USER,
+  UPDATE_USER_ROLE,
+  UPDATE_GRIEVANCE,
+  DELETE_GRIEVANCE,
+  UPDATE_GRIEVANCE_STATUS,
+  ADD_DEPARTMENT,
+  UPDATE_DEPARTMENT,
+  DELETE_DEPARTMENT,
+} = require("../utils/constant");
+
 
 // Joi validation schema
 const loginSchema = Joi.object({
@@ -81,7 +96,10 @@ const registerSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().min(6).required(),
-  role: Joi.string().trim().valid("employee", "hr", "admin").default("employee"),
+  role: Joi.string()
+    .trim()
+    .valid("employee", "hr", "admin")
+    .default("employee"),
   firstName: Joi.string().trim().required(),
   lastName: Joi.string().trim().required(),
   department: Joi.string().trim().required(),
@@ -181,7 +199,9 @@ async function register(req, res) {
 async function getProfile(req, res) {
   try {
     console.log(req.user.id);
-    const user = await User.findById(req.user.id).select("-createdAt -updatedAt -lastLogin -isActive");
+    const user = await User.findById(req.user.id).select(
+      "-createdAt -updatedAt -lastLogin -isActive"
+    );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -228,15 +248,11 @@ async function updateProfile(req, res) {
     if (username) user.username = username;
 
     await user.save();
-    return successResponse(
-      res,
-      {},
-      "Profile updated successfully"
-    );
+    return successResponse(res, {}, "Profile updated successfully");
   } catch (err) {
     console.error("Update Profile Error:", err.message);
     return catchResponse(res);
   }
 }
 
-module.exports = { login, register,  getProfile, updateProfile };
+module.exports = { login, register, getProfile, updateProfile };
