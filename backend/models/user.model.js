@@ -24,16 +24,18 @@ const UserSchema = new mongoose.Schema(
       select: false,
     },
     role: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Role",
+      // type: mongoose.Schema.Types.ObjectId,
+      // ref: "Role",
+      type: String,
+      enum: ["employee", "hr", "admin"],
       required: [true, "Role is required"],
     },
-    firstName: {
+    firstname: {
       type: String,
       required: [true, "First name is required"],
       trim: true,
     },
-    lastName: {
+    lastname: {
       type: String,
       required: [true, "Last name is required"],
       trim: true,
@@ -43,30 +45,33 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Department is required"],
       trim: true,
     },
-    employeeId: {
+    employee_id: {
       type: String,
       required: [true, "Employee ID is required"],
       unique: true,
       trim: true,
     },
-    phoneNumber: {
+    phone_number: {
       type: String,
       trim: true,
     },
-    isActive: {
+    is_active: {
       type: Boolean,
       default: true,
     },
-    lastLogin: {
+    last_login: {
       type: Date,
     },
-    specialpermissions: {
+    special_permissions: {
       type: [Number],
       default: [],
     },
   },
   {
-    timestamps: true,
+    timestamps: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
     versionKey: false,
   }
 );

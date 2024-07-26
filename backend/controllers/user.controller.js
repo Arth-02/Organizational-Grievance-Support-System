@@ -26,6 +26,7 @@ const {
 const loginSchema = Joi.object({
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().required(),
+  rememberMe: Joi.boolean().default(false),
 });
 
 // @route POST /api/auth/login
@@ -41,11 +42,11 @@ async function login(req, res) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-
+    
     const { email, password, rememberMe } = value;
-
+    
     // Check if user exists and is active
-    const user = await User.findOne({ email, isActive: true });
+    const user = await User.findOne({ email, is_active: true }).select("+password");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -70,7 +71,7 @@ async function login(req, res) {
     });
 
     // Update last login
-    user.lastLogin = Date.now();
+    user.last_login = Date.now();
     await user.save();
 
     // Prepare user data for response
@@ -100,12 +101,12 @@ const registerSchema = Joi.object({
     .trim()
     .valid("employee", "hr", "admin")
     .default("employee"),
-  firstName: Joi.string().trim().required(),
-  lastName: Joi.string().trim().required(),
+  firstname: Joi.string().trim().required(),
+  lastname: Joi.string().trim().required(),
   department: Joi.string().trim().required(),
-  employeeId: Joi.string().trim().required(),
-  phoneNumber: Joi.string().trim().allow(""),
-  isActive: Joi.boolean().default(true),
+  employee_id: Joi.string().trim().required(),
+  phone_number: Joi.string().trim().allow(""),
+  is_active: Joi.boolean().default(true),
 });
 
 // @route POST /api/auth/register
@@ -127,17 +128,17 @@ async function register(req, res) {
       email,
       password,
       role,
-      firstName,
-      lastName,
+      firstname,
+      lastname,
       department,
-      employeeId,
-      phoneNumber,
-      isActive,
+      employee_id,
+      phone_number,
+      is_active,
     } = value;
 
     // Check if user already exists
     let existingUser = await User.findOne({
-      $or: [{ email }, { username }, { employeeId }],
+      $or: [{ email }, { username }, { employee_id }],
     });
     if (existingUser) {
       return errorResponse(res, 400, "User already exists");
@@ -149,12 +150,12 @@ async function register(req, res) {
       email,
       password, // Password will be hashed by the pre-save hook
       role,
-      firstName,
-      lastName,
+      firstname,
+      lastname,
       department,
-      employeeId,
-      phoneNumber,
-      isActive,
+      employee_id,
+      phone_number,
+      is_active,
     });
 
     // Save user to database
@@ -179,9 +180,9 @@ async function register(req, res) {
       email: newUser.email,
       role: newUser.role,
       fullName: newUser.fullName,
-      employeeId: newUser.employeeId,
+      employee_id: newUser.employee_id,
       department: newUser.department,
-      isActive: newUser.isActive,
+      is_active: newUser.is_active,
       token,
     };
 
@@ -200,7 +201,7 @@ async function getProfile(req, res) {
   try {
     console.log(req.user.id);
     const user = await User.findById(req.user.id).select(
-      "-createdAt -updatedAt -lastLogin -isActive"
+      "-createdAt -updatedAt -last_login -is_active"
     );
     if (!user) {
       return errorResponse(res, 404, "User not found");
@@ -215,10 +216,9 @@ async function getProfile(req, res) {
 
 // Joi validation schema for updating profile
 const updateProfileSchema = Joi.object({
-  firstName: Joi.string().trim().required(),
-  lastName: Joi.string().trim().required(),
-  phoneNumber: Joi.string().trim().allow(""),
-  email: Joi.string().trim().email().required(),
+  firstname: Joi.string().trim().required(),
+  lastname: Joi.string().trim().required(),
+  phone_number: Joi.string().trim().allow(""),
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
 });
 
@@ -239,12 +239,11 @@ async function updateProfile(req, res) {
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
-    const { firstName, lastName, email, phoneNumber, username } = value;
+    const { firstname, lastname, phone_number, username } = value;
 
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
-    if (email) user.email = email;
-    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (firstname) user.firstname = firstname;
+    if (lastname) user.lastname = lastname;
+    if (phone_number !== undefined) user.phone_number = phone_number;
     if (username) user.username = username;
 
     await user.save();

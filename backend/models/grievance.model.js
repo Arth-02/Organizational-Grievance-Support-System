@@ -22,14 +22,14 @@ const GrievanceSchema = new mongoose.Schema({
     ],
     default: "submitted",
   },
-  isDeleted: { type: Boolean, default: false },
-  reportedBy: {
+  is_deleted: { type: Boolean, default: false },
+  reported_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  dateReported: { type: Date, default: Date.now },
+  assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  date_reported: { type: Date, default: Date.now },
 });
 
 module.exports = mongoose.model("Grievance", GrievanceSchema);
