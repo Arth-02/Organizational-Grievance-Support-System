@@ -60,6 +60,21 @@ const PERMISSIONS = [
   DELETE_DEPARTMENT,
 ];
 
+const DEFAULT_PERMISSIONS = [
+  {
+    name: "admin",
+    permission_id: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  },
+  {
+    name: "hr",
+    permission_id: [1, 2, 3, 4, 8],
+  },
+  {
+    name: "employee",
+    permission_id: [4],
+  }
+];
+
 module.exports = {
   ADMIN,
   HR,
@@ -76,4 +91,5 @@ module.exports = {
   ADD_DEPARTMENT,
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,
+  DEFAULT_PERMISSIONS,
 };
