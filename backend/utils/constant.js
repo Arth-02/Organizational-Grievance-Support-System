@@ -1,6 +1,7 @@
 const ADMIN = "admin";
 const HR = "hr";
 const EMPLOYEE = "employee";
+const SUPER_ADMIN = "super_admin";
 const ADD_USER = {
   name: "Add User",
   id: 1,
@@ -45,6 +46,10 @@ const DELETE_DEPARTMENT = {
   name: "Delete Department",
   id: 11,
 };
+const UPDATE_ORGANIZATION = {
+  name: "Update Organization",
+  id: 12,
+};
 
 const PERMISSIONS = [
   ADD_USER,
@@ -58,14 +63,16 @@ const PERMISSIONS = [
   ADD_DEPARTMENT,
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,
+  UPDATE_ORGANIZATION
 ];
 
-const DEFAULT_ADMIN_PERMISSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const DEFAULT_ADMIN_PERMISSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 module.exports = {
   ADMIN,
   HR,
   EMPLOYEE,
+  SUPER_ADMIN,
   PERMISSIONS,
   ADD_USER,
   UPDATE_USER,
@@ -78,5 +85,6 @@ module.exports = {
   ADD_DEPARTMENT,
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,
-  DEFAULT_ADMIN_PERMISSIONS,
+  UPDATE_ORGANIZATION,
+  DEFAULT_ADMIN_PERMISSIONS
 };

@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema(
       // type: mongoose.Schema.Types.ObjectId,
       // ref: "Role",
       type: String,
-      enum: ["employee", "hr", "admin"],
+      enum: ["employee", "hr", "admin", "super_admin"],
       required: [true, "Role is required"],
     },
     firstname: {

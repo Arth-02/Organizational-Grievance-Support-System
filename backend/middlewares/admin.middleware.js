@@ -14,6 +14,7 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     return errorResponse(res, 401, "Unauthorized: Invalid token");
   }
   req.user = decoded.user;
+  console.log(req.user);
 
   // Check if the decoded token role is in the allowedRoles array
   if (req.user && allowedRoles.includes(req.user.role)) {
