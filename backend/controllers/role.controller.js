@@ -84,6 +84,7 @@ const updateRole = async (req, res) => {
   }
 }
 
+// Delete role schema
 const deleteRoleSchema = Joi.object({
   id: Joi.string().trim().required(),
   replace_role_id: Joi.string().trim()
