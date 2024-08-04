@@ -60,8 +60,7 @@ async function login(req, res) {
     // User authenticated, create token
     const payload = {
       user: {
-        id: user.id,
-        role: user.role,
+        id: user.id
       },
     };
     const tokenExpiration = rememberMe ? "15d" : "8d";
@@ -164,8 +163,7 @@ async function register(req, res) {
     // Create and sign JWT token
     const payload = {
       user: {
-        id: newUser.id,
-        role: newUser.role,
+        id: newUser.id
       },
     };
 

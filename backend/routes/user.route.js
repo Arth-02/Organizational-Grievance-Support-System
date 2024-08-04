@@ -5,13 +5,12 @@ const {
   updateProfile,
   getProfile,
 } = require("../controllers/user.controller");
-const { checkRole } = require("../middlewares/admin.middleware");
-const { ADMIN, HR, EMPLOYEE } = require("../utils/constant");
+const { checkPermission } = require("../middlewares/auth.middleware");
 
-router.get("/profile",checkRole([ADMIN,HR,EMPLOYEE]) ,getProfile);
+router.get("/profile", checkPermission([4]) ,getProfile);
 
 router.post("/login", login);
-router.post("/register", checkRole([ADMIN]), register);
-router.post("/profile/update", checkRole([ADMIN, HR, EMPLOYEE]), updateProfile);
+router.post("/register", checkPermission([1]), register);
+router.post("/profile/update", checkPermission([2]), updateProfile);
 
 module.exports = router;

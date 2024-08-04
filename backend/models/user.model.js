@@ -24,11 +24,13 @@ const UserSchema = new mongoose.Schema(
       select: false,
     },
     role: {
-      // type: mongoose.Schema.Types.ObjectId,
-      // ref: "Role",
-      type: String,
-      enum: ["employee", "hr", "admin", "super_admin"],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
       required: [true, "Role is required"],
+    },
+    organization_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
     },
     firstname: {
       type: String,
