@@ -64,7 +64,7 @@ const UserSchema = new mongoose.Schema(
     last_login: {
       type: Date,
     },
-    special_permissions: {
+    special_permission_id: {
       type: [Number],
       default: [],
     },
