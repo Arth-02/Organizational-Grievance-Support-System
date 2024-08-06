@@ -1,4 +1,4 @@
-const { verifyOrganization } = require("../controllers/super.admin.controller");
+const { verifyOrganization } = require("../controllers/dev.controller");
 const { checkRole } = require("../middlewares/auth.middleware");
 const { DEV } = require("../utils/constant");
 

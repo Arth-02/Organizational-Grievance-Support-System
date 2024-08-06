@@ -49,7 +49,7 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
   }
 
   const id = decoded.user.id;
-  const user = await User.findById(id).populate("role").exec();
+  const user = await User.findById(id).populate('role').exec();
 
   if (!user) {
     return errorResponse(res, 404, "User not found");
