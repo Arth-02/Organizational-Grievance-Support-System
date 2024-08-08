@@ -95,4 +95,6 @@ OrganizationSchema.methods.comparePassword = async function (password) {
 
 OrganizationSchema.index({ email: 1, username: 1 }, { unique: true });
 
-module.exports = mongoose.model("Organization", OrganizationSchema);
+const Organization = mongoose.model("Organization", OrganizationSchema);
+
+module.exports = Organization;

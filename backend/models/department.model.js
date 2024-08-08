@@ -15,9 +15,21 @@ const departmentSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Department description is required'],
     trim: true
+  },
+  is_active: {
+    type: Boolean,
+    default: true
   }
+},{
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  },
+  versionKey: false
 });
 
 departmentSchema.index({ organization_id: 1, name: 1 }, { unique: true });
 
-module.exports = mongoose.model('Department', departmentSchema);
+const Department = mongoose.model('Department', departmentSchema);
+
+module.exports = Department;

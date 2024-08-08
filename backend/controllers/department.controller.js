@@ -1,7 +1,7 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
-const Department = require("./models/Department");
-const Organization = require("./models/Organization");
+const Department = require("../models/department.model");
+const Organization = require("../models/organization.model");
 const {
   errorResponse,
   catchResponse,
@@ -14,15 +14,14 @@ const departmentSchema = Joi.object({
   description: Joi.string().required().trim(),
 });
 
-function validateDepartment(department) {
-  return departmentSchema.validate(department);
-}
-
-// Create a new department (Admin only)
+// Create a new department 
 async function createDepartment(req, res) {
-  const { error, value } = validateDepartment(req.body);
+  const { error, value } = departmentSchema.validate(req.body, {
+    abortEarly: false,
+  });
   if (error) {
-    return errorResponse(res, 400, error.details[0].message);
+    const errors = error.details.map((detail) => detail.message);
+    return errorResponse(res, 400, errors);
   }
 
   try {
@@ -53,37 +52,47 @@ async function createDepartment(req, res) {
   }
 }
 
+// Update a department
+
+const updateDepartmentSchema = Joi.object({
+  name: Joi.string().trim(),
+  description: Joi.string().trim(),
+  is_active: Joi.boolean(),
+});
+
 async function updateDepartment(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return errorResponse(res, 400, "Invalid department ID");
   }
 
-  const { error } = validateDepartment(req.body);
+  const { error, value } = updateDepartmentSchema.validate(req.body, {
+    abortEarly: false,
+  });
   if (error) {
-    return errorResponse(res, 400, error.details[0].message);
+    const errors = error.details.map((detail) => detail.message);
+    return errorResponse(res, 400, errors);
+  }
+
+  if (!value.name && !value.description && value.is_active === undefined) {
+    return errorResponse(res, 400, "Please provide name or description to update");
   }
 
   try {
-    const department = await Department.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const department = await Department.findOneAndUpdate(
+      { _id: id },
+      value,{
+        new: true
+      }
+    );
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }
     return successResponse(res, department, "Department updated successfully");
   } catch (error) {
-    if (error.code === 11000) {
-      return errorResponse(
-        res,
-        400,
-        "Department with this name already exists"
-      );
-    }
     return catchResponse(res);
   }
-};
+}
 
 // Get all departments
 // Get all departments
@@ -148,40 +157,7 @@ async function getDepartmentById(req, res) {
   }
 }
 
-// Update a department (Admin only)
-async function updateDepartment(req, res) {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return errorResponse(res, 400, "Invalid department ID");
-  }
-
-  const { error } = validateDepartment(req.body);
-  if (error) {
-    return errorResponse(res, 400, error.details[0].message);
-  }
-
-  try {
-    const department = await Department.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!department) {
-      return errorResponse(res, 404, "Department not found");
-    }
-    return successResponse(res, department, "Department updated successfully");
-  } catch (error) {
-    if (error.code === 11000) {
-      return errorResponse(
-        res,
-        400,
-        "Department with this name already exists"
-      );
-    }
-    return catchResponse(res);
-  }
-}
-
-// Delete a department (Admin only)
+// Delete a department
 async function deleteDepartment(req, res) {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {

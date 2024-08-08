@@ -22,7 +22,7 @@ const GrievanceSchema = new mongoose.Schema({
     ],
     default: "submitted",
   },
-  is_deleted: { type: Boolean, default: false },
+  is_active: { type: Boolean, default: true },
   reported_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -32,4 +32,6 @@ const GrievanceSchema = new mongoose.Schema({
   date_reported: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Grievance", GrievanceSchema);
+const Grievance = mongoose.model("Grievance", GrievanceSchema);
+
+module.exports = Grievance;

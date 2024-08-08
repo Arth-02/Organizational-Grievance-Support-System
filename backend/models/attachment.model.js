@@ -15,7 +15,10 @@ const AttachmentSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
-  upload_date: { type: Date, default: Date.now }
+  upload_date: { type: Date, default: Date.now },
+  is_active: { type: Boolean, default: true }
 });
 
-module.exports = mongoose.model("Attachment", AttachmentSchema);
+const Attachment = mongoose.model("Attachment", AttachmentSchema);
+
+module.exports = Attachment;

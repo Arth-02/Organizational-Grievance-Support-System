@@ -32,4 +32,6 @@ const roleSchema = new mongoose.Schema(
 
 roleSchema.index({ name: 1, organization_id: 1 }, { unique: true });
 
-module.exports = mongoose.model("Role", roleSchema);
+const Role = mongoose.model("Role", roleSchema);
+
+module.exports = Role;
