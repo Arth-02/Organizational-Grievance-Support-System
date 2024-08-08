@@ -1,17 +1,23 @@
 const mongoose = require('mongoose');
 
-const DepartmentSchema = new mongoose.Schema({
+const departmentSchema = new mongoose.Schema({
+  organization_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: [true, 'Organization ID is required']
+  },
   name: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'Department name is required'],
     trim: true
   },
   description: {
     type: String,
-    required: true,
+    required: [true, 'Department description is required'],
     trim: true
   }
 });
 
-module.exports = mongoose.model('Department', DepartmentSchema);
+departmentSchema.index({ organization_id: 1, name: 1 }, { unique: true });
+
+module.exports = mongoose.model('Department', departmentSchema);

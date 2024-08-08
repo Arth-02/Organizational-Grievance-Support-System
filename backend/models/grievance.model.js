@@ -6,9 +6,9 @@ const GrievanceSchema = new mongoose.Schema({
   department: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Department",
-    required: true,
+    required: [true, "Department is required"],
   },
-  severity: { type: String, enum: ["low", "medium", "high"], required: true},
+  severity: { type: String, enum: ["low", "medium", "high"], required: true },
   attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Attachment" }],
   status: {
     type: String,

@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const {
   login,
-  register,
+  createUser,
   updateProfile,
   getProfile,
 } = require("../controllers/user.controller");
@@ -9,7 +9,7 @@ const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware"
 
 
 router.post("/login", login);
-router.post("/register", checkPermission([1]), register);
+router.post("/create", checkPermission([1]), createUser);
 router.get("/profile", isLoggedIn ,getProfile);
 router.post("/profile/update", isLoggedIn, updateProfile);
 

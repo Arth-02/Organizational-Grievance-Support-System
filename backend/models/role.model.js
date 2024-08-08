@@ -4,17 +4,17 @@ const roleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Role name is required"],
       trim: true,
     },
     permission_id: {
       type: [Number],
-      required: true,
+      required: [true, "Permission ID is required"],
     },
     organization_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
-      required: true,
+      required: [true, "Organization ID is required"],
     },
     is_active: {
       type: Boolean,
@@ -29,5 +29,7 @@ const roleSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+roleSchema.index({ name: 1, organization_id: 1 }, { unique: true });
 
 module.exports = mongoose.model("Role", roleSchema);

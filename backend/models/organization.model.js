@@ -5,58 +5,58 @@ const OrganizationSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Organization name is required"],
       unique: true,
       trim: true,
     },
     address: {
       type: String,
-      required: true,
+      required: [true, "Organization address is required"],
       trim: true,
     },
     phone: {
       type: String,
-      required: true,
+      required: [true, "Organization phone number is required"],
       trim: true,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Organization email is required"],
       trim: true,
     },
     website: {
       type: String,
-      required: true,
       trim: true,
     },
     logo: {
       type: String,
-      required: true,
       trim: true,
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Organization description is required"],
       trim: true,
+      minlength: [10, "Description must be at least 10 characters long"],
+      maxlength: [500, "Description must be at most 500 characters long"],
     },
     city: {
       type: String,
-      required: true,
-      trim: true,
+      required: [true, "Organization city is required"],
+      trim: [true, "Organization city is required"],
     },
     state: {
       type: String,
-      required: true,
+      required: [true, "Organization state is required"],
       trim: true,
     },
     country: {
       type: String,
-      required: true,
+      required: [true, "Organization country is required"],
       trim: true,
     },
     pincode: {
       type: String,
-      required: true,
+      required: [true, "Organization pincode is required"],
       trim: true,
     },
     is_active: {

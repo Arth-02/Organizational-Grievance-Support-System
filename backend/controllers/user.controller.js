@@ -21,7 +21,6 @@ const {
   DELETE_DEPARTMENT,
 } = require("../utils/constant");
 
-
 // Joi validation schema
 const loginSchema = Joi.object({
   email: Joi.string().trim().email().required(),
@@ -42,11 +41,13 @@ async function login(req, res) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-    
+
     const { email, password, rememberMe } = value;
-    
+
     // Check if user exists and is active
-    const user = await User.findOne({ email, is_active: true }).select("+password");
+    const user = await User.findOne({ email, is_active: true }).select(
+      "+password"
+    );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -60,7 +61,7 @@ async function login(req, res) {
     // User authenticated, create token
     const payload = {
       user: {
-        id: user.id
+        id: user.id,
       },
     };
     const tokenExpiration = rememberMe ? "15d" : "8d";
@@ -92,29 +93,28 @@ async function login(req, res) {
 }
 
 // Joi validation schema for registration
-const registerSchema = Joi.object({
+const createUserSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().min(6).required(),
-  role: Joi.string()
-    .trim()
-    .valid("employee", "hr", "admin")
-    .default("employee"),
+  role: Joi.string().trim().required(),
   firstname: Joi.string().trim().required(),
   lastname: Joi.string().trim().required(),
   department: Joi.string().trim().required(),
   employee_id: Joi.string().trim().required(),
+  organization_id: Joi.string().trim().required(),
   phone_number: Joi.string().trim().allow(""),
   is_active: Joi.boolean().default(true),
+  special_permission_id: Joi.array().default([])
 });
 
-// @route POST /api/auth/register
-// @desc Register new user
+// @route POST /api/auth/create
+// @desc Create new user
 // @access Public
-async function register(req, res) {
+async function createUser(req, res) {
   try {
     // Validate request body
-    const { error, value } = registerSchema.validate(req.body, {
+    const { error, value } = createUserSchema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {
@@ -131,17 +131,27 @@ async function register(req, res) {
       lastname,
       department,
       employee_id,
+      organization_id,
       phone_number,
       is_active,
+      special_permission_id
     } = value;
 
     // Check if user already exists
-    let existingUser = await User.findOne({
+    const existingUser = await User.findOne({
       $or: [{ email }, { username }, { employee_id }],
     });
     if (existingUser) {
       return errorResponse(res, 400, "User already exists");
     }
+
+  const existingOrganization = await Organization.findById(organization_id);
+  if (!existingOrganization) {
+    return errorResponse(res, 404, "Organization not found");
+  }
+
+
+    
 
     // Create new user
     const newUser = new User({
@@ -163,7 +173,7 @@ async function register(req, res) {
     // Create and sign JWT token
     const payload = {
       user: {
-        id: newUser.id
+        id: newUser.id,
       },
     };
 
@@ -185,7 +195,7 @@ async function register(req, res) {
     };
 
     // Send success response
-    return successResponse(res, userData, "User registered successfully");
+    return successResponse(res, userData, "User created successfully");
   } catch (err) {
     console.error("Registration Error:", err.message);
     return catchResponse(res);
@@ -252,4 +262,4 @@ async function updateProfile(req, res) {
   }
 }
 
-module.exports = { login, register, getProfile, updateProfile };
+module.exports = { login, createUser, getProfile, updateProfile };
