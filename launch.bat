@@ -5,3 +5,6 @@ start cmd /k "cd frontend\ && npm start"
 
 rem Start the backend application
 start cmd /k  "cd backend\ && npm start"
+
+rem Open VS Code in the current directory
+start code .
