@@ -24,7 +24,6 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     }
 
     req.user = user;
-    console.log(req.user);
 
     // Check if the decoded token role is in the allowedRoles array
     if (( req.user && allowedRoles.includes(req.user.role)) || req.user.role === DEV ) {
@@ -60,7 +59,6 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
     }
 
     req.user = user;
-    console.log(req.user);
 
     const hasUserRolePermissions = req.user?.role?.permission_id?.some(
       (permission) => allowedPermissions.includes(permission)
@@ -103,7 +101,6 @@ const isLoggedIn = async (req, res, next) => {
     }
 
     req.user = user;
-    console.log(req.user);
     next();
   } catch (err) {
     console.error(err);
@@ -116,11 +113,10 @@ const isLoggedIn = async (req, res, next) => {
 const verifyOrganization = async (req, res, next) => {
   try {
     const organization_id = req.body.organization_id;
-
-    if (req.user.organization_id === organization_id) {
+    if (req.user.organization_id == organization_id) {
       next();
     } else {
-      return errorResponse( res, 403, "Forbidden: Access denied for this resource" );
+      return errorResponse( res, 403, "Unauthorized Organization" );
     }
   } catch (err) {
     console.error(err);

@@ -97,7 +97,7 @@ async function updateDepartment(req, res) {
 
 // Get all departments
 // Get all departments
-async function getAllDepartments(req, res) {
+async function getAllOrganizationDepartments(req, res) {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -180,7 +180,7 @@ async function deleteDepartment(req, res) {
 
 module.exports = {
   createDepartment,
-  getAllDepartments,
+  getAllOrganizationDepartments,
   getDepartmentById,
   updateDepartment,
   deleteDepartment,

@@ -1,3 +1,4 @@
+const { isValidObjectId } = require("mongoose");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const User = require("../models/user.model");
@@ -6,20 +7,7 @@ const {
   errorResponse,
   catchResponse,
 } = require("../utils/response");
-const {
-  PERMISSIONS,
-  ADD_USER,
-  UPDATE_USER,
-  DELETE_USER,
-  VIEW_USER,
-  UPDATE_USER_ROLE,
-  UPDATE_GRIEVANCE,
-  DELETE_GRIEVANCE,
-  UPDATE_GRIEVANCE_STATUS,
-  ADD_DEPARTMENT,
-  UPDATE_DEPARTMENT,
-  DELETE_DEPARTMENT,
-} = require("../utils/constant");
+const Organization = require("../models/organization.model");
 
 // Joi validation schema
 const loginSchema = Joi.object({
@@ -105,7 +93,8 @@ const createUserSchema = Joi.object({
   organization_id: Joi.string().trim().required(),
   phone_number: Joi.string().trim().allow(""),
   is_active: Joi.boolean().default(true),
-  special_permission_id: Joi.array().default([])
+  is_deleted: Joi.boolean().default(false),
+  special_permission_id: Joi.array().default([]),
 });
 
 // @route POST /api/auth/create
@@ -113,7 +102,7 @@ const createUserSchema = Joi.object({
 // @access Public
 async function createUser(req, res) {
   try {
-    // Validate request body
+    // Validate request body.
     const { error, value } = createUserSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -134,7 +123,7 @@ async function createUser(req, res) {
       organization_id,
       phone_number,
       is_active,
-      special_permission_id
+      special_permission_id,
     } = value;
 
     // Check if user already exists
@@ -142,16 +131,13 @@ async function createUser(req, res) {
       $or: [{ email }, { username }, { employee_id }],
     });
     if (existingUser) {
-      return errorResponse(res, 400, "User already exists");
+      return errorResponse(res, 400, "User already exists with this email, username or employee ID");
     }
 
-  const existingOrganization = await Organization.findById(organization_id);
-  if (!existingOrganization) {
-    return errorResponse(res, 404, "Organization not found");
-  }
-
-
-    
+    const existingOrganization = await Organization.findById(organization_id);
+    if (!existingOrganization) {
+      return errorResponse(res, 404, "Organization not found");
+    }
 
     // Create new user
     const newUser = new User({
@@ -165,6 +151,8 @@ async function createUser(req, res) {
       employee_id,
       phone_number,
       is_active,
+      organization_id,
+      special_permission_id,
     });
 
     // Save user to database
@@ -190,7 +178,6 @@ async function createUser(req, res) {
       fullName: newUser.fullName,
       employee_id: newUser.employee_id,
       department: newUser.department,
-      is_active: newUser.is_active,
       token,
     };
 
@@ -205,11 +192,17 @@ async function createUser(req, res) {
 // @route GET /api/profile
 // @desc Get user profile
 // @access Private
-async function getProfile(req, res) {
+async function getUser(req, res) {
   try {
-    console.log(req.user.id);
-    const user = await User.findById(req.user.id).select(
-      "-createdAt -updatedAt -last_login -is_active"
+    const id = req.params.id || req.user.id;
+    if (!id) {
+      return errorResponse(res, 400, "User id is required");
+    }
+    if(!isValidObjectId(id)){
+      return errorResponse(res, 400, "Invalid user id");
+    }
+    const user = await User.findById(id).select(
+      "-createdAt -updatedAt -last_login -is_active -is_deleted"
     );
     if (!user) {
       return errorResponse(res, 404, "User not found");
@@ -223,19 +216,21 @@ async function getProfile(req, res) {
 }
 
 // Joi validation schema for updating profile
-const updateProfileSchema = Joi.object({
-  firstname: Joi.string().trim().required(),
-  lastname: Joi.string().trim().required(),
+const updateUserSchema = Joi.object({
+  firstname: Joi.string().trim(),
+  lastname: Joi.string().trim(),
   phone_number: Joi.string().trim().allow(""),
-  username: Joi.string().trim().alphanum().min(3).max(30).required(),
+  username: Joi.string().trim().alphanum().min(3).max(30),
+  organization_id: Joi.string().trim().required(),
 });
 
 // @route PUT /api/profile
 // @desc Update user profile
 // @access Private
-async function updateProfile(req, res) {
+async function updateUser(req, res) {
   try {
-    const { error, value } = updateProfileSchema.validate(req.body, {
+    const id = req.params.id || req.user.id;
+    const { error, value } = updateUserSchema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {
@@ -243,23 +238,39 @@ async function updateProfile(req, res) {
       return errorResponse(res, 400, "Validation error", errors);
     }
     // Find and update the user
-    const user = await User.findById(req.user.id);
+    const user = await User.findByIdAndUpdate(req.user.id, value, {
+      new: true,
+    });
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
-    const { firstname, lastname, phone_number, username } = value;
 
-    if (firstname) user.firstname = firstname;
-    if (lastname) user.lastname = lastname;
-    if (phone_number !== undefined) user.phone_number = phone_number;
-    if (username) user.username = username;
-
-    await user.save();
-    return successResponse(res, {}, "Profile updated successfully");
+    return successResponse(res, user, "Profile updated successfully");
   } catch (err) {
     console.error("Update Profile Error:", err.message);
     return catchResponse(res);
   }
 }
 
-module.exports = { login, createUser, getProfile, updateProfile };
+const deleteUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return errorResponse(res, 400, "User id is required");
+    }
+    if(!isValidObjectId(id)){
+      return errorResponse(res, 400, "Invalid user id");
+    }
+    const user = await User.findByIdAndUpdate(id, { is_deleted: true });
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+
+    return successResponse(res, {}, "User deleted successfully");
+  } catch (err) {
+    console.error("Delete User Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+module.exports = { login, createUser, getUser, updateUser, deleteUser };

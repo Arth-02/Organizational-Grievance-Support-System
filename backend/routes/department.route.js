@@ -2,7 +2,7 @@ const {
   createDepartment,
   updateDepartment,
   deleteDepartment,
-  getAllDepartments,
+  getAllOrganizationDepartments,
   getDepartmentById,
 } = require("../controllers/department.controller");
 const { checkPermission, isLoggedIn, verifyOrganization } = require("../middlewares/auth.middleware");

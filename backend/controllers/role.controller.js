@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const Role = require("../models/role.model");
+const User = require("../models/user.model");
 const { DEFAULT_PERMISSIONS } = require("../utils/constant");
 const {
   errorResponse,
@@ -62,6 +63,7 @@ const createRole = async (req, res) => {
 };
 
 const updateRoleSchema = Joi.object({
+  organization_id: Joi.string().trim(),
   name: Joi.string().trim(),
   permission_id: Joi.array().items(Joi.number()),
 });
@@ -109,9 +111,9 @@ const getRoleById = async (req, res) => {
 
 // get all roles
 
-const getAllRoles = async (req, res) => {
+const getAllOrganizationsRoles = async (req, res) => {
   try {
-    const roles = await Role.find();
+    const roles = await Role.find({organization_id:req.body.organization_id});
     return successResponse(res, roles,"Roles retrieved successfully" );
   } catch (err) {
     console.error(err);
@@ -121,7 +123,7 @@ const getAllRoles = async (req, res) => {
 
 // Delete role schema
 const deleteRoleSchema = Joi.object({
-  id: Joi.string().trim().required(),
+  organization_id: Joi.string().trim(),
   replace_role_id: Joi.string().trim(),
 });
 
@@ -139,7 +141,9 @@ const deleteRole = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-    const { id, replace_role_id } = value;
+    const id = req.params.id;
+
+    const { replace_role_id } = value;
 
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid id");
@@ -188,4 +192,4 @@ const deleteRole = async (req, res) => {
 };
 
 // Export the function
-module.exports = { resetPermissions, createRole, updateRole, deleteRole, getRoleById, getAllRoles };
+module.exports = { resetPermissions, createRole, updateRole, deleteRole, getRoleById, getAllOrganizationsRoles };
