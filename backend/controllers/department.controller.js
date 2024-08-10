@@ -14,7 +14,7 @@ const departmentSchema = Joi.object({
   description: Joi.string().required().trim(),
 });
 
-// Create a new department 
+// Create a new department
 async function createDepartment(req, res) {
   const { error, value } = departmentSchema.validate(req.body, {
     abortEarly: false,
@@ -75,16 +75,17 @@ async function updateDepartment(req, res) {
   }
 
   if (!value.name && !value.description && value.is_active === undefined) {
-    return errorResponse(res, 400, "Please provide name or description to update");
+    return errorResponse(
+      res,
+      400,
+      "Please provide name or description to update"
+    );
   }
 
   try {
-    const department = await Department.findOneAndUpdate(
-      { _id: id },
-      value,{
-        new: true
-      }
-    );
+    const department = await Department.findOneAndUpdate({ _id: id }, value, {
+      new: true,
+    });
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }
@@ -97,11 +98,11 @@ async function updateDepartment(req, res) {
 // Get all departments
 // Get all departments
 async function getAllDepartments(req, res) {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const skip = (page - 1) * limit;
-
   try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
     const totalDepartments = await Department.countDocuments();
     const departments = await Department.find()
       .sort({ name: 1 })
@@ -137,13 +138,15 @@ async function getAllDepartments(req, res) {
 
 // Get a single department by ID
 async function getDepartmentById(req, res) {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return errorResponse(res, 400, "Invalid department ID");
-  }
-
   try {
-    const department = await Department.findById(id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
+
+    const department = await Department.findOne({
+      _id: id,
+    });
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }

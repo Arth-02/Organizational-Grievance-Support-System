@@ -10,7 +10,7 @@ const verifyOrganization = async (req, res) => {
             return errorResponse(res, 400, "Organization id is required");
         }
         
-        if (isValidObjectId(id)) {
+        if (!isValidObjectId(id)) {
             return errorResponse(res, 400, "Invalid organization id");
         }
 
@@ -37,7 +37,7 @@ const verifyOrganization = async (req, res) => {
             `
         );
 
-        return successResponse(res, 200, "Organization verified successfully");
+        return successResponse(res, {}, "Organization verified successfully");
     } catch (err) {
         console.error(err);
         return catchResponse(res);

@@ -59,8 +59,8 @@ const createOrganization = async (req, res) => {
       address,
     });
 
-    await newOrganization.save();
-    return successResponse(res, 201, "Organization applied successfully");
+    const newOrg = await newOrganization.save();
+    return successResponse(res, newOrg, "Organization applied successfully");
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -109,8 +109,8 @@ const updateOrganization = async (req, res) => {
     existingOrganization.phone = phone;
     existingOrganization.address = address;
 
-    await existingOrganization.save();
-    return successResponse(res, 201, "Organization updated successfully");
+    const updatedOrg = await existingOrganization.save();
+    return successResponse(res, updatedOrg, "Organization updated successfully");
   } catch (err) {
     console.error(err);
     return catchResponse(res);
