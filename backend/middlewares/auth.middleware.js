@@ -18,15 +18,16 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     }
 
     const id = decoded.user.id;
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate("role");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
 
     req.user = user;
+    console.log(req.user);
 
     // Check if the decoded token role is in the allowedRoles array
-    if (( req.user && allowedRoles.includes(req.user.role)) || req.user.role === DEV ) {
+    if (( req.user && allowedRoles.includes(req.user.role.name)) || req.user.role.name === DEV ) {
       next();
     } else {
       return errorResponse( res, 403, "Forbidden: Access denied for this resource" );
@@ -67,7 +68,6 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
       (permission) => allowedPermissions.includes(permission)
     );
     const hasUserPermission = hasUserRolePermissions || hasSpecialPermissions;
-
     // Check if the decoded token role is in the allowedRoles array
     if (req.user.role.name === DEV || hasUserPermission) {
       next();

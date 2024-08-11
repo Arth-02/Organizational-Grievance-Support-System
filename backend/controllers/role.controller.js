@@ -34,7 +34,6 @@ const resetPermissions = async (req, res) => {
 const createRoleSchema = Joi.object({
   name: Joi.string().trim().required(),
   permission_id: Joi.array().items(Joi.number()).required(),
-  organization_id: Joi.string().trim().required(),
 });
 
 const createRole = async (req, res) => {
@@ -47,8 +46,10 @@ const createRole = async (req, res) => {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
+    const { organization_id } = req.user;
 
-    const { name, permission_id, organization_id } = value;
+    const { name, permission_id } = value;
+    
     const role = new Role({
       name,
       permission_id,
@@ -63,13 +64,16 @@ const createRole = async (req, res) => {
 };
 
 const updateRoleSchema = Joi.object({
-  organization_id: Joi.string().trim(),
   name: Joi.string().trim(),
   permission_id: Joi.array().items(Joi.number()),
 });
 
 const updateRole = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return errorResponse(res, 400, "Invalid id");
+    }
+    const { organization_id } = req.user;
     const { error, value } = updateRoleSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -79,13 +83,17 @@ const updateRole = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-    const role = await Role.findOneAndUpdate({ _id: req.params.id }, value, {
-      new: true,
-    });
+    const role = await Role.findOneAndUpdate(
+      { _id: req.params.id, organization_id },
+      value,
+      {
+        new: true,
+      }
+    );
     if (!role) {
       return errorResponse(res, 404, "Role not found");
     }
-    return successResponse(res,role,"Role updated successfully" );
+    return successResponse(res, role, "Role updated successfully");
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -95,10 +103,11 @@ const updateRole = async (req, res) => {
 // get role by id
 const getRoleById = async (req, res) => {
   try {
+    const { organization_id } = req.user;
     if (!isValidObjectId(req.params.id)) {
       return errorResponse(res, 400, "Invalid id");
     }
-    const role = await Role.findById(req.params.id);
+    const role = await Role.findOne({ _id: req.params.id, organization_id });
     if (!role) {
       return errorResponse(res, 404, "Role not found");
     }
@@ -113,8 +122,11 @@ const getRoleById = async (req, res) => {
 
 const getAllOrganizationsRoles = async (req, res) => {
   try {
-    const roles = await Role.find({organization_id:req.body.organization_id});
-    return successResponse(res, roles,"Roles retrieved successfully" );
+    const { organization_id } = req.user;
+    const roles = await Role.find({
+      organization_id,
+    });
+    return successResponse(res, roles, "Roles retrieved successfully");
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -123,7 +135,6 @@ const getAllOrganizationsRoles = async (req, res) => {
 
 // Delete role schema
 const deleteRoleSchema = Joi.object({
-  organization_id: Joi.string().trim(),
   replace_role_id: Joi.string().trim(),
 });
 
@@ -132,6 +143,7 @@ const deleteRole = async (req, res) => {
 
   try {
     session.startTransaction();
+    const { organization_id } = req.user;
     const { error, value } = deleteRoleSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -149,7 +161,9 @@ const deleteRole = async (req, res) => {
       return errorResponse(res, 400, "Invalid id");
     }
 
-    const role = await Role.findById(id).session(session);
+    const role = await Role.findOne({ _id: id, organization_id }).session(
+      session
+    );
     if (!role) {
       return errorResponse(res, 404, "Role not found");
     }
@@ -159,13 +173,16 @@ const deleteRole = async (req, res) => {
         return errorResponse(res, 400, "Invalid replace_role_id");
       }
 
-      const replaceRole = await Role.findById(replace_role_id).session(session);
+      const replaceRole = await Role.findOne({
+        _id: replace_role_id,
+        organization_id,
+      }).session(session);
       if (!replaceRole) {
         return errorResponse(res, 404, "Replace role not found");
       }
 
       const userUpdate = await User.updateMany(
-        { role: id },
+        { role: id, organization_id },
         { role: replace_role_id }
       ).session(session);
 
@@ -173,13 +190,13 @@ const deleteRole = async (req, res) => {
         return errorResponse(res, 404, "No users found to update");
       }
     } else {
-      const userExist = await User.findOne({ role: id }).session(session);
+      const userExist = await User.findOne({ role: id,organization_id }).session(session);
       if (userExist) {
         return errorResponse(res, 400, "Role is assigned to a user");
       }
     }
 
-    await Role.findByIdAndDelete(id).session(session);
+    await Role.findOneAndDelete({_id:id,organization_id}).session(session);
     await session.commitTransaction();
     return successResponse(res, {}, "Role deleted successfully");
   } catch (err) {
@@ -192,4 +209,11 @@ const deleteRole = async (req, res) => {
 };
 
 // Export the function
-module.exports = { resetPermissions, createRole, updateRole, deleteRole, getRoleById, getAllOrganizationsRoles };
+module.exports = {
+  resetPermissions,
+  createRole,
+  updateRole,
+  deleteRole,
+  getRoleById,
+  getAllOrganizationsRoles,
+};

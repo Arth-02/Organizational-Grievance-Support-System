@@ -1,4 +1,4 @@
-const { isValidObjectId } = require("mongoose");
+const { isValidObjectId, default: mongoose } = require("mongoose");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const User = require("../models/user.model");
@@ -8,6 +8,8 @@ const {
   catchResponse,
 } = require("../utils/response");
 const Organization = require("../models/organization.model");
+const { DEFAULT_ADMIN_PERMISSIONS } = require("../utils/constant");
+const Role = require("../models/role.model");
 
 // Joi validation schema
 const loginSchema = Joi.object({
@@ -39,13 +41,13 @@ async function login(req, res) {
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
-
+    
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return errorResponse(res, 400, "Invalid password");
     }
-
+    
     // User authenticated, create token
     const payload = {
       user: {
@@ -53,15 +55,15 @@ async function login(req, res) {
       },
     };
     const tokenExpiration = rememberMe ? "15d" : "8d";
-
+    
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: tokenExpiration,
     });
-
+    
     // Update last login
     user.last_login = Date.now();
-    await user.save();
-
+    await User.findByIdAndUpdate(user.id, { last_login: user.last_login }); 
+    
     // Prepare user data for response
     const userData = {
       id: user._id,
@@ -269,6 +271,109 @@ const deleteUser = async (req, res) => {
     return successResponse(res, {}, "User deleted successfully");
   } catch (err) {
     console.error("Delete User Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+const superAdminSchema = Joi.object({
+  username: Joi.string().trim().alphanum().min(3).max(30).required(),
+  email: Joi.string().trim().email().required(),
+  password: Joi.string().trim().min(6).required(),
+  firstname: Joi.string().trim().required(),
+  lastname: Joi.string().trim().required(),
+  employee_id: Joi.string().trim().required(),
+  organization_id: Joi.string().trim().required(),
+  phone_number: Joi.string().trim().allow(""),
+  is_active: Joi.boolean().default(true),
+  is_deleted: Joi.boolean().default(false),
+  special_permission_id: Joi.array().default([]),
+});
+
+const createSuperAdmin = async () => {
+  const session = await mongoose.startSession();
+  try{
+    session.startTransaction();
+    const { error, value } = superAdminSchema.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+    const {
+      username,
+      email,
+      password,
+      firstname,
+      lastname,
+      employee_id,
+      organization_id,
+      phone_number,
+      is_active,
+      special_permission_id,
+    } = value;
+
+    const existing  = await User.findOne({$or: [{ email }, { username }, { employee_id }]});
+    if(existing){
+      return errorResponse(res, 400, "Super Admin already exists with this email");
+    }
+
+    const organization = await Organization.findById(organization_id);
+    if (!organization) {
+      return errorResponse(res, 404, "Organization not found");
+    }
+
+    const newRole = new Role({
+      name: "Super Admin",
+      permission_id: DEFAULT_ADMIN_PERMISSIONS,
+      organization_id,
+    });
+    const role = await newRole.save();
+
+    const newDepartment = new Department({
+      name: "Admin",
+      description: "Admin Department",
+      organization_id,
+    });
+
+    const department = await newDepartment.save();
+
+
+    const superAdmin = new User({
+      username,
+      email,
+      password,
+      role: role._id,
+      department: department._id,
+      firstname,
+      lastname,
+      employee_id,
+      phone_number,
+      is_active,
+      organization_id,
+      special_permission_id,
+    });
+
+    await superAdmin.save();
+    await session.commitTransaction();
+    return successResponse(res, superAdmin, "Super Admin created successfully");
+  }
+  catch(err){
+    console.error("Create Super Admin Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    await session.endSession();
+  }
+
+};
+
+const generateOTP = () => {
+  try {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    return otp;
+  } catch (err) {
+    console.error("Generate OTP Error:", err.message);
     return catchResponse(res);
   }
 };

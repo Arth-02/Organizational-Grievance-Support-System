@@ -9,9 +9,9 @@ const { checkPermission, isLoggedIn, verifyOrganization } = require("../middlewa
 
 const router = require("express").Router();
 
-router.get("/details/:id", isLoggedIn,verifyOrganization, getDepartmentById);
-router.post("/create", checkPermission([9]), verifyOrganization, createDepartment);
-router.put("/update/:id", checkPermission([10]), verifyOrganization, updateDepartment);
-router.delete("/delete/:id", checkPermission([11]), verifyOrganization, deleteDepartment);
+router.get("/details/:id", isLoggedIn, getDepartmentById);
+router.post("/create", checkPermission([9]), createDepartment);
+router.put("/update/:id", checkPermission([10]), updateDepartment);
+router.delete("/delete/:id", checkPermission([11]), deleteDepartment);
 
 module.exports = router;

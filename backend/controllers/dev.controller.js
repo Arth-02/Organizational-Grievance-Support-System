@@ -44,7 +44,7 @@ const approveOrganization = async (req, res) => {
             `
     );
 
-    return successResponse(res, {}, "Organization verified successfully");
+    return successResponse(res, organization, "Organization verified successfully");
   } catch (err) {
     console.error(err);
     return catchResponse(res);

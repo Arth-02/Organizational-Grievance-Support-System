@@ -19,16 +19,20 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
+      trim: true,
       select: false,
     },
     role: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
       required: [true, "Role is required"],
+      trim: true,
     },
     organization_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
+      required: [true, "Organization is required"],
+      trim: true,
     },
     firstname: {
       type: String,
@@ -41,7 +45,8 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     department: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
       required: [true, "Department is required"],
       trim: true,
     },
