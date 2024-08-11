@@ -1,6 +1,6 @@
 const { isValidObjectId } = require("mongoose");
 const Organization = require("../models/organization.model");
-const { sendEmail } = require("../utils");
+const { sendEmail } = require("../utils/mail");
 const {
   errorResponse,
   successResponse,
@@ -34,17 +34,25 @@ const approveOrganization = async (req, res) => {
     await organization.save();
 
     // Have to send email to organization with link to create admin account
-    sendEmail(
+    const isMailSend = await sendEmail(
       organization.email,
       "Organization Verified",
       `
-                <h1>Your organization has been verified</h1>
-                <p>Please click the link below to create your admin account</p>
-                <a href="${process.env.CLIENT_URL}/${organization._id}/create-admin">Create Admin Account</a>
-            `
+                  <h1>Your organization has been verified</h1>
+                  <p>Please click the link below to create your admin account</p>
+                  <a href="${process.env.CLIENT_URL}/${organization._id}/create-admin">Create Admin Account</a>
+                 `
     );
 
-    return successResponse(res, organization, "Organization verified successfully");
+    if (!isMailSend) {
+      return errorResponse(res, 500, "Failed to send email");
+    }
+
+    return successResponse(
+      res,
+      organization,
+      "Organization verified successfully"
+    );
   } catch (err) {
     console.error(err);
     return catchResponse(res);

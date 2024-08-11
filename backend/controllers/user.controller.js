@@ -10,6 +10,10 @@ const {
 const Organization = require("../models/organization.model");
 const { DEFAULT_ADMIN_PERMISSIONS } = require("../utils/constant");
 const Role = require("../models/role.model");
+const Department = require("../models/department.model");
+const { sendEmail } = require("../utils/mail");
+const { generateOTP } = require("../utils/common");
+const bcrypt = require("bcryptjs");
 
 // Joi validation schema
 const loginSchema = Joi.object({
@@ -41,13 +45,13 @@ async function login(req, res) {
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
-    
+
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return errorResponse(res, 400, "Invalid password");
     }
-    
+
     // User authenticated, create token
     const payload = {
       user: {
@@ -55,15 +59,15 @@ async function login(req, res) {
       },
     };
     const tokenExpiration = rememberMe ? "15d" : "8d";
-    
+
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: tokenExpiration,
     });
-    
+
     // Update last login
     user.last_login = Date.now();
-    await User.findByIdAndUpdate(user.id, { last_login: user.last_login }); 
-    
+    await User.findByIdAndUpdate(user.id, { last_login: user.last_login });
+
     // Prepare user data for response
     const userData = {
       id: user._id,
@@ -133,7 +137,11 @@ async function createUser(req, res) {
       $or: [{ email }, { username }, { employee_id }],
     });
     if (existingUser) {
-      return errorResponse(res, 400, "User already exists with this email, username or employee ID");
+      return errorResponse(
+        res,
+        400,
+        "User already exists with this email, username or employee ID"
+      );
     }
 
     const existingOrganization = await Organization.findById(organization_id);
@@ -200,7 +208,7 @@ async function getUser(req, res) {
     if (!id) {
       return errorResponse(res, 400, "User id is required");
     }
-    if(!isValidObjectId(id)){
+    if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
     const user = await User.findById(id).select(
@@ -260,7 +268,7 @@ const deleteUser = async (req, res) => {
     if (!id) {
       return errorResponse(res, 400, "User id is required");
     }
-    if(!isValidObjectId(id)){
+    if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
     const user = await User.findByIdAndUpdate(id, { is_deleted: true });
@@ -287,11 +295,12 @@ const superAdminSchema = Joi.object({
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
   special_permission_id: Joi.array().default([]),
+  otp: Joi.string().trim().required(),
 });
 
-const createSuperAdmin = async () => {
+const createSuperAdmin = async (req, res) => {
   const session = await mongoose.startSession();
-  try{
+  try {
     session.startTransaction();
     const { error, value } = superAdminSchema.validate(req.body, {
       abortEarly: false,
@@ -311,16 +320,38 @@ const createSuperAdmin = async () => {
       phone_number,
       is_active,
       special_permission_id,
+      otp
     } = value;
 
-    const existing  = await User.findOne({$or: [{ email }, { username }, { employee_id }]});
-    if(existing){
-      return errorResponse(res, 400, "Super Admin already exists with this email");
-    }
-
-    const organization = await Organization.findById(organization_id);
+    const organization = await Organization.findById(organization_id).session(
+      session
+    );
     if (!organization) {
       return errorResponse(res, 404, "Organization not found");
+    }
+
+    if (!organization.otp) {
+      return errorResponse(res, 400, "OTP has expired");
+    }
+
+    const isOtpValid = await bcrypt.compare(otp, organization.otp);
+    if (!isOtpValid) {
+      return errorResponse(res, 400, "Invalid OTP");
+    }
+
+    const existing = await User.findOne({
+      $and: [
+        {
+          $or: [{ email }, { username }, { employee_id }],
+        }, 
+        { organization_id }],
+    }).session(session);
+    if (existing) {
+      return errorResponse(
+        res,
+        400,
+        "Super Admin already exists with this email"
+      );
     }
 
     const newRole = new Role({
@@ -328,16 +359,14 @@ const createSuperAdmin = async () => {
       permission_id: DEFAULT_ADMIN_PERMISSIONS,
       organization_id,
     });
-    const role = await newRole.save();
+    const role = await newRole.save({ session });
 
     const newDepartment = new Department({
       name: "Admin",
       description: "Admin Department",
       organization_id,
     });
-
-    const department = await newDepartment.save();
-
+    const department = await newDepartment.save({ session });
 
     const superAdmin = new User({
       username,
@@ -354,28 +383,67 @@ const createSuperAdmin = async () => {
       special_permission_id,
     });
 
-    await superAdmin.save();
+    const temp = await superAdmin.save({ session });
     await session.commitTransaction();
     return successResponse(res, superAdmin, "Super Admin created successfully");
-  }
-  catch(err){
+  } catch (err) {
     console.error("Create Super Admin Error:", err.message);
     await session.abortTransaction();
     return catchResponse(res);
   } finally {
     await session.endSession();
   }
-
 };
 
-const generateOTP = () => {
+const sendOTPEmail = async (req, res) => {
   try {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    return otp;
+    const { organization_id } = req.body;
+
+    if (!organization_id) {
+      return errorResponse(res, 400, "Organization id is required");
+    }
+
+    if (!isValidObjectId(organization_id)) {
+      return errorResponse(res, 400, "Invalid organization id");
+    }
+
+    const organization = await Organization.findById(organization_id).select(
+      "email"
+    );
+    if (!organization) {
+      return errorResponse(res, 404, "Organization not found");
+    }
+
+    const otp = generateOTP();
+    const hashedOTP = await bcrypt.hash(otp, 10);
+    organization.otp = hashedOTP;
+    await organization.save();
+
+    // remove otp after 5 minutes
+    setTimeout(async () => {
+      await Organization.updateOne(
+        { _id: organization_id },
+        { $unset: { otp: "" } }
+      );
+    }, 300000);
+
+    // Send OTP to email
+    const isMailSent = await sendEmail(
+      organization.email,
+      "Email Verification",
+      `<h1>Your OTP is ${otp}</h1>`
+    );
+
+    if (!isMailSent) {
+      return errorResponse(res, 500, "Failed to send OTP");
+    }
+
+    return successResponse(res, {}, "OTP sent successfully");
+
   } catch (err) {
     console.error("Generate OTP Error:", err.message);
     return catchResponse(res);
   }
 };
 
-module.exports = { login, createUser, getUser, updateUser, deleteUser };
+module.exports = { login, createUser, getUser, updateUser, deleteUser, createSuperAdmin, sendOTPEmail };
