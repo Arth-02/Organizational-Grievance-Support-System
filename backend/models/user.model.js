@@ -66,6 +66,7 @@ const UserSchema = new mongoose.Schema(
     is_deleted: {
       type: Boolean,
       default: false,
+      select: false,
     },
     last_login: {
       type: Date,

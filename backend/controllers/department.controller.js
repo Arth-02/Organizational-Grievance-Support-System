@@ -170,24 +170,78 @@ async function getDepartmentById(req, res) {
   }
 }
 
-// Delete a department
-async function deleteDepartment(req, res) {
-  const { id } = req.params;
-  const { organization_id } = req.user;
-  if (!isValidObjectId(id)) {
-    return errorResponse(res, 400, "Invalid department ID");
-  }
+const deleteDepartmentSchema = Joi.object({
+  replace_department_id: Joi.string().trim(),
+});
+
+const deleteDepartment = async (req, res) => {
+  const session = await mongoose.startSession();
 
   try {
-    const department = await Department.findOneAndDelete({_id: id, organization_id});
+    session.startTransaction();
+    const { organization_id } = req.user;
+    const { error, value } = deleteDepartmentSchema.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+
+    const id = req.params.id;
+
+    const { replace_department_id } = value;
+
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
+
+    const department = await Department.findOne({ _id: id, organization_id }).session(session);
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }
-    return successResponse(res, department, "Department deleted successfully");
-  } catch (error) {
+
+    if (replace_department_id) {
+      if (!isValidObjectId(replace_department_id)) {
+        return errorResponse(res, 400, "Invalid replace_department_id");
+      }
+
+      const replaceDepartment = await Department.findOne({
+        _id: replace_department_id,
+        organization_id,
+      }).session(session);
+      if (!replaceDepartment) {
+        return errorResponse(res, 404, "Replace department not found");
+      }
+
+      const userUpdate = await User.updateMany(
+        { department: id, organization_id },
+        { department: replace_department_id }
+      ).session(session);
+
+      if (userUpdate.modifiedCount === 0) {
+        return errorResponse(res, 404, "No users found to update");
+      }
+    } else {
+      const userExist = await User.findOne({ department: id, organization_id }).session(session);
+      if (userExist) {
+        return errorResponse(res, 400, "Department is assigned to a user");
+      }
+    }
+
+    await Department.findOneAndDelete({ _id: id, organization_id }).session(session);
+    await session.commitTransaction();
+    return successResponse(res, {}, "Department deleted successfully");
+  } catch (err) {
+    await session.abortTransaction();
+    console.error(err);
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
-}
+};
+
 
 module.exports = {
   createDepartment,

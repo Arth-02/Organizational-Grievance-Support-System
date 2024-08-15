@@ -96,7 +96,6 @@ const createUserSchema = Joi.object({
   lastname: Joi.string().trim().required(),
   department: Joi.string().trim().required(),
   employee_id: Joi.string().trim().required(),
-  organization_id: Joi.string().trim().required(),
   phone_number: Joi.string().trim().allow(""),
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
@@ -108,6 +107,7 @@ const createUserSchema = Joi.object({
 // @access Public
 async function createUser(req, res) {
   try {
+    const { organization_id } = req.user;
     // Validate request body.
     const { error, value } = createUserSchema.validate(req.body, {
       abortEarly: false,
@@ -126,7 +126,6 @@ async function createUser(req, res) {
       lastname,
       department,
       employee_id,
-      organization_id,
       phone_number,
       is_active,
       special_permission_id,
@@ -135,6 +134,7 @@ async function createUser(req, res) {
     // Check if user already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }, { employee_id }],
+      organization_id,
     });
     if (existingUser) {
       return errorResponse(
@@ -204,6 +204,7 @@ async function createUser(req, res) {
 // @access Private
 async function getUser(req, res) {
   try {
+    const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
     if (!id) {
       return errorResponse(res, 400, "User id is required");
@@ -211,7 +212,7 @@ async function getUser(req, res) {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const user = await User.findById(id).select(
+    const user = await User.findById(id, organization_id).select(
       "-createdAt -updatedAt -last_login -is_active -is_deleted"
     );
     if (!user) {
@@ -231,7 +232,6 @@ const updateUserSchema = Joi.object({
   lastname: Joi.string().trim(),
   phone_number: Joi.string().trim().allow(""),
   username: Joi.string().trim().alphanum().min(3).max(30),
-  organization_id: Joi.string().trim().required(),
 });
 
 // @route PUT /api/profile
@@ -239,6 +239,7 @@ const updateUserSchema = Joi.object({
 // @access Private
 async function updateUser(req, res) {
   try {
+    const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
     const { error, value } = updateUserSchema.validate(req.body, {
       abortEarly: false,
@@ -248,9 +249,13 @@ async function updateUser(req, res) {
       return errorResponse(res, 400, "Validation error", errors);
     }
     // Find and update the user
-    const user = await User.findByIdAndUpdate(req.user.id, value, {
-      new: true,
-    });
+    const user = await User.findOneAndUpdate(
+      { _id: id, organization_id },
+      value,
+      {
+        new: true,
+      }
+    );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -264,6 +269,7 @@ async function updateUser(req, res) {
 
 const deleteUser = async (req, res) => {
   try {
+    const { organization_id } = req.user;
     const id = req.params.id;
     if (!id) {
       return errorResponse(res, 400, "User id is required");
@@ -271,7 +277,10 @@ const deleteUser = async (req, res) => {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const user = await User.findByIdAndUpdate(id, { is_deleted: true });
+    const user = await User.findOneAndUpdate(
+      { _id: id, organization_id },
+      { is_active: false, is_deleted: true }
+    );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -320,7 +329,7 @@ const createSuperAdmin = async (req, res) => {
       phone_number,
       is_active,
       special_permission_id,
-      otp
+      otp,
     } = value;
 
     const organization = await Organization.findById(organization_id).session(
@@ -343,8 +352,9 @@ const createSuperAdmin = async (req, res) => {
       $and: [
         {
           $or: [{ email }, { username }, { employee_id }],
-        }, 
-        { organization_id }],
+        },
+        { organization_id },
+      ],
     }).session(session);
     if (existing) {
       return errorResponse(
@@ -382,8 +392,7 @@ const createSuperAdmin = async (req, res) => {
       organization_id,
       special_permission_id,
     });
-
-    const temp = await superAdmin.save({ session });
+    await superAdmin.save({ session });
     await session.commitTransaction();
     return successResponse(res, superAdmin, "Super Admin created successfully");
   } catch (err) {
@@ -433,17 +442,23 @@ const sendOTPEmail = async (req, res) => {
       "Email Verification",
       `<h1>Your OTP is ${otp}</h1>`
     );
-
     if (!isMailSent) {
       return errorResponse(res, 500, "Failed to send OTP");
     }
 
     return successResponse(res, {}, "OTP sent successfully");
-
   } catch (err) {
     console.error("Generate OTP Error:", err.message);
     return catchResponse(res);
   }
 };
 
-module.exports = { login, createUser, getUser, updateUser, deleteUser, createSuperAdmin, sendOTPEmail };
+module.exports = {
+  login,
+  createUser,
+  getUser,
+  updateUser,
+  deleteUser,
+  createSuperAdmin,
+  sendOTPEmail,
+};

@@ -5,7 +5,7 @@ const {
   getAllOrganizationDepartments,
   getDepartmentById,
 } = require("../controllers/department.controller");
-const { checkPermission, isLoggedIn, verifyOrganization } = require("../middlewares/auth.middleware");
+const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware");
 
 const router = require("express").Router();
 

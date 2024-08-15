@@ -108,20 +108,5 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
-// User can update only their own organization data
 
-const verifyOrganization = async (req, res, next) => {
-  try {
-    const organization_id = req.body.organization_id;
-    if (req.user.organization_id == organization_id) {
-      next();
-    } else {
-      return errorResponse( res, 403, "Unauthorized Organization" );
-    }
-  } catch (err) {
-    console.error(err);
-    return catchResponse(res);
-  }
-}
-
-module.exports = { checkRole, checkPermission, isLoggedIn, verifyOrganization };
+module.exports = { checkRole, checkPermission, isLoggedIn };
