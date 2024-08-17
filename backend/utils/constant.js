@@ -72,6 +72,10 @@ const VIEW_PERMISSION = {
   name: "View Permission",
   id: 18,
 };
+const VIEW_DEPARTMENT = {
+  name: "View Department",
+  id: 19,
+};
 
 const PERMISSIONS = [
   ADD_USER,
@@ -92,9 +96,10 @@ const PERMISSIONS = [
   VIEW_ROLE,
   UPDATE_PERMISSION,
   VIEW_PERMISSION,
+  VIEW_DEPARTMENT,
 ];
 
-const DEFAULT_ADMIN_PERMISSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+const DEFAULT_ADMIN_PERMISSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
 module.exports = {
   DEV,
@@ -112,5 +117,6 @@ module.exports = {
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,
   UPDATE_ORGANIZATION,
-  DEFAULT_ADMIN_PERMISSIONS
+  DEFAULT_ADMIN_PERMISSIONS,
+  VIEW_DEPARTMENT,
 };
