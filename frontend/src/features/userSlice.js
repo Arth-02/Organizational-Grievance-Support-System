@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { userApi } from "../services/user.service";
+import { apiService } from "../services/api.service";
 
 const initialState = {
   user: null,
@@ -15,7 +15,7 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addMatcher(
-      userApi.endpoints.userLogin.matchFulfilled,
+      apiService.endpoints.userLogin.matchFulfilled,
       (state, action) => {
         state.user = action.payload;
       }

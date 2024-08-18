@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getFromLocalStorage } from '../utils'
-import { useGetProfileQuery, useGetUserDetailsQuery } from '../services/user.service'
+import { useGetProfileQuery, useGetUserDetailsQuery } from '../services/api.service'
 
 
 const Page = () => {
