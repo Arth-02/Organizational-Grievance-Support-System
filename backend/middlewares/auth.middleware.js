@@ -24,7 +24,6 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     }
 
     req.user = user;
-    console.log(req.user);
 
     // Check if the decoded token role is in the allowedRoles array
     if (( req.user && allowedRoles.includes(req.user.role.name)) || req.user.role.name === DEV ) {
