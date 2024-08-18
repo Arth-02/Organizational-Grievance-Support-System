@@ -1,6 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setUserDetails } from "../features/userSlice";
-
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -18,11 +16,41 @@ export const userApi = createApi({
         return response;
       },
       transformResponse: (response) => {
-        // setUserDetails(response.data.data);
         return response.data;
       },
     }),
+    getProfile: builder.query({
+      query:(body)=>({
+        headers:{
+          Authorization:`Bearer ${body.token}`
+        },
+        url:"profile",
+        method:"GET",
+      }),
+      transformErrorResponse: (response) => {
+        return response;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+    }),
+    getUserDetails: builder.query({
+      query:(body)=>({
+        headers:{
+          Authorization:`Bearer ${body.token}`
+        },
+        url:`/details/${body.userId}`,
+        method:"GET",
+      }),
+      transformErrorResponse: (response) => {
+        return response;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+    })
+
   }),
 });
 
-export const { useUserLoginMutation } = userApi;
+export const { useUserLoginMutation,useGetProfileQuery,useGetUserDetailsQuery } = userApi;

@@ -82,6 +82,7 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
 // Check user is logged in
 const isLoggedIn = async (req, res, next) => {
   try {
+    console.log("Request Headers:", req.headers);
     const authorizationHeader = req.headers["authorization"];
     if (!authorizationHeader) {
       return errorResponse(res, 401, "Unauthorized: No token provided");
@@ -95,11 +96,14 @@ const isLoggedIn = async (req, res, next) => {
 
     const id = decoded.user.id;
     const user = await User.findById(id);
+
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
 
     req.user = user;
+    console.log("User:", req.user);
+
     next();
   } catch (err) {
     console.error(err);

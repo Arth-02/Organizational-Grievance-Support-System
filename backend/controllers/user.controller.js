@@ -74,7 +74,7 @@ async function login(req, res) {
       username: user.username,
       email: user.email,
       role: user.role,
-      fullName: user.fullName,
+      organization_id: user.organization_id,
       token,
     };
 
@@ -206,18 +206,21 @@ async function getUser(req, res) {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
+    console.log("ID:", id);
+    console.log("Organization ID:", organization_id);
     if (!id) {
       return errorResponse(res, 400, "User id is required");
     }
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const user = await User.findById(id, organization_id).select(
+    const user = await User.findOne({_id: id, organization_id}).select(
       "-createdAt -updatedAt -last_login -is_active -is_deleted"
     );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
+    console.log("User:", user);
 
     return successResponse(res, user, "Profile retrieved successfully");
   } catch (err) {

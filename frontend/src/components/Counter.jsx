@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useUserLoginMutation } from "../services/user.service";
-import { useDispatch } from "react-redux";
+import { saveToLocalStorage } from "../utils";
 
 export function Counter() {
   const [user, setUser] = useState(null);
-  const usedispatch = useDispatch();
   const form = {
-    email: "justicejunction1111@gmail.com",
+    email: "test@test.com",
     password: "1234567",
   };
 
@@ -18,7 +17,8 @@ export function Counter() {
     try {
       const result = await login(form);
       setUser(result.data);
-      usedispatch(setUserDetails("user",result.data));
+      saveToLocalStorage("user", result.data);
+      // usedispatch(setUserDetails(result.data));
     } catch (error) {
       console.log("Error:", error);
     }
