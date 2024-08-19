@@ -19,6 +19,12 @@ const userSlice = createSlice({
       (state, action) => {
         state.user = action.payload;
       }
+    )
+    .addMatcher(
+      apiService.endpoints.createSuperAdmin.matchFulfilled,
+      (state, action) => {
+        state.user = action.payload;
+      }
     );
   },
 });

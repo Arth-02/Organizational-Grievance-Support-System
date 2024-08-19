@@ -4,7 +4,7 @@ const baseUrl = import.meta.env.VITE_BASE_URL;
 
 export const apiService = createApi({
   reducerPath: "apiService",
-  baseQuery: fetchBaseQuery({ baseUrl: baseUrl}),
+  baseQuery: fetchBaseQuery({ baseUrl: baseUrl }),
   endpoints: (builder) => ({
     userLogin: builder.mutation({
       query: (body) => ({
@@ -163,7 +163,7 @@ export const apiService = createApi({
         return response.data;
       },
     }),
-    createRole : builder.mutation({
+    createRole: builder.mutation({
       query: (body) => ({
         headers: {
           Authorization: `Bearer ${body.token}`,
@@ -210,7 +210,7 @@ export const apiService = createApi({
         return response.data;
       },
     }),
-    updateRole:builder.mutation({
+    updateRole: builder.mutation({
       query: (body) => ({
         headers: {
           Authorization: `Bearer ${body.token}`,

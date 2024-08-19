@@ -396,8 +396,30 @@ const createSuperAdmin = async (req, res) => {
       special_permission_id,
     });
     await superAdmin.save({ session });
+    const payload = {
+      user: {
+        id: superAdmin.id,
+      },
+    };
+    const tokenExpiration = "8d";
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: tokenExpiration,
+    });
+
+    const userData = {
+      id: superAdmin._id,
+      username: superAdmin.username,
+      email: superAdmin.email,
+      role: superAdmin.role,
+      fullName: superAdmin.fullName,
+      employee_id: superAdmin.employee_id,
+      department: superAdmin.department,
+      token,
+    };
+
     await session.commitTransaction();
-    return successResponse(res, superAdmin, "Super Admin created successfully");
+    return successResponse(res, userData, "Super Admin created successfully");
   } catch (err) {
     console.error("Create Super Admin Error:", err.message);
     await session.abortTransaction();
