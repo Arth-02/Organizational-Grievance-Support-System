@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { checkUsername } from "../../../backend/controllers/user.controller";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -304,6 +305,54 @@ export const apiService = createApi({
         return response.data;
       },
     }),
+    checkUsername: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "users/checkusername",
+        method: "POST",
+        body,
+      }),
+      transformErrorResponse: (response) => {
+        return response;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      }
+    }),
+    checkEmail: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "users/checkemail",
+        method: "POST",
+        body,
+      }),
+      transformErrorResponse: (response) => {
+        return response;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      }
+    }),
+    checkEmployeeID: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "users/checkemployeeid",
+        method: "POST",
+        body,
+      }),
+      transformErrorResponse: (response) => {
+        return response;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      }
+    }),
   }),
 });
 
@@ -328,4 +377,7 @@ export const {
   useUpdateUserMutation,
   useUpdateUserSelfMutation,
   useDeleteUserMutation,
+  useCheckUsernameMutation,
+  useCheckEmailMutation,
+  useCheckEmployeeIDMutation,
 } = apiService;

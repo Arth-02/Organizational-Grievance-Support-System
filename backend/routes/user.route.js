@@ -7,6 +7,9 @@ const {
   deleteUser,
   createSuperAdmin,
   sendOTPEmail,
+  checkUsername,
+  checkEmail,
+  checkEmployeeID,
 } = require("../controllers/user.controller");
 const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware");
 
@@ -21,5 +24,9 @@ router.delete("/delete/:id",checkPermission([3]), deleteUser);
 
 router.post("/create-super-admin", createSuperAdmin);
 router.post("/generate-otp", sendOTPEmail);
+
+router.post("/checkusername",checkPermission([1]) ,checkUsername);
+router.post("/checkemail",checkPermission([1]) ,checkEmail);
+router.post("/checkemployeeid",checkPermission([1]) ,checkEmployeeID);
 
 module.exports = router;

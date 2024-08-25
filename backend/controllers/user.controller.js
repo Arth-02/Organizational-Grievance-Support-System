@@ -478,6 +478,58 @@ const sendOTPEmail = async (req, res) => {
   }
 };
 
+// Checl if username exists
+const checkUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const { organization_id } = req.user;
+    const user = await User.findOne({ username, organization_id,is_deleted: false });
+    if (user) {
+      return successResponse(res, { exists: true }, "Username exists");
+    }
+    return successResponse(res, { exists: false }, "Username available");
+  }
+  catch (err) {
+    console.error("Check Username Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// Check if email exists
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const { organization_id } = req.user;
+    const user = await User.findOne({ email, organization_id,is_deleted: false });
+    if (user) {
+      return successResponse(res, { exists: true }, "Email exists");
+    }
+    return successResponse(res, { exists: false }, "Email available");
+  }
+  catch (err) {
+    console.error("Check Email Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// Check if employee ID exists
+
+const checkEmployeeID = async (req, res) => {
+  try {
+    const { employee_id } = req.body;
+    const { organization_id } = req.user;
+    const user = await User.findOne({ employee_id, organization_id,is_deleted: false });
+    if (user) {
+      return successResponse(res, { exists: true }, "Employee ID exists");
+    }
+    return successResponse(res, { exists: false }, "Employee ID available");
+  }
+  catch (err) {
+    console.error("Check Employee ID Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -486,4 +538,7 @@ module.exports = {
   deleteUser,
   createSuperAdmin,
   sendOTPEmail,
+  checkUsername,
+  checkEmail,
+  checkEmployeeID,
 };
