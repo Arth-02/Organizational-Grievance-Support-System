@@ -22,12 +22,9 @@ const loginSchema = Joi.object({
   rememberMe: Joi.boolean().default(false),
 });
 
-// @route POST /api/auth/login
-// @desc Login user
-// @access Public
+// Login user
 async function login(req, res) {
   try {
-    // Validate request body
     const { error, value } = loginSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -102,9 +99,7 @@ const createUserSchema = Joi.object({
   special_permission_id: Joi.array().default([]),
 });
 
-// @route POST /api/auth/create
-// @desc Create new user
-// @access Public
+// Create new user
 async function createUser(req, res) {
   try {
     const { organization_id } = req.user;
@@ -199,9 +194,7 @@ async function createUser(req, res) {
   }
 }
 
-// @route GET /api/profile
-// @desc Get user profile
-// @access Private
+// Get user profile
 async function getUser(req, res) {
   try {
     const { organization_id } = req.user;
@@ -237,9 +230,7 @@ const updateUserSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30),
 });
 
-// @route PUT /api/profile
-// @desc Update user profile
-// @access Private
+// Update user profile
 async function updateUser(req, res) {
   try {
     const { organization_id } = req.user;
@@ -270,6 +261,7 @@ async function updateUser(req, res) {
   }
 }
 
+// Delete user
 const deleteUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
@@ -295,6 +287,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Joi validation schema for creating super admin
 const superAdminSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
   email: Joi.string().trim().email().required(),
@@ -310,6 +303,7 @@ const superAdminSchema = Joi.object({
   otp: Joi.string().trim().required(),
 });
 
+// Create super admin
 const createSuperAdmin = async (req, res) => {
   const session = await mongoose.startSession();
   try {
@@ -429,6 +423,7 @@ const createSuperAdmin = async (req, res) => {
   }
 };
 
+// Send OTP to email
 const sendOTPEmail = async (req, res) => {
   try {
     const { organization_id } = req.body;
@@ -478,10 +473,19 @@ const sendOTPEmail = async (req, res) => {
   }
 };
 
-// Checl if username exists
+// Check if username exists
 const checkUsername = async (req, res) => {
   try {
-    const { username } = req.body;
+    const schema = Joi.object({
+      username: Joi.string().trim().min(3).max(30).required(),
+    })
+    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+    const { username } = value;
+
     const { organization_id } = req.user;
     const user = await User.findOne({ username, organization_id,is_deleted: false });
     if (user) {
@@ -498,7 +502,16 @@ const checkUsername = async (req, res) => {
 // Check if email exists
 const checkEmail = async (req, res) => {
   try {
-    const { email } = req.body;
+    const schema = Joi.object({
+      email: Joi.string().trim().email().required(),
+    })
+    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+    const { email } = value;
+    
     const { organization_id } = req.user;
     const user = await User.findOne({ email, organization_id,is_deleted: false });
     if (user) {
@@ -513,10 +526,17 @@ const checkEmail = async (req, res) => {
 };
 
 // Check if employee ID exists
-
 const checkEmployeeID = async (req, res) => {
   try {
-    const { employee_id } = req.body;
+    const schema = Joi.object({
+      employee_id: Joi.string().trim().required(),
+    })
+    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+    const { employee_id } = value;
     const { organization_id } = req.user;
     const user = await User.findOne({ employee_id, organization_id,is_deleted: false });
     if (user) {
