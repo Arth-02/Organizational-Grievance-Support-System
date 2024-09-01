@@ -1,58 +1,147 @@
-const Grievance = require("../models/Grievance");
+const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
+const Attachment = require("../models/attachment.model");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const cloudinary = require("../helpers/cloudinary");
+
+const options = {
+  use_filename: true,
+  unique_filename: false,
+  overwrite: true,
+};
+
 const {
   successResponse,
   errorResponse,
   catchResponse,
 } = require("../utils/response");
+const Joi = require("joi");
+const upload = require("../helpers/upload");
 
-const grievanceSchema = Joi.object({
-  title: Joi.string().required().min(5).max(100),
-  description: Joi.string().required().min(10).max(1000),
-  department: Joi.string().required().hex().length(24),
+const uploadFiles = upload.array("attachments", 5);
+
+const createGrievanceSchema = Joi.object({
+  title: Joi.string().min(5).max(100).required(),
+  description: Joi.string().min(10).max(1000).required(),
   severity: Joi.string().valid("low", "medium", "high").required(),
-  attachments: Joi.array().items(Joi.string().hex().length(24)),
+  attachments: Joi.array().items(Joi.object()),
+  status: Joi.string()
+    .valid(
+      "submitted",
+      "reviewing",
+      "assigned",
+      "in-progress",
+      "resolved",
+      "dismissed"
+    )
+    .default("submitted")
+    .required(),
 });
 
 async function createGrievance(req, res) {
-  try {
-    // Validate input
-    const { error } = grievanceSchema.validate(req.body);
-    if (error) {
-      return errorResponse(res, 400, error.details[0].message);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  console.log("Creating grievance...");
+  uploadFiles(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer Error:", err.message, err);
+      return errorResponse(res, 400, err.message);
+    } else if (err) {
+      console.error("Upload Error:", err.message, err);
+      return errorResponse(res, 400, err.message);
     }
 
-    const { title, description, department, severity, attachments } = req.body;
+    try {
+      // Validate input
+      const { error, value } = createGrievanceSchema.validate(req.body);
+      if (error) {
+        await session.abortTransaction();
+        return errorResponse(res, 400, error.details[0].message);
+      }
 
-    // Check if department exists
-    const departmentExists = await Department.findById(department);
-    if (!departmentExists) {
-      return errorResponse(res, 400, "Invalid department");
+      const { title, description, severity, status } = value;
+      const { organization_id, department } = req.user;
+      const reported_by = req.user._id;
+
+      // Check if department exists
+      const departmentExists = await Department.findOne({
+        organization_id,
+        _id: department,
+      });
+      if (!departmentExists) {
+        return errorResponse(res, 400, "Invalid department");
+      }
+
+      const newGrievance = new Grievance({
+        organization_id,
+        title,
+        description,
+        department_id: department,
+        severity,
+        status,
+        reported_by,
+      });
+      // console.log("Creating grievance...");
+      // console.log("Title:", title);
+      // console.log("Description:", description);
+      // console.log("Severity:", severity);
+      // console.log("Status:", status);
+      // console.log("Organization ID:", organization_id);
+      // console.log("Department ID:", department);
+      // console.log("Reported By:", reported_by);
+      // console.log("Attachments:", req.files);
+      // return successResponse(res, null, "Grievance created successfully");
+
+      let attachmentIds = [];
+      if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+          console.log("Uploading attachment...");
+          console.log("File:", file);
+          console.log("File Path:", file.path);
+          // const result = await cloudinary.uploader.upload(file.path, options);
+          // if (!result) {
+          //   await session.abortTransaction();
+          //   return errorResponse(res, 400, "Error uploading attachments");
+          // }
+          // const newAttachment = new Attachment({
+          //   filename: file.originalname,
+          //   filetype: file.mimetype,
+          //   filesize: file.size,
+          //   url: result.secure_url,
+          //   grievance_id: newGrievance._id,
+          //   organization_id,
+          //   uploaded_by: req.user._id,
+          // });
+          // const savedAttachment = await newAttachment.save({ session });
+          // attachmentIds.push(savedAttachment._id);
+        }
+      }
+
+      // newGrievance.attachments = attachmentIds;
+      // await newGrievance.save();
+      session.commitTransaction();
+      return successResponse(
+        res,
+        newGrievance,
+        "Grievance created successfully"
+      );
+    } catch (err) {
+      console.error("Create Grievance Error:", err);
+      await session.abortTransaction();
+      return catchResponse(res);
+    } finally {
+      session.endSession();
     }
-
-    const newGrievance = new Grievance({
-      title,
-      description,
-      department,
-      severity,
-      reportedBy: req.user._id, // Assuming req.user is populated by auth middleware
-      attachments: attachments || [], // Only include if attachments are provided
-    });
-
-    await newGrievance.save();
-
-    return successResponse(res, newGrievance, "Grievance created successfully");
-  } catch (err) {
-    console.error("Create Grievance Error:", err);
-    return catchResponse(res);
-  }
+  });
 }
 
 // Update a grievance
 async function updateGrievance(req, res) {
   try {
     const { id } = req.params;
-    const { title, description, department, severity, status, assignedTo } = req.body;
+    const { title, description, department, severity, status, assignedTo } =
+      req.body;
 
     const grievance = await Grievance.findById(id);
     if (!grievance) {

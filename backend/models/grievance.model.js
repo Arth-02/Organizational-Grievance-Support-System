@@ -1,15 +1,35 @@
 const mongoose = require("mongoose");
 
 const GrievanceSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  department: {
+  organization_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  department_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Department",
     required: [true, "Department is required"],
   },
-  severity: { type: String, enum: ["low", "medium", "high"], required: true },
-  attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Attachment" }],
+  severity: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    required: true,
+  },
+  attachments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Attachment",
+    },
+  ],
   status: {
     type: String,
     enum: [
@@ -22,14 +42,23 @@ const GrievanceSchema = new mongoose.Schema({
     ],
     default: "submitted",
   },
-  is_active: { type: Boolean, default: true },
+  is_active: {
+    type: Boolean,
+    default: true,
+  },
   reported_by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  date_reported: { type: Date, default: Date.now },
+  assigned_to: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  date_reported: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Grievance = mongoose.model("Grievance", GrievanceSchema);

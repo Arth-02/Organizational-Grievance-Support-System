@@ -72,6 +72,7 @@ async function login(req, res) {
       email: user.email,
       role: user.role,
       organization_id: user.organization_id,
+      department: user.department,
       token,
     };
 

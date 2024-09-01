@@ -12,6 +12,8 @@ const Page = () => {
     const userId = "66b7a8e3f773873020126ddc"
     const {data:userData} = useGetProfileQuery({token})
     console.log('User Data:', userData)
+    const {data:userData2} = useGetProfileQuery({token})
+    console.log('User Data:', userData2)
     const [userDetails, setUserDetails] = useState(null)
     const response = useGetUserDetailsQuery({token,userId})
 

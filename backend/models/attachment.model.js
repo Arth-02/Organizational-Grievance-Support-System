@@ -5,9 +5,14 @@ const AttachmentSchema = new mongoose.Schema({
   filetype: { type: String, required: true },
   filesize: { type: Number, required: true },
   url: { type: String, required: true },
-  grievance: {
+  grievance_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Grievance",
+    required: true
+  },
+  organization_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Organization",
     required: true
   },
   uploaded_by: {
