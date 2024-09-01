@@ -2,14 +2,7 @@ const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
 const Attachment = require("../models/attachment.model");
 const mongoose = require("mongoose");
-const multer = require("multer");
-const cloudinary = require("../helpers/cloudinary");
-
-const options = {
-  use_filename: true,
-  unique_filename: false,
-  overwrite: true,
-};
+const uploadFiles = require("../helpers/cloudinary");
 
 const {
   successResponse,
@@ -17,9 +10,6 @@ const {
   catchResponse,
 } = require("../utils/response");
 const Joi = require("joi");
-const upload = require("../helpers/upload");
-
-const uploadFiles = upload.array("attachments", 5);
 
 const createGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100).required(),
@@ -43,97 +33,68 @@ async function createGrievance(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
   console.log("Creating grievance...");
-  uploadFiles(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      console.error("Multer Error:", err.message, err);
-      return errorResponse(res, 400, err.message);
-    } else if (err) {
-      console.error("Upload Error:", err.message, err);
-      return errorResponse(res, 400, err.message);
-    }
-
-    try {
-      // Validate input
-      const { error, value } = createGrievanceSchema.validate(req.body);
-      if (error) {
-        await session.abortTransaction();
-        return errorResponse(res, 400, error.details[0].message);
-      }
-
-      const { title, description, severity, status } = value;
-      const { organization_id, department } = req.user;
-      const reported_by = req.user._id;
-
-      // Check if department exists
-      const departmentExists = await Department.findOne({
-        organization_id,
-        _id: department,
-      });
-      if (!departmentExists) {
-        return errorResponse(res, 400, "Invalid department");
-      }
-
-      const newGrievance = new Grievance({
-        organization_id,
-        title,
-        description,
-        department_id: department,
-        severity,
-        status,
-        reported_by,
-      });
-      // console.log("Creating grievance...");
-      // console.log("Title:", title);
-      // console.log("Description:", description);
-      // console.log("Severity:", severity);
-      // console.log("Status:", status);
-      // console.log("Organization ID:", organization_id);
-      // console.log("Department ID:", department);
-      // console.log("Reported By:", reported_by);
-      // console.log("Attachments:", req.files);
-      // return successResponse(res, null, "Grievance created successfully");
-
-      let attachmentIds = [];
-      if (req.files && req.files.length > 0) {
-        for (const file of req.files) {
-          console.log("Uploading attachment...");
-          console.log("File:", file);
-          console.log("File Path:", file.path);
-          // const result = await cloudinary.uploader.upload(file.path, options);
-          // if (!result) {
-          //   await session.abortTransaction();
-          //   return errorResponse(res, 400, "Error uploading attachments");
-          // }
-          // const newAttachment = new Attachment({
-          //   filename: file.originalname,
-          //   filetype: file.mimetype,
-          //   filesize: file.size,
-          //   url: result.secure_url,
-          //   grievance_id: newGrievance._id,
-          //   organization_id,
-          //   uploaded_by: req.user._id,
-          // });
-          // const savedAttachment = await newAttachment.save({ session });
-          // attachmentIds.push(savedAttachment._id);
-        }
-      }
-
-      // newGrievance.attachments = attachmentIds;
-      // await newGrievance.save();
-      session.commitTransaction();
-      return successResponse(
-        res,
-        newGrievance,
-        "Grievance created successfully"
-      );
-    } catch (err) {
-      console.error("Create Grievance Error:", err);
+  try {
+    const { error, value } = createGrievanceSchema.validate(req.body);
+    if (error) {
       await session.abortTransaction();
-      return catchResponse(res);
-    } finally {
-      session.endSession();
+      return errorResponse(res, 400, error.details[0].message);
     }
-  });
+
+    const { title, description, severity, status } = value;
+    const { organization_id, department } = req.user;
+    const reported_by = req.user._id;
+
+    const departmentExists = await Department.findOne({
+      organization_id,
+      _id: department,
+    });
+    if (!departmentExists) {
+      return errorResponse(res, 400, "Invalid department");
+    }
+
+    let newGrievance = new Grievance({
+      organization_id,
+      title,
+      description,
+      department_id: department,
+      severity,
+      status,
+      reported_by,
+    });
+    let attachmentIds = [];
+    if (req.files && req.files.length > 0) {
+      for (let file of req.files) {
+        const result = await uploadFiles(file, organization_id);
+        if (!result) {
+          await session.abortTransaction();
+          return errorResponse(res, 400, "Error uploading attachments");
+        }
+        const newAttachment = new Attachment({
+          filename: file.originalname,
+          public_id: result.public_id,
+          filetype: file.mimetype,
+          filesize: file.size,
+          url: result.secure_url,
+          grievance_id: newGrievance._id,
+          organization_id,
+          uploaded_by: req.user._id,
+        });
+        const savedAttachment = await newAttachment.save({ session });
+        attachmentIds.push(savedAttachment._id);
+      }
+    }
+
+    newGrievance.attachments = attachmentIds;
+    await newGrievance.save({ session });
+    session.commitTransaction();
+    return successResponse(res, newGrievance, "Grievance created successfully");
+  } catch (err) {
+    console.error("Create Grievance Error:", err);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
 }
 
 // Update a grievance

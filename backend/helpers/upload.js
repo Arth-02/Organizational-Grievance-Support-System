@@ -1,14 +1,11 @@
 const multer = require("multer");
 const path = require("path");
 
-// Set up memory storage engine
 const storage = multer.memoryStorage();
 
-// Initialize upload
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    // Check file type
     const filetypes = /jpeg|jpg|png|pdf|mp4|avi|mov|wmv/;
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase()
@@ -25,8 +22,6 @@ const upload = multer({
       } else if (/mp4|avi|mov|wmv/.test(file.mimetype)) {
         maxSize = 25 * 1024 * 1024; // 25MB for videos
       }
-      console.log("Kunj");
-
       if (file.size > maxSize) {
         return cb(
           new Error(
@@ -36,7 +31,6 @@ const upload = multer({
           )
         );
       }
-
       return cb(null, true);
     } else {
       return cb(new Error("Error: Only images, PDFs, and videos are allowed!"));
