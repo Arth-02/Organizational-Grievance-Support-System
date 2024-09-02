@@ -1,12 +1,12 @@
 const Joi = require("joi");
 
-export const loginSchema = Joi.object({
+const loginSchema = Joi.object({
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().required(),
   rememberMe: Joi.boolean().default(false),
 });
 
-export const createUserSchema = Joi.object({
+const createUserSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().min(6).required(),
@@ -21,14 +21,14 @@ export const createUserSchema = Joi.object({
   special_permission_id: Joi.array().default([]),
 });
 
-export const updateUserSchema = Joi.object({
+const updateUserSchema = Joi.object({
   firstname: Joi.string().trim(),
   lastname: Joi.string().trim(),
   phone_number: Joi.string().trim().allow(""),
   username: Joi.string().trim().alphanum().min(3).max(30),
 });
 
-export const superAdminSchema = Joi.object({
+const superAdminSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
   email: Joi.string().trim().email().required(),
   password: Joi.string().trim().min(6).required(),
@@ -42,3 +42,10 @@ export const superAdminSchema = Joi.object({
   special_permission_id: Joi.array().default([]),
   otp: Joi.string().trim().required(),
 });
+
+module.exports = {
+  loginSchema,
+  createUserSchema,
+  updateUserSchema,
+  superAdminSchema
+};

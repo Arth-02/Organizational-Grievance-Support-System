@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-export const createGrievanceSchema = Joi.object({
+const createGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100).required(),
   department_id: Joi.string().length(24).required(),
   description: Joi.string().min(10).max(1000).required(),
@@ -19,7 +19,7 @@ export const createGrievanceSchema = Joi.object({
     .required(),
 });
 
-export const updateFullGrievanceSchema = Joi.object({
+const updateFullGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100),
   description: Joi.string().min(10).max(1000),
   department_id: Joi.string(),
@@ -36,11 +36,11 @@ export const updateFullGrievanceSchema = Joi.object({
   assigned_to: Joi.string().length(24),
 });
 
-export const updateAssignedGrievanceSchema = Joi.object({
+const updateAssignedGrievanceSchema = Joi.object({
   assigned_to: Joi.string().length(24).required(),
 });
 
-export const updateStatusGrievanceSchema = Joi.object({
+const updateStatusGrievanceSchema = Joi.object({
   status: Joi.string()
     .valid(
       "submitted",
@@ -52,3 +52,10 @@ export const updateStatusGrievanceSchema = Joi.object({
     )
     .required(),
 });
+
+module.exports = {
+  createGrievanceSchema,
+  updateFullGrievanceSchema,
+  updateAssignedGrievanceSchema,
+  updateStatusGrievanceSchema
+};
