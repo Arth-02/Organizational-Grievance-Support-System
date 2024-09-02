@@ -1,4 +1,3 @@
-const Joi = require("joi");
 const Organization = require("../models/organization.model");
 const { errorResponse, successResponse, catchResponse } = require("../utils/response");
 const { organizationSchema, updateOrganizationSchema } = require("../validators/organization.validator");

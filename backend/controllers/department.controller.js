@@ -1,4 +1,3 @@
-const Joi = require("joi");
 const mongoose = require("mongoose");
 const Department = require("../models/department.model");
 const Organization = require("../models/organization.model");

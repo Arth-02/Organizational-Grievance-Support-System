@@ -1,4 +1,3 @@
-const Joi = require("joi");
 const Role = require("../models/role.model");
 const User = require("../models/user.model");
 const { DEFAULT_PERMISSIONS } = require("../utils/constant");

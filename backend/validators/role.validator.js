@@ -1,3 +1,5 @@
+const Joi = require("joi");
+
 export const createRoleSchema = Joi.object({
   name: Joi.string().trim().required(),
   permission_id: Joi.array().items(Joi.number()).required(),

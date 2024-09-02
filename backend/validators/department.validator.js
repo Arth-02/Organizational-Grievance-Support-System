@@ -1,3 +1,5 @@
+const Joi = require("joi");
+
 export const departmentSchema = Joi.object({
   name: Joi.string().required().trim(),
   description: Joi.string().required().trim(),

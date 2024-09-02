@@ -1,3 +1,5 @@
+const Joi = require("joi");
+
 export const organizationSchema = Joi.object({
   name: Joi.string().trim().required(),
   email: Joi.string().trim().email().required(),

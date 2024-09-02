@@ -1,3 +1,5 @@
+const Joi = require("joi");
+
 export const createGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100).required(),
   department_id: Joi.string().length(24).required(),
