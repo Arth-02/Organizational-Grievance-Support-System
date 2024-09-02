@@ -1,65 +1,70 @@
 const mongoose = require("mongoose");
 
-const GrievanceSchema = new mongoose.Schema({
-  organization_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Organization",
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  department_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Department",
-    required: [true, "Department is required"],
-  },
-  severity: {
-    type: String,
-    enum: ["low", "medium", "high"],
-    required: true,
-  },
-  attachments: [
-    {
+const GrievanceSchema = new mongoose.Schema(
+  {
+    organization_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Attachment",
+      ref: "Organization",
+      required: true,
     },
-  ],
-  status: {
-    type: String,
-    enum: [
-      "submitted",
-      "reviewing",
-      "assigned",
-      "in-progress",
-      "resolved",
-      "dismissed",
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    department_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      required: [true, "Department is required"],
+    },
+    severity: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      required: true,
+    },
+    attachments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Attachment",
+      },
     ],
-    default: "submitted",
+    status: {
+      type: String,
+      enum: [
+        "submitted",
+        "reviewing",
+        "assigned",
+        "in-progress",
+        "resolved",
+        "dismissed",
+      ],
+      default: "submitted",
+    },
+    is_active: {
+      type: Boolean,
+      default: true,
+    },
+    reported_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    assigned_to: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
-  is_active: {
-    type: Boolean,
-    default: true,
-  },
-  reported_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  assigned_to: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  date_reported: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: {
+      createdAt: "date_reported",
+      updatedAt: "updated_at",
+    },
+    versionKey: false,
+  }
+);
 
 const Grievance = mongoose.model("Grievance", GrievanceSchema);
 

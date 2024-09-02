@@ -236,6 +236,9 @@ async function updateUser(req, res) {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
     const { error, value } = updateUserSchema.validate(req.body, {
       abortEarly: false,
     });

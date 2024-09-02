@@ -3,6 +3,7 @@ const Department = require("../models/department.model");
 const Attachment = require("../models/attachment.model");
 const mongoose = require("mongoose");
 const uploadFiles = require("../helpers/cloudinary");
+const { isValidObjectId } = require("mongoose");
 
 const {
   successResponse,
@@ -10,9 +11,11 @@ const {
   catchResponse,
 } = require("../utils/response");
 const Joi = require("joi");
+const Role = require("../models/role.model");
 
 const createGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100).required(),
+  department_id: Joi.string().length(24).required(),
   description: Joi.string().min(10).max(1000).required(),
   severity: Joi.string().valid("low", "medium", "high").required(),
   attachments: Joi.array().items(Joi.object()),
@@ -40,13 +43,13 @@ async function createGrievance(req, res) {
       return errorResponse(res, 400, error.details[0].message);
     }
 
-    const { title, description, severity, status } = value;
-    const { organization_id, department } = req.user;
+    const { title, description, severity, status, department_id } = value;
+    const { organization_id } = req.user;
     const reported_by = req.user._id;
 
     const departmentExists = await Department.findOne({
       organization_id,
-      _id: department,
+      _id: department_id,
     });
     if (!departmentExists) {
       return errorResponse(res, 400, "Invalid department");
@@ -56,7 +59,7 @@ async function createGrievance(req, res) {
       organization_id,
       title,
       description,
-      department_id: department,
+      department_id,
       severity,
       status,
       reported_by,
@@ -97,29 +100,90 @@ async function createGrievance(req, res) {
   }
 }
 
+const updateFullGrievanceSchema = Joi.object({
+  title: Joi.string().min(5).max(100),
+  description: Joi.string().min(10).max(1000),
+  department_id: Joi.string(),
+  severity: Joi.string().valid("low", "medium", "high"),
+  status: Joi.string().valid(
+    "submitted",
+    "reviewing",
+    "assigned",
+    "in-progress",
+    "resolved",
+    "dismissed"
+  ),
+  is_active: Joi.boolean(),
+  assigned_to: Joi.string().length(24),
+});
+
+const updateAssignedGrievanceSchema = Joi.object({
+  assigned_to: Joi.string().length(24).required(),
+});
+
+const updateStatusGrievanceSchema = Joi.object({
+  status: Joi.string()
+    .valid(
+      "submitted",
+      "reviewing",
+      "assigned",
+      "in-progress",
+      "resolved",
+      "dismissed"
+    )
+    .required(),
+});
+
 // Update a grievance
 async function updateGrievance(req, res) {
   try {
     const { id } = req.params;
-    const { title, description, department, severity, status, assignedTo } =
-      req.body;
-
-    const grievance = await Grievance.findById(id);
-    if (!grievance) {
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
+    const { organization_id, role } = req.user;
+    const permissions = await Role.findById(role).select("permission_id");
+    if (!permissions) {
+      return errorResponse(res, 400, "Role not found");
+    }
+    const permission = permissions.permission_id;
+    if (permission.includes(6)) {
+      const { error } = updateFullGrievanceSchema.validate(req.body);
+      if (error) {
+        const errors = error.details.map((detail) => detail.message);
+        return errorResponse(res, 400, errors);
+      }
+      if (!isValidObjectId(req.body.department_id)) {
+        return errorResponse(res, 400, "Invalid department ID");
+      }
+    } else if (permission.includes(8)) {
+      const { error } = updateStatusGrievanceSchema.validate(req.body);
+      if (error) {
+        const errors = error.details.map((detail) => detail.message);
+        return errorResponse(res, 400, errors);
+      }
+    } else if (permission.includes(20)) {
+      const { error } = updateAssignedGrievanceSchema.validate(req.body);
+      if (error) {
+        const errors = error.details.map((detail) => detail.message);
+        return errorResponse(res, 400, errors);
+      }
+    }
+    const updatedGrievance = await Grievance.findOneAndUpdate(
+      { _id: id, organization_id },
+      req.body,
+      {
+        new: true,
+      }
+    );
+    if (!updatedGrievance) {
       return errorResponse(res, 404, "Grievance not found");
     }
-
-    // Update fields if provided
-    if (title) grievance.title = title;
-    if (description) grievance.description = description;
-    if (department) grievance.department = department;
-    if (severity) grievance.severity = severity;
-    if (status) grievance.status = status;
-    if (assignedTo) grievance.assignedTo = assignedTo;
-
-    await grievance.save();
-
-    return successResponse(res, grievance, "Grievance updated successfully");
+    return successResponse(
+      res,
+      updatedGrievance,
+      "Grievance updated successfully"
+    );
   } catch (err) {
     console.error("Update Grievance Error:", err.message);
     return catchResponse(res);
@@ -130,13 +194,16 @@ async function updateGrievance(req, res) {
 async function deleteGrievance(req, res) {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
 
     const grievance = await Grievance.findById(id);
     if (!grievance) {
       return errorResponse(res, 404, "Grievance not found");
     }
 
-    grievance.isDeleted = true;
+    // grievance.isDeleted = true;
     await grievance.save();
 
     return successResponse(res, null, "Grievance soft deleted successfully");
@@ -169,6 +236,9 @@ async function getAllGrievances(req, res) {
 async function getGrievance(req, res) {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
 
     const grievance = await Grievance.findOne({ _id: id, isDeleted: false })
       .populate("department", "name")
