@@ -14,13 +14,7 @@ const Department = require("../models/department.model");
 const { sendEmail } = require("../utils/mail");
 const { generateOTP } = require("../utils/common");
 const bcrypt = require("bcryptjs");
-
-// Joi validation schema
-const loginSchema = Joi.object({
-  email: Joi.string().trim().email().required(),
-  password: Joi.string().trim().required(),
-  rememberMe: Joi.boolean().default(false),
-});
+const { loginSchema, createUserSchema, updateUserSchema, superAdminSchema } = require("../validators/user.validator");
 
 // Login user
 async function login(req, res) {
@@ -83,22 +77,6 @@ async function login(req, res) {
     return catchResponse(res);
   }
 }
-
-// Joi validation schema for registration
-const createUserSchema = Joi.object({
-  username: Joi.string().trim().alphanum().min(3).max(30).required(),
-  email: Joi.string().trim().email().required(),
-  password: Joi.string().trim().min(6).required(),
-  role: Joi.string().trim().required(),
-  firstname: Joi.string().trim().required(),
-  lastname: Joi.string().trim().required(),
-  department: Joi.string().trim().required(),
-  employee_id: Joi.string().trim().required(),
-  phone_number: Joi.string().trim().allow(""),
-  is_active: Joi.boolean().default(true),
-  is_deleted: Joi.boolean().default(false),
-  special_permission_id: Joi.array().default([]),
-});
 
 // Create new user
 async function createUser(req, res) {
@@ -200,8 +178,6 @@ async function getUser(req, res) {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
-    console.log("ID:", id);
-    console.log("Organization ID:", organization_id);
     if (!id) {
       return errorResponse(res, 400, "User id is required");
     }
@@ -222,14 +198,6 @@ async function getUser(req, res) {
     return catchResponse(res);
   }
 }
-
-// Joi validation schema for updating profile
-const updateUserSchema = Joi.object({
-  firstname: Joi.string().trim(),
-  lastname: Joi.string().trim(),
-  phone_number: Joi.string().trim().allow(""),
-  username: Joi.string().trim().alphanum().min(3).max(30),
-});
 
 // Update user profile
 async function updateUser(req, res) {
@@ -290,22 +258,6 @@ const deleteUser = async (req, res) => {
     return catchResponse(res);
   }
 };
-
-// Joi validation schema for creating super admin
-const superAdminSchema = Joi.object({
-  username: Joi.string().trim().alphanum().min(3).max(30).required(),
-  email: Joi.string().trim().email().required(),
-  password: Joi.string().trim().min(6).required(),
-  firstname: Joi.string().trim().required(),
-  lastname: Joi.string().trim().required(),
-  employee_id: Joi.string().trim().required(),
-  organization_id: Joi.string().trim().required(),
-  phone_number: Joi.string().trim().allow(""),
-  is_active: Joi.boolean().default(true),
-  is_deleted: Joi.boolean().default(false),
-  special_permission_id: Joi.array().default([]),
-  otp: Joi.string().trim().required(),
-});
 
 // Create super admin
 const createSuperAdmin = async (req, res) => {

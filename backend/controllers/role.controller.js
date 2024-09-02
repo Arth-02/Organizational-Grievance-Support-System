@@ -8,6 +8,7 @@ const {
   catchResponse,
 } = require("../utils/response");
 const { isValidObjectId, default: mongoose } = require("mongoose");
+const { createRoleSchema, updateRoleSchema, deleteRoleSchema } = require("../validators/role.validator");
 
 // cmd function to reset all permissons for each role
 const resetPermissions = async (req, res) => {
@@ -30,11 +31,6 @@ const resetPermissions = async (req, res) => {
     return catchResponse(res);
   }
 };
-
-const createRoleSchema = Joi.object({
-  name: Joi.string().trim().required(),
-  permission_id: Joi.array().items(Joi.number()).required(),
-});
 
 const createRole = async (req, res) => {
   try {
@@ -62,11 +58,6 @@ const createRole = async (req, res) => {
     return catchResponse(res);
   }
 };
-
-const updateRoleSchema = Joi.object({
-  name: Joi.string().trim(),
-  permission_id: Joi.array().items(Joi.number()),
-});
 
 const updateRole = async (req, res) => {
   try {
@@ -119,7 +110,6 @@ const getRoleById = async (req, res) => {
 };
 
 // get all roles
-
 const getAllOrganizationsRoles = async (req, res) => {
   try {
     const { organization_id } = req.user;
@@ -133,11 +123,7 @@ const getAllOrganizationsRoles = async (req, res) => {
   }
 };
 
-// Delete role schema
-const deleteRoleSchema = Joi.object({
-  replace_role_id: Joi.string().trim(),
-});
-
+// delete role
 const deleteRole = async (req, res) => {
   const session = await mongoose.startSession();
 

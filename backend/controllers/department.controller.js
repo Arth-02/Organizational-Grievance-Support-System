@@ -9,11 +9,7 @@ const {
   successResponse,
 } = require("../utils/response");
 const { isValidObjectId } = require("mongoose");
-
-const departmentSchema = Joi.object({
-  name: Joi.string().required().trim(),
-  description: Joi.string().required().trim(),
-});
+const { departmentSchema, updateDepartmentSchema, deleteDepartmentSchema } = require("../validators/department.validator");
 
 // Create a new department
 async function createDepartment(req, res) {
@@ -56,13 +52,6 @@ async function createDepartment(req, res) {
 }
 
 // Update a department
-
-const updateDepartmentSchema = Joi.object({
-  name: Joi.string().trim(),
-  description: Joi.string().trim(),
-  is_active: Joi.boolean(),
-});
-
 async function updateDepartment(req, res) {
   try {
     const { id } = req.params;
@@ -103,7 +92,6 @@ async function updateDepartment(req, res) {
   }
 }
 
-// Get all departments
 // Get all departments
 async function getAllOrganizationDepartments(req, res) {
   try {
@@ -170,10 +158,6 @@ async function getDepartmentById(req, res) {
     return catchResponse(res);
   }
 }
-
-const deleteDepartmentSchema = Joi.object({
-  replace_department_id: Joi.string().trim(),
-});
 
 const deleteDepartment = async (req, res) => {
   const session = await mongoose.startSession();
