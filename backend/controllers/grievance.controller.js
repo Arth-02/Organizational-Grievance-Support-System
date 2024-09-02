@@ -35,7 +35,6 @@ const createGrievanceSchema = Joi.object({
 async function createGrievance(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log("Creating grievance...");
   try {
     const { error, value } = createGrievanceSchema.validate(req.body);
     if (error) {
@@ -147,31 +146,28 @@ async function updateGrievance(req, res) {
       return errorResponse(res, 400, "Role not found");
     }
     const permission = permissions.permission_id;
+
+    let schema;
     if (permission.includes(6)) {
-      const { error } = updateFullGrievanceSchema.validate(req.body);
-      if (error) {
-        const errors = error.details.map((detail) => detail.message);
-        return errorResponse(res, 400, errors);
-      }
+      schema = updateFullGrievanceSchema;
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else if (permission.includes(8)) {
-      const { error } = updateStatusGrievanceSchema.validate(req.body);
-      if (error) {
-        const errors = error.details.map((detail) => detail.message);
-        return errorResponse(res, 400, errors);
-      }
+      schema = updateStatusGrievanceSchema;
     } else if (permission.includes(20)) {
-      const { error } = updateAssignedGrievanceSchema.validate(req.body);
-      if (error) {
-        const errors = error.details.map((detail) => detail.message);
-        return errorResponse(res, 400, errors);
-      }
+      schema = updateAssignedGrievanceSchema;
     }
+
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+
     const updatedGrievance = await Grievance.findOneAndUpdate(
       { _id: id, organization_id },
-      req.body,
+      value,
       {
         new: true,
       }
@@ -203,10 +199,10 @@ async function deleteGrievance(req, res) {
       return errorResponse(res, 404, "Grievance not found");
     }
 
-    // grievance.isDeleted = true;
+    grievance.is_active = false;
     await grievance.save();
 
-    return successResponse(res, null, "Grievance soft deleted successfully");
+    return successResponse(res, null, "Grievance deleted successfully");
   } catch (err) {
     console.error("Soft Delete Grievance Error:", err.message);
     return catchResponse(res);
@@ -216,7 +212,7 @@ async function deleteGrievance(req, res) {
 // Get all non-deleted grievances
 async function getAllGrievances(req, res) {
   try {
-    const grievances = await Grievance.find({ isDeleted: false })
+    const grievances = await Grievance.find({ is_active: true })
       .populate("department", "name")
       .populate("reportedBy", "username")
       .populate("assignedTo", "username");
@@ -240,7 +236,7 @@ async function getGrievance(req, res) {
       return errorResponse(res, 400, "Invalid department ID");
     }
 
-    const grievance = await Grievance.findOne({ _id: id, isDeleted: false })
+    const grievance = await Grievance.findOne({ _id: id, is_active: true })
       .populate("department", "name")
       .populate("reportedBy", "username")
       .populate("assignedTo", "username");

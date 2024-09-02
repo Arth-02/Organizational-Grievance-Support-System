@@ -1,8 +1,8 @@
 import { Counter } from "./components/Counter";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Page from "./components/Page";
 import { io } from "socket.io-client";
-import { Button } from "./components/ui/button";
+import Login from "./components/auth/Login";
 const socket = io("http://localhost:9001");
 
 socket.on("connect", () => {
@@ -13,29 +13,16 @@ socket.on("receive_notification", (msg) => {
   console.log(msg);
 });
 
-const port = import.meta.env.VITE_BASE_URL;
+// const port = import.meta.env.VITE_BASE_URL;
 
 function App() {
-  const sendnotification = () => {
-    socket.emit("notification", "Hello");
-  };
   return (
     <>
       <BrowserRouter>
-        <div>
-          <Button
-            onClick={() => {
-              sendnotification();
-            }}
-          >
-            Click me
-          </Button>
-          <Link to="/">Home</Link>
-          <Link to="/page">Page</Link>
-        </div>
         <Routes>
           <Route path="/" element={<Counter />} />
           <Route path="/page" element={<Page />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter>
     </>
