@@ -12,12 +12,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     getProfile: builder.query({
       query: (body) => ({
@@ -27,12 +21,6 @@ export const apiService = createApi({
         url: "users/profile",
         method: "GET",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     getUserDetails: builder.query({
       query: (body) => ({
@@ -42,12 +30,6 @@ export const apiService = createApi({
         url: `users/details/${body.userId}`,
         method: "GET",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     createOrganization: builder.mutation({
       query: (body) => ({
@@ -55,12 +37,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     otpGenerate: builder.mutation({
       query: (body) => ({
@@ -68,12 +44,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     organizationVerify: builder.mutation({
       query: (body) => ({
@@ -81,12 +51,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     createSuperAdmin: builder.mutation({
       query: (body) => ({
@@ -94,12 +58,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     createDepartment: builder.mutation({
       query: (body) => ({
@@ -110,12 +68,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     getDepartmentById: builder.query({
       query: (body) => ({
@@ -125,12 +77,6 @@ export const apiService = createApi({
         url: `departments/details/${body.departmentId}`,
         method: "GET",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     updateDepartment: builder.mutation({
       query: (body) => ({
@@ -141,12 +87,6 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     deleteDepartment: builder.mutation({
       query: (body) => ({
@@ -156,12 +96,6 @@ export const apiService = createApi({
         url: `departments/delete/${body.departmentId}`,
         method: "DELETE",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     createRole: builder.mutation({
       query: (body) => ({
@@ -172,12 +106,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     getRoleById: builder.query({
       query: (body) => ({
@@ -187,12 +115,6 @@ export const apiService = createApi({
         url: `roles/details/${body.roleId}`,
         method: "GET",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     getAllOrganizationsRoles: builder.mutation({
       query: (body) => ({
@@ -203,12 +125,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     updateRole: builder.mutation({
       query: (body) => ({
@@ -219,12 +135,6 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     deleteRole: builder.mutation({
       query: (body) => ({
@@ -234,12 +144,6 @@ export const apiService = createApi({
         url: `roles/delete/${body.roleId}`,
         method: "DELETE",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     createUser: builder.mutation({
       query: (body) => ({
@@ -250,12 +154,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     updateUser: builder.mutation({
       query: (body) => ({
@@ -266,12 +164,6 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     updateUserSelf: builder.mutation({
       query: (body) => ({
@@ -282,12 +174,6 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     deleteUser: builder.mutation({
       query: (body) => ({
@@ -297,12 +183,6 @@ export const apiService = createApi({
         url: `users/delete/${body.userId}`,
         method: "DELETE",
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
     }),
     checkUsername: builder.mutation({
       query: (body) => ({
@@ -313,12 +193,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      }
     }),
     checkEmail: builder.mutation({
       query: (body) => ({
@@ -329,12 +203,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      }
     }),
     checkEmployeeID: builder.mutation({
       query: (body) => ({
@@ -345,12 +213,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformErrorResponse: (response) => {
-        return response;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      }
     }),
   }),
 });

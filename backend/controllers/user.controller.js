@@ -277,16 +277,14 @@ const createSuperAdmin = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
     const {
+      firstname,
+      lastname,
       username,
       email,
       password,
-      firstname,
-      lastname,
       employee_id,
       organization_id,
       phone_number,
-      is_active,
-      special_permission_id,
       otp,
     } = value;
 
@@ -346,9 +344,7 @@ const createSuperAdmin = async (req, res) => {
       lastname,
       employee_id,
       phone_number,
-      is_active,
       organization_id,
-      special_permission_id,
     });
     await superAdmin.save({ session });
     const payload = {

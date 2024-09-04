@@ -1,12 +1,10 @@
 import { useForm } from "react-hook-form";
 import { Button } from "../ui/button";
-import { Lock, User } from "lucide-react";
+import { Loader, Lock, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserLoginMutation } from "@/services/api.service";
 import { saveToLocalStorage } from "@/utils";
 import { toast } from "react-hot-toast";
-
-
 
 const Login = () => {
   const {
@@ -17,24 +15,26 @@ const Login = () => {
   const [login, { isLoading, isError, isSuccess }] = useUserLoginMutation();
   const navigate = useNavigate();
 
-  const onSubmit = (data) => {
-    const { username, password } = data;
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username);
-    const loginData = isEmail
-      ? { email: username, password }
-      : { username, password };
+  const onSubmit = async (data) => {
+    try {
+      const { username, password } = data;
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username);
+      const loginData = isEmail
+        ? { email: username, password }
+        : { username, password };
 
-    login(loginData)
-      .unwrap()
-      .then((result) => {
-        toast.success("Login successful");
-        saveToLocalStorage("user", result.data);
+      const response = await login(loginData).unwrap();
+      console.log(response);
+      if (response.success) {
+        toast.success(response.message);
+        saveToLocalStorage("user", response);
         navigate("/");
-      })
-      .catch((error) => {
-        toast.error("Login failed");
-        console.error("Login failed:", error);
-      });
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
   };
 
   return (
@@ -47,7 +47,10 @@ const Login = () => {
         />
         <div className="form-wrapper shadow-2xl px-5 md:px-8 max-w-[400px] w-full py-6 bg-background rounded-xl">
           <h1 className="text-center text-4xl font-bold mt-4 mb-8">Welcome!</h1>
-          <form className="w-full md:min-w-[300px]" onSubmit={handleSubmit(onSubmit)}>
+          <form
+            className="w-full md:min-w-[300px]"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div className="mb-6">
               <label
                 htmlFor="username"
@@ -57,6 +60,7 @@ const Login = () => {
               </label>
               <div className="relative">
                 <input
+                  disabled={isLoading}
                   type="text"
                   id="username"
                   className={`peer w-full pl-7 bg-transparent border-b-2 text-gray-700 focus:outline-none ${
@@ -65,7 +69,9 @@ const Login = () => {
                       : "border-gray-300 focus:border-primary focus:text-primary"
                   }`}
                   placeholder="Username or Email"
-                  {...register("username", { required: "Username or Email is required" })}
+                  {...register("username", {
+                    required: "Username or Email is required",
+                  })}
                 />
                 <User
                   className={`absolute left-0 top-[2px] h-5 w-5 ${
@@ -76,7 +82,9 @@ const Login = () => {
                 />
               </div>
               {errors.username && (
-                <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.username.message}
+                </p>
               )}
             </div>
             <div className="mb-8">
@@ -88,6 +96,7 @@ const Login = () => {
               </label>
               <div className="relative">
                 <input
+                  disabled={isLoading}
                   type="password"
                   id="password"
                   className={`peer w-full pl-7 bg-transparent border-b-2 focus:outline-none ${
@@ -96,7 +105,9 @@ const Login = () => {
                       : "border-gray-300 focus:border-primary focus:text-primary"
                   }`}
                   placeholder="Password"
-                  {...register("password", { required: "Password is required" })}
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
                 />
                 <Lock
                   className={`absolute left-0 top-[2px] h-5 w-5 ${
@@ -107,11 +118,19 @@ const Login = () => {
                 />
               </div>
               {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
             <Button type="submit" className="w-full">
-              Login
+              {isLoading ? (
+                <span>
+                  <Loader />
+                </span>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
           <div className="text-center my-4 flex justify-center items-center gap-3">
