@@ -1,10 +1,11 @@
 const Joi = require("joi");
 
 const loginSchema = Joi.object({
-  email: Joi.string().trim().email().required(),
+  email: Joi.string().trim().email(),
+  username: Joi.string().trim(),
   password: Joi.string().trim().required(),
   rememberMe: Joi.boolean().default(false),
-});
+}).xor('email', 'username');
 
 const createUserSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),

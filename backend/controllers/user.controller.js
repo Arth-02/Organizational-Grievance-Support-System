@@ -14,7 +14,12 @@ const Department = require("../models/department.model");
 const { sendEmail } = require("../utils/mail");
 const { generateOTP } = require("../utils/common");
 const bcrypt = require("bcryptjs");
-const { loginSchema, createUserSchema, updateUserSchema, superAdminSchema } = require("../validators/user.validator");
+const {
+  loginSchema,
+  createUserSchema,
+  updateUserSchema,
+  superAdminSchema,
+} = require("../validators/user.validator");
 
 // Login user
 async function login(req, res) {
@@ -27,12 +32,12 @@ async function login(req, res) {
       return errorResponse(res, 400, errors);
     }
 
-    const { email, password, rememberMe } = value;
+    const { email, username, password, rememberMe } = value;
 
-    // Check if user exists and is active
-    const user = await User.findOne({ email, is_active: true }).select(
-      "+password"
-    );
+    const user = await User.findOne({
+      $or: [{ email }, { username }],
+      is_active: true,
+    }).select("+password");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -184,7 +189,7 @@ async function getUser(req, res) {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const user = await User.findOne({_id: id, organization_id}).select(
+    const user = await User.findOne({ _id: id, organization_id }).select(
       "-createdAt -updatedAt -last_login -is_active -is_deleted"
     );
     if (!user) {
@@ -434,8 +439,8 @@ const checkUsername = async (req, res) => {
   try {
     const schema = Joi.object({
       username: Joi.string().trim().min(3).max(30).required(),
-    })
-    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    });
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
@@ -443,13 +448,16 @@ const checkUsername = async (req, res) => {
     const { username } = value;
 
     const { organization_id } = req.user;
-    const user = await User.findOne({ username, organization_id,is_deleted: false });
+    const user = await User.findOne({
+      username,
+      organization_id,
+      is_deleted: false,
+    });
     if (user) {
       return successResponse(res, { exists: true }, "Username exists");
     }
     return successResponse(res, { exists: false }, "Username available");
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Check Username Error:", err.message);
     return catchResponse(res);
   }
@@ -460,22 +468,25 @@ const checkEmail = async (req, res) => {
   try {
     const schema = Joi.object({
       email: Joi.string().trim().email().required(),
-    })
-    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    });
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
     const { email } = value;
-    
+
     const { organization_id } = req.user;
-    const user = await User.findOne({ email, organization_id,is_deleted: false });
+    const user = await User.findOne({
+      email,
+      organization_id,
+      is_deleted: false,
+    });
     if (user) {
       return successResponse(res, { exists: true }, "Email exists");
     }
     return successResponse(res, { exists: false }, "Email available");
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Check Email Error:", err.message);
     return catchResponse(res);
   }
@@ -486,21 +497,24 @@ const checkEmployeeID = async (req, res) => {
   try {
     const schema = Joi.object({
       employee_id: Joi.string().trim().required(),
-    })
-    const { error,value } = schema.validate( req.body, { abortEarly: false });
+    });
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
     const { employee_id } = value;
     const { organization_id } = req.user;
-    const user = await User.findOne({ employee_id, organization_id,is_deleted: false });
+    const user = await User.findOne({
+      employee_id,
+      organization_id,
+      is_deleted: false,
+    });
     if (user) {
       return successResponse(res, { exists: true }, "Employee ID exists");
     }
     return successResponse(res, { exists: false }, "Employee ID available");
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Check Employee ID Error:", err.message);
     return catchResponse(res);
   }
