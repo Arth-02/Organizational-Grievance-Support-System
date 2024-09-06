@@ -8,7 +8,11 @@ const {
   catchResponse,
 } = require("../utils/response");
 const Organization = require("../models/organization.model");
-const { DEFAULT_ADMIN_PERMISSIONS } = require("../utils/constant");
+const {
+  DEFAULT_ADMIN_PERMISSIONS,
+  SUPER_ADMIN,
+  ADMIN,
+} = require("../utils/constant");
 const Role = require("../models/role.model");
 const Department = require("../models/department.model");
 const { sendEmail } = require("../utils/mail");
@@ -107,13 +111,21 @@ async function createUser(req, res) {
       employee_id,
       phone_number,
       is_active,
-      special_permission_id,
+      special_permissions,
     } = value;
+
+    if (!isValidObjectId(role)) {
+      return errorResponse(res, 400, "Invalid Role id");
+    }
+    if (!isValidObjectId(department)) {
+      return errorResponse(res, 400, "Invalid Department id");
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }, { employee_id }],
       organization_id,
+      is_deleted: false,
     });
     if (existingUser) {
       return errorResponse(
@@ -126,6 +138,15 @@ async function createUser(req, res) {
     const existingOrganization = await Organization.findById(organization_id);
     if (!existingOrganization) {
       return errorResponse(res, 404, "Organization not found");
+    }
+
+    const userRole = await Role.findById(role);
+    if (!userRole) {
+      return errorResponse(res, 404, "Role not found");
+    }
+    const userDepartment = await Department.findById(department);
+    if (!userDepartment) {
+      return errorResponse(res, 404, "Department not found");
     }
 
     // Create new user
@@ -141,7 +162,7 @@ async function createUser(req, res) {
       phone_number,
       is_active,
       organization_id,
-      special_permission_id,
+      special_permissions,
     });
 
     // Save user to database
@@ -325,14 +346,14 @@ const createSuperAdmin = async (req, res) => {
     }
 
     const newRole = new Role({
-      name: "Super Admin",
-      permission_id: DEFAULT_ADMIN_PERMISSIONS,
+      name: SUPER_ADMIN,
+      permissions: DEFAULT_ADMIN_PERMISSIONS,
       organization_id,
     });
     const role = await newRole.save({ session });
 
     const newDepartment = new Department({
-      name: "Admin",
+      name: ADMIN,
       description: "Admin Department",
       organization_id,
     });

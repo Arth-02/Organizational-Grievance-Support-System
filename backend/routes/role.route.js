@@ -3,10 +3,10 @@ const { checkPermission } = require("../middlewares/auth.middleware");
 const router = require("express").Router();
 
 router.get("/reset-permissions", resetPermissions);
-router.get("/details/:id",checkPermission([16]), getRoleById);
-router.post("/all",checkPermission([16]), getAllOrganizationsRoles);
-router.post("/create",checkPermission([13]), createRole);
-router.patch("/update/:id",checkPermission([14]), updateRole);
-router.delete("/delete/:id",checkPermission([15]), deleteRole);
+router.get("/details/:id",checkPermission(["VIEW_ROLE"]), getRoleById);
+router.post("/all",checkPermission(["VIEW_ROLE"]), getAllOrganizationsRoles);
+router.post("/create",checkPermission(["CREATE_ROLE"]), createRole);
+router.patch("/update/:id",checkPermission(["UPDATE_ROLE"]), updateRole);
+router.delete("/delete/:id",checkPermission(["DELETE_ROLE"]), deleteRole);
 
 module.exports = router;

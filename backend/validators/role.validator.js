@@ -2,12 +2,12 @@ const Joi = require("joi");
 
 const createRoleSchema = Joi.object({
   name: Joi.string().trim().required(),
-  permission_id: Joi.array().items(Joi.number()).required(),
+  permissions: Joi.array().items(Joi.string()).required(),
 });
 
 const updateRoleSchema = Joi.object({
   name: Joi.string().trim(),
-  permission_id: Joi.array().items(Joi.number()),
+  permissions: Joi.array().items(Joi.string()),
 });
 
 const deleteRoleSchema = Joi.object({

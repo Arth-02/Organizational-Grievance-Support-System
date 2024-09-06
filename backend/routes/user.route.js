@@ -15,18 +15,18 @@ const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware"
 
 
 router.post("/login", login);
-router.post("/create", checkPermission([1]), createUser);
+router.post("/create", checkPermission(["CREATE_USER"]), createUser);
 router.get("/profile", isLoggedIn ,getUser);
-router.get("/details/:id",checkPermission([4]), getUser);
+router.get("/details/:id",checkPermission(["VIEW_USER"]), getUser);
 router.patch("/profile/update", isLoggedIn, updateUser);
-router.patch("/update/:id",checkPermission([2]), updateUser);
-router.delete("/delete/:id",checkPermission([3]), deleteUser);
+router.patch("/update/:id",checkPermission(["UPDATE_USER"]), updateUser);
+router.delete("/delete/:id",checkPermission(["DELETE_USER"]), deleteUser);
 
 router.post("/create-super-admin", createSuperAdmin);
 router.post("/generate-otp", sendOTPEmail);
 
-router.post("/checkusername",checkPermission([1]) ,checkUsername);
-router.post("/checkemail",checkPermission([1]) ,checkEmail);
-router.post("/checkemployeeid",checkPermission([1]) ,checkEmployeeID);
+router.post("/checkusername",checkUsername);
+router.post("/checkemail",checkEmail);
+router.post("/checkemployeeid" ,checkEmployeeID);
 
 module.exports = router;

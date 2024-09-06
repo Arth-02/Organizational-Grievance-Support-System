@@ -95,11 +95,11 @@ async function updateGrievance(req, res) {
       return errorResponse(res, 400, "Invalid department ID");
     }
     const { organization_id, role } = req.user;
-    const permissions = await Role.findById(role).select("permission_id");
+    const permissions = await Role.findById(role).select("permissions");
     if (!permissions) {
       return errorResponse(res, 400, "Role not found");
     }
-    const permission = permissions.permission_id;
+    const permission = permissions.permissions;
 
     let schema;
     if (permission.includes(6)) {

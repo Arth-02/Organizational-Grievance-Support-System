@@ -7,8 +7,8 @@ const roleSchema = new mongoose.Schema(
       required: [true, "Role name is required"],
       trim: true,
     },
-    permission_id: {
-      type: [Number],
+    permissions: {
+      type: [String],
       required: [true, "Permission ID is required"],
     },
     organization_id: {

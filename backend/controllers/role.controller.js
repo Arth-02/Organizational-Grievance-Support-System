@@ -16,7 +16,7 @@ const resetPermissions = async (req, res) => {
     for (let i = 0; i < DEFAULT_PERMISSIONS.length; i++) {
       const newRole = {
         name: DEFAULT_PERMISSIONS[i].name,
-        permission_id: DEFAULT_PERMISSIONS[i].permission_id,
+        permissions: DEFAULT_PERMISSIONS[i].permissions,
       };
       await Role.findOneAndUpdate(
         { name: DEFAULT_PERMISSIONS[i].name },
@@ -43,11 +43,11 @@ const createRole = async (req, res) => {
     }
     const { organization_id } = req.user;
 
-    const { name, permission_id } = value;
+    const { name, permissions } = value;
     
     const role = new Role({
       name,
-      permission_id,
+      permissions,
       organization_id,
     });
     await role.save();

@@ -1,88 +1,89 @@
-const SUPER_ADMIN = "super_admin";
-const DEV = "dev";
-const ADD_USER = {
-  name: "Add User",
-  id: 1,
+const SUPER_ADMIN = "SUPER_ADMIN";
+const ADMIN = "ADMIN";
+const DEV = "DEV";
+const CREATE_USER = {
+  name: "Create User",
+  slug: "CREATE_USER",
 };
 const UPDATE_USER = {
   name: "Update User",
-  id: 2,
+  slug: "UPDATE_USER",
 };
 const DELETE_USER = {
   name: "Delete User",
-  id: 3,
+  slug: "DELETE_USER",
 };
 const VIEW_USER = {
   name: "View User",
-  id: 4,
+  slug: "VIEW_USER",
 };
 const UPDATE_USER_ROLE = {
   name: "Update User Role",
-  id: 5,
+  slug: "UPDATE_USER_ROLE",
 };
 const UPDATE_GRIEVANCE = {
   name: "Update Grievance",
-  id: 6,
+  slug: "UPDATE_GRIEVANCE",
 };
 const DELETE_GRIEVANCE = {
   name: "Delete Grievance",
-  id: 7,
+  slug: "DELETE_GRIEVANCE",
 };
 const UPDATE_GRIEVANCE_STATUS = {
   name: "Update Grievance Status",
-  id: 8,
+  slug: "UPDATE_GRIEVANCE_STATUS",
 };
-const ADD_DEPARTMENT = {
-  name: "Add Department",
-  id: 9,
+const CREATE_DEPARTMENT = {
+  name: "Create Department",
+  slug: "CREATE_DEPARTMENT",
 };
 const UPDATE_DEPARTMENT = {
   name: "Update Department",
-  id: 10,
+  slug: "UPDATE_DEPARTMENT",
 };
 const DELETE_DEPARTMENT = {
   name: "Delete Department",
-  id: 11,
+  slug: "DELETE_DEPARTMENT",
 };
 const UPDATE_ORGANIZATION = {
   name: "Update Organization",
-  id: 12,
+  slug: "UPDATE_ORGANIZATION",
 };
 const CREATE_ROLE = {
   name: "Create Role",
-  id: 13,
+  slug: "CREATE_ROLE",
 };
 const UPDATE_ROLE = {
   name: "Update Role",
-  id: 14,
+  slug: "UPDATE_ROLE",
 };
 const DELETE_ROLE = {
   name: "Delete Role",
-  id: 15,
+  slug: "DELETE_ROLE",
 };
 const VIEW_ROLE = {
   name: "View Role",
-  id: 16,
+  slug: "VIEW_ROLE",
 };
 const UPDATE_PERMISSION = {
   name: "Add or Remove Permission",
-  id: 17,
+  slug: "UPDATE_PERMISSION",
 };
 const VIEW_PERMISSION = {
   name: "View Permission",
-  id: 18,
+  slug: "VIEW_PERMISSION",
 };
 const VIEW_DEPARTMENT = {
   name: "View Department",
-  id: 19,
+  slug: "VIEW_DEPARTMENT",
 };
 const UPDATE_GRIEVANCE_ASSIGNEE = {
   name: "Update Grievance Assignee",
-  id: 20,
+  slug: "UPDATE_GRIEVANCE_ASSIGNEE",
 };
 
 const PERMISSIONS = [
-  ADD_USER,
+  CREATE_USER,
   UPDATE_USER,
   DELETE_USER,
   VIEW_USER,
@@ -90,7 +91,7 @@ const PERMISSIONS = [
   UPDATE_GRIEVANCE,
   DELETE_GRIEVANCE,
   UPDATE_GRIEVANCE_STATUS,
-  ADD_DEPARTMENT,
+  CREATE_DEPARTMENT,
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,
   UPDATE_ORGANIZATION,
@@ -104,13 +105,35 @@ const PERMISSIONS = [
   UPDATE_GRIEVANCE_ASSIGNEE,
 ];
 
-const DEFAULT_ADMIN_PERMISSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+const DEFAULT_ADMIN_PERMISSIONS = [
+  "CREATE_USER",
+  "UPDATE_USER",
+  "DELETE_USER",
+  "VIEW_USER",
+  "UPDATE_USER_ROLE",
+  "UPDATE_GRIEVANCE",
+  "DELETE_GRIEVANCE",
+  "UPDATE_GRIEVANCE_STATUS",
+  "CREATE_DEPARTMENT",
+  "UPDATE_DEPARTMENT",
+  "DELETE_DEPARTMENT",
+  "UPDATE_ORGANIZATION",
+  "CREATE_ROLE",
+  "UPDATE_ROLE",
+  "DELETE_ROLE",
+  "VIEW_ROLE",
+  "UPDATE_PERMISSION",
+  "VIEW_PERMISSION",
+  "VIEW_DEPARTMENT",
+  "UPDATE_GRIEVANCE_ASSIGNEE",
+];
 
 module.exports = {
   DEV,
   SUPER_ADMIN,
+  ADMIN,
   PERMISSIONS,
-  ADD_USER,
+  CREATE_USER,
   UPDATE_USER,
   DELETE_USER,
   VIEW_USER,
@@ -123,7 +146,7 @@ module.exports = {
   UPDATE_GRIEVANCE_ASSIGNEE,
   UPDATE_GRIEVANCE_STATUS,
   DELETE_GRIEVANCE,
-  ADD_DEPARTMENT,
+  CREATE_DEPARTMENT,
   VIEW_DEPARTMENT,
   UPDATE_DEPARTMENT,
   DELETE_DEPARTMENT,

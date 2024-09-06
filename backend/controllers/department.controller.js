@@ -25,9 +25,10 @@ async function createDepartment(req, res) {
 
     const { name } = value;
     const existingDepartment = await Department.findOne({
-      name: name,
+      name: { $regex: new RegExp(`^${name}$`, 'i') },
       organization_id,
     });
+    
     if (existingDepartment) {
       return errorResponse(
         res,

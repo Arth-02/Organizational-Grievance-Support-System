@@ -71,8 +71,8 @@ const UserSchema = new mongoose.Schema(
     last_login: {
       type: Date,
     },
-    special_permission_id: {
-      type: [Number],
+    special_permissions: {
+      type: [String],
       default: [],
     },
   },
@@ -85,9 +85,18 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-UserSchema.index({ email: 1, organization_id: 1 }, { unique: true });
-UserSchema.index({ username: 1, organization_id: 1 }, { unique: true });
-UserSchema.index({ employee_id: 1, organization_id: 1 }, { unique: true });
+UserSchema.index(
+  { email: 1, organization_id: 1, is_deleted: 1 },
+  { unique: true }
+);
+UserSchema.index(
+  { username: 1, organization_id: 1, is_deleted: 1 },
+  { unique: true }
+);
+UserSchema.index(
+  { employee_id: 1, organization_id: 1, is_deleted: 1 },
+  { unique: true }
+);
 
 // Pre-save hook to hash password before saving
 UserSchema.pre("save", async function (next) {

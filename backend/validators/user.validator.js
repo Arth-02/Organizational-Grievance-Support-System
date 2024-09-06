@@ -19,7 +19,7 @@ const createUserSchema = Joi.object({
   phone_number: Joi.string().trim().allow(""),
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
-  special_permission_id: Joi.array().default([]),
+  special_permissions: Joi.array().items(Joi.string()).default([]),
 });
 
 const updateUserSchema = Joi.object({
@@ -40,7 +40,7 @@ const superAdminSchema = Joi.object({
   phone_number: Joi.string().trim().allow(""),
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
-  special_permission_id: Joi.array().default([]),
+  special_permissions: Joi.array().default([]),
   otp: Joi.string().trim().required(),
 });
 

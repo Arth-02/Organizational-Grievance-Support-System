@@ -60,10 +60,10 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
 
     req.user = user;
 
-    const hasUserRolePermissions = req.user?.role?.permission_id?.some(
+    const hasUserRolePermissions = req.user?.role?.permissions?.some(
       (permission) => allowedPermissions.includes(permission)
     );
-    const hasSpecialPermissions = req.user?.special_permission_id?.some(
+    const hasSpecialPermissions = req.user?.special_permissions?.some(
       (permission) => allowedPermissions.includes(permission)
     );
     const hasUserPermission = hasUserRolePermissions || hasSpecialPermissions;
