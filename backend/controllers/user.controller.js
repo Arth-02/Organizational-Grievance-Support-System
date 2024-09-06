@@ -288,6 +288,10 @@ const createSuperAdmin = async (req, res) => {
       otp,
     } = value;
 
+    if (!isValidObjectId(organization_id)) {
+      return errorResponse(res, 400, "Invalid organization id");
+    }
+
     const organization = await Organization.findById(organization_id).session(
       session
     );

@@ -17,13 +17,13 @@ const userSlice = createSlice({
     builder.addMatcher(
       apiService.endpoints.userLogin.matchFulfilled,
       (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.data;
       }
     )
     .addMatcher(
       apiService.endpoints.createSuperAdmin.matchFulfilled,
       (state, action) => {
-        state.user = action.payload;
+        state.user = action.payload.data;
       }
     );
   },

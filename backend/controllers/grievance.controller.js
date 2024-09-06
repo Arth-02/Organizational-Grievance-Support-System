@@ -12,7 +12,12 @@ const {
 } = require("../utils/response");
 const Joi = require("joi");
 const Role = require("../models/role.model");
-const { createGrievanceSchema, updateStatusGrievanceSchema, updateAssignedGrievanceSchema, updateFullGrievanceSchema } = require("../validators/grievance.validator");
+const {
+  createGrievanceSchema,
+  updateStatusGrievanceSchema,
+  updateAssignedGrievanceSchema,
+  updateFullGrievanceSchema,
+} = require("../validators/grievance.validator");
 
 async function createGrievance(req, res) {
   const session = await mongoose.startSession();
@@ -25,7 +30,7 @@ async function createGrievance(req, res) {
     }
 
     const { title, description, severity, status, department_id } = value;
-    const { organization_id } = req.user;
+    const { organization_id, employee_id } = req.user;
     const reported_by = req.user._id;
 
     const departmentExists = await Department.findOne({
@@ -44,6 +49,7 @@ async function createGrievance(req, res) {
       severity,
       status,
       reported_by,
+      employee_id,
     });
     let attachmentIds = [];
     if (req.files && req.files.length > 0) {

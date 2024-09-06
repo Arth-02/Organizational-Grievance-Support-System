@@ -12,7 +12,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const [login, { isLoading, isError, isSuccess }] = useUserLoginMutation();
+  const [login, { isLoading }] = useUserLoginMutation();
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
