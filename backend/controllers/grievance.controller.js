@@ -99,17 +99,18 @@ async function updateGrievance(req, res) {
       return errorResponse(res, 400, "Role not found");
     }
     const permission = permissions.permissions;
-
     let schema;
-    if (permission.includes(6)) {
+    if (permission.includes("UPDATE_GRIEVANCE")) {
       schema = updateFullGrievanceSchema;
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
-    } else if (permission.includes(8)) {
+    } else if (permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status) {
       schema = updateStatusGrievanceSchema;
-    } else if (permission.includes(20)) {
+    } else if (permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") && req.body.assigned_to) {
       schema = updateAssignedGrievanceSchema;
+    }else{
+      return errorResponse(res, 403, "Permission denied");
     }
 
     const { error, value } = schema.validate(req.body);
