@@ -10,7 +10,6 @@ const {
   errorResponse,
   catchResponse,
 } = require("../utils/response");
-const Joi = require("joi");
 const Role = require("../models/role.model");
 const {
   createGrievanceSchema,
