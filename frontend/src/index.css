@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
 @layer base {
   :root {
     --background: 192 100% 100%;
@@ -17,7 +29,7 @@
     --primary: 192.23 52.82% 38.24%;
     --primary-foreground: 0 0% 100%;
     --secondary: 192 0% 90%;
-    --secondary-foreground: 0 0% 53.08%;
+    --secondary-foreground: 0 0% 40.02%;
     --accent: 154 0% 88.46%;
     --accent-foreground: 192 20.79% 31.52%;
     --destructive: 0 100% 50%;
@@ -68,4 +80,49 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Add this CSS to your stylesheet */
+.slide-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.slide-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 500ms, transform 300ms;
+}
+
+.slide-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.slide-exit-active {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: opacity 500ms, transform 300ms;
+}
+
+.slide-back-enter {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.slide-back-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 500ms, transform 300ms;
+}
+
+.slide-back-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.slide-back-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 500ms, transform 300ms;
 }

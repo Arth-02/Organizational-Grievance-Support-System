@@ -3,10 +3,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Page from "./components/Page";
 import { io } from "socket.io-client";
 import Login from "./components/auth/Login";
+import RegisterOrg from "./components/auth/RegisterOrg";
 const socket = io("http://localhost:9001");
 
 socket.on("connect", () => {
-  console.log("hey, ", socket.id); // x8WIv7-mJelg7on_ALbx
+  console.log("hey, ", socket.id);
 });
 
 socket.on("receive_notification", (msg) => {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<Counter />} />
           <Route path="/page" element={<Page />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<RegisterOrg />} />
         </Routes>
       </BrowserRouter>
     </>
