@@ -1,6 +1,13 @@
 const Organization = require("../models/organization.model");
-const { errorResponse, successResponse, catchResponse } = require("../utils/response");
-const { organizationSchema, updateOrganizationSchema } = require("../validators/organization.validator");
+const {
+  errorResponse,
+  successResponse,
+  catchResponse,
+} = require("../utils/response");
+const {
+  organizationSchema,
+  updateOrganizationSchema,
+} = require("../validators/organization.validator");
 
 const createOrganization = async (req, res) => {
   try {
@@ -46,7 +53,12 @@ const createOrganization = async (req, res) => {
     });
 
     const newOrg = await newOrganization.save();
-    return successResponse(res, newOrg, "Organization applied successfully");
+    return successResponse(
+      res,
+      newOrg,
+      "Organization applied successfully",
+      201
+    );
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -63,8 +75,20 @@ const updateOrganization = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-    const { _id, name, website, logo, description, city, state, country, pincode, phone, address } = value;
- 
+    const {
+      _id,
+      name,
+      website,
+      logo,
+      description,
+      city,
+      state,
+      country,
+      pincode,
+      phone,
+      address,
+    } = value;
+
     let existingOrganization = await Organization.findById(_id);
     if (!existingOrganization) {
       return errorResponse(res, 400, "Organization does not exist");
@@ -82,7 +106,11 @@ const updateOrganization = async (req, res) => {
     existingOrganization.address = address;
 
     const updatedOrg = await existingOrganization.save();
-    return successResponse(res, updatedOrg, "Organization updated successfully");
+    return successResponse(
+      res,
+      updatedOrg,
+      "Organization updated successfully"
+    );
   } catch (err) {
     console.error(err);
     return catchResponse(res);

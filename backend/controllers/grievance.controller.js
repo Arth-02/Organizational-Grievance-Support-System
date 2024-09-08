@@ -76,7 +76,12 @@ async function createGrievance(req, res) {
     newGrievance.attachments = attachmentIds;
     await newGrievance.save({ session });
     session.commitTransaction();
-    return successResponse(res, newGrievance, "Grievance created successfully");
+    return successResponse(
+      res,
+      newGrievance,
+      "Grievance created successfully",
+      201
+    );
   } catch (err) {
     console.error("Create Grievance Error:", err);
     await session.abortTransaction();
@@ -105,11 +110,17 @@ async function updateGrievance(req, res) {
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
-    } else if (permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status) {
+    } else if (
+      permission.includes("UPDATE_GRIEVANCE_STATUS") &&
+      req.body.status
+    ) {
       schema = updateStatusGrievanceSchema;
-    } else if (permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") && req.body.assigned_to) {
+    } else if (
+      permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
+      req.body.assigned_to
+    ) {
       schema = updateAssignedGrievanceSchema;
-    }else{
+    } else {
       return errorResponse(res, 403, "Permission denied");
     }
 

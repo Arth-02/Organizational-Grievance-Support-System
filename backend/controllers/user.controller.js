@@ -192,7 +192,7 @@ async function createUser(req, res) {
     };
 
     // Send success response
-    return successResponse(res, userData, "User created successfully");
+    return successResponse(res, userData, "User created successfully", 201);
   } catch (err) {
     console.error("Registration Error:", err.message);
     return catchResponse(res);
@@ -395,7 +395,12 @@ const createSuperAdmin = async (req, res) => {
     };
 
     await session.commitTransaction();
-    return successResponse(res, userData, "Super Admin created successfully");
+    return successResponse(
+      res,
+      userData,
+      "Super Admin created successfully",
+      201
+    );
   } catch (err) {
     console.error("Create Super Admin Error:", err.message);
     await session.abortTransaction();

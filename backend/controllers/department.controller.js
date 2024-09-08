@@ -8,7 +8,11 @@ const {
   successResponse,
 } = require("../utils/response");
 const { isValidObjectId } = require("mongoose");
-const { departmentSchema, updateDepartmentSchema, deleteDepartmentSchema } = require("../validators/department.validator");
+const {
+  departmentSchema,
+  updateDepartmentSchema,
+  deleteDepartmentSchema,
+} = require("../validators/department.validator");
 
 // Create a new department
 async function createDepartment(req, res) {
@@ -25,10 +29,10 @@ async function createDepartment(req, res) {
 
     const { name } = value;
     const existingDepartment = await Department.findOne({
-      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      name: { $regex: new RegExp(`^${name}$`, "i") },
       organization_id,
     });
-    
+
     if (existingDepartment) {
       return errorResponse(
         res,
@@ -44,7 +48,12 @@ async function createDepartment(req, res) {
     const department = new Department({ ...value, organization_id });
     await department.save();
 
-    return successResponse(res, department, "Department created successfully");
+    return successResponse(
+      res,
+      department,
+      "Department created successfully",
+      201
+    );
   } catch (error) {
     console.log(error);
     return catchResponse(res);
@@ -100,7 +109,9 @@ async function getAllOrganizationDepartments(req, res) {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const totalDepartments = await Department.countDocuments({organization_id});
+    const totalDepartments = await Department.countDocuments({
+      organization_id,
+    });
     const departments = await Department.find({ organization_id })
       .sort({ name: 1 })
       .skip(skip)
@@ -182,7 +193,10 @@ const deleteDepartment = async (req, res) => {
       return errorResponse(res, 400, "Invalid department ID");
     }
 
-    const department = await Department.findOne({ _id: id, organization_id }).session(session);
+    const department = await Department.findOne({
+      _id: id,
+      organization_id,
+    }).session(session);
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }
@@ -209,13 +223,18 @@ const deleteDepartment = async (req, res) => {
         return errorResponse(res, 404, "No users found to update");
       }
     } else {
-      const userExist = await User.findOne({ department: id, organization_id }).session(session);
+      const userExist = await User.findOne({
+        department: id,
+        organization_id,
+      }).session(session);
       if (userExist) {
         return errorResponse(res, 400, "Department is assigned to a user");
       }
     }
 
-    await Department.findOneAndDelete({ _id: id, organization_id }).session(session);
+    await Department.findOneAndDelete({ _id: id, organization_id }).session(
+      session
+    );
     await session.commitTransaction();
     return successResponse(res, {}, "Department deleted successfully");
   } catch (err) {
@@ -226,7 +245,6 @@ const deleteDepartment = async (req, res) => {
     session.endSession();
   }
 };
-
 
 module.exports = {
   createDepartment,

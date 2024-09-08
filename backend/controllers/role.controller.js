@@ -7,7 +7,11 @@ const {
   catchResponse,
 } = require("../utils/response");
 const { isValidObjectId, default: mongoose } = require("mongoose");
-const { createRoleSchema, updateRoleSchema, deleteRoleSchema } = require("../validators/role.validator");
+const {
+  createRoleSchema,
+  updateRoleSchema,
+  deleteRoleSchema,
+} = require("../validators/role.validator");
 
 // cmd function to reset all permissons for each role
 const resetPermissions = async (req, res) => {
@@ -44,14 +48,14 @@ const createRole = async (req, res) => {
     const { organization_id } = req.user;
 
     const { name, permissions } = value;
-    
+
     const role = new Role({
       name,
       permissions,
       organization_id,
     });
     await role.save();
-    return successResponse(res, role, "Role created successfully");
+    return successResponse(res, role, "Role created successfully", 201);
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -175,13 +179,16 @@ const deleteRole = async (req, res) => {
         return errorResponse(res, 404, "No users found to update");
       }
     } else {
-      const userExist = await User.findOne({ role: id,organization_id }).session(session);
+      const userExist = await User.findOne({
+        role: id,
+        organization_id,
+      }).session(session);
       if (userExist) {
         return errorResponse(res, 400, "Role is assigned to a user");
       }
     }
 
-    await Role.findOneAndDelete({_id:id,organization_id}).session(session);
+    await Role.findOneAndDelete({ _id: id, organization_id }).session(session);
     await session.commitTransaction();
     return successResponse(res, {}, "Role deleted successfully");
   } catch (err) {
