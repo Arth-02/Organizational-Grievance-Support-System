@@ -4,7 +4,7 @@ const organizationSchema = Joi.object({
   name: Joi.string().trim().required(),
   email: Joi.string().trim().email().required(),
   website: Joi.string().trim().required(),
-  logo: Joi.string().trim().allow(""),
+  logo: Joi.object(),
   description: Joi.string().trim().required(),
   city: Joi.string().trim().required(),
   state: Joi.string().trim().required(),

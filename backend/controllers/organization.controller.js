@@ -1,3 +1,4 @@
+const uploadFiles = require("../helpers/cloudinary");
 const Organization = require("../models/organization.model");
 const {
   errorResponse,
@@ -10,12 +11,15 @@ const {
 } = require("../validators/organization.validator");
 
 const createOrganization = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { error, value } = organizationSchema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
+      await session.abortTransaction();
       return errorResponse(res, 400, errors);
     }
 
@@ -23,7 +27,6 @@ const createOrganization = async (req, res) => {
       name,
       email,
       website,
-      logo,
       description,
       city,
       state,
@@ -33,8 +36,9 @@ const createOrganization = async (req, res) => {
       address,
     } = value;
 
-    let existingOrganization = await Organization.findOne({ email });
+    let existingOrganization = await Organization.findOne({ email }).session(session);
     if (existingOrganization) {
+      await session.abortTransaction();
       return errorResponse(res, 400, "Organization already exists");
     }
 
@@ -42,7 +46,6 @@ const createOrganization = async (req, res) => {
       name,
       email,
       website,
-      logo,
       description,
       city,
       state,
@@ -52,7 +55,19 @@ const createOrganization = async (req, res) => {
       address,
     });
 
-    const newOrg = await newOrganization.save();
+    console.log(req.files);
+    if (req.files && req.files.length > 0) {
+      const result = await uploadFiles(req.files[0], newOrganization._id, true);
+      if (!result) {
+        await session.abortTransaction();
+        return errorResponse(res, 400, "Error uploading attachments");
+      }
+      newOrganization.logo = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    }
+    const newOrg = await newOrganization.save({ session });
     return successResponse(
       res,
       newOrg,
@@ -61,7 +76,10 @@ const createOrganization = async (req, res) => {
     );
   } catch (err) {
     console.error(err);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
