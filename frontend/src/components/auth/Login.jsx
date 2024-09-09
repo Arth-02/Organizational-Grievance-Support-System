@@ -25,15 +25,15 @@ const Login = () => {
 
       const response = await login(loginData).unwrap();
       console.log(response);
-      if (response.success) {
-        toast.success(response.message);
+      if (response) {
+        toast.success("Login successful!");
         saveToLocalStorage("user", response);
         navigate("/");
       } else {
-        toast.error(response.message);
+        toast.error('Something went wrong! Please try again later.');
       }
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error(error.message);
     }
   };
 
@@ -140,7 +140,7 @@ const Login = () => {
           </div>
           <div className="text-center flex justify-center">
             <Link
-              to={"/login"}
+              to={"/register"}
               className="font-bold text-xs text-primary hover:underline"
             >
               Register Organization
