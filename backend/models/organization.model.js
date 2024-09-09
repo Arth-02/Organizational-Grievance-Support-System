@@ -36,8 +36,6 @@ const OrganizationSchema = new mongoose.Schema(
       type: String,
       required: [true, "Organization description is required"],
       trim: true,
-      minlength: [10, "Description must be at least 10 characters long"],
-      maxlength: [500, "Description must be at most 500 characters long"],
     },
     city: {
       type: String,

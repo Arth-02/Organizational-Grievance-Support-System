@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const uploadFiles = require("../helpers/cloudinary");
 const Organization = require("../models/organization.model");
 const {
@@ -55,7 +56,6 @@ const createOrganization = async (req, res) => {
       address,
     });
 
-    console.log(req.files);
     if (req.files && req.files.length > 0) {
       const result = await uploadFiles(req.files[0], newOrganization._id, true);
       if (!result) {
@@ -68,6 +68,7 @@ const createOrganization = async (req, res) => {
       };
     }
     const newOrg = await newOrganization.save({ session });
+    await session.commitTransaction();
     return successResponse(
       res,
       newOrg,

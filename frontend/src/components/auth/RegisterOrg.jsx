@@ -107,8 +107,8 @@ const OrganizationDetailsForm = ({ register, errors }) => {
         label="Company Name"
         type="text"
         placeholder="Company Name"
-        {...register("companyName", { required: "Company Name is required" })}
-        error={errors.companyName}
+        {...register("name", { required: "Company Name is required" })}
+        error={errors.name}
       />
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
@@ -203,9 +203,7 @@ const AddressDetailsForm = ({ register, errors }) => {
           </>
         }
         error={errors.terms}
-        {...register("terms", {
-          required: "Please accept the terms and conditions",
-        })}
+        
       />
     </>
   );
