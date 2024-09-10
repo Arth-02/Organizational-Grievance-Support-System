@@ -1,4 +1,5 @@
 const { isValidObjectId, default: mongoose } = require("mongoose");
+const { ObjectId } = mongoose.Types;
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const User = require("../models/user.model");
@@ -24,6 +25,7 @@ const {
   updateUserSchema,
   superAdminSchema,
 } = require("../validators/user.validator");
+const { pipeline } = require("nodemailer/lib/xoauth2");
 
 // Login user
 async function login(req, res) {
@@ -546,6 +548,162 @@ const checkEmployeeID = async (req, res) => {
   }
 };
 
+// get all users
+
+const getAllUsers = async (req, res) => {
+  try {
+    const { organization_id, _id } = req.user;
+    console.log("Object ID:", req.user);
+    console.log("ID:", req.user.id);
+    const {
+      page = 1,
+      limit = 10,
+      username,
+      is_active,
+      employee_id,
+      role,
+      department,
+      sort_by = "username",
+      order = "asc",
+    } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+    const query = { organization_id, is_deleted: false, _id: { $ne: _id } };
+    if (is_active === "true" || is_active === "false") {
+      query.is_active = is_active === "true";
+    }
+    if (username) {
+      query.username = { $regex: username, $options: "i" };
+    }
+    if (employee_id) {
+      query.employee_id = { $regex: employee_id, $options: "i" };
+    }
+    if (role) {
+      query.role = new ObjectId(role);
+    }
+    if (department) {
+      query.department = new ObjectId(department);
+    }
+    console.log("Query:", query);
+
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const pipeline = [
+      // Match the query conditions
+      { $match: query },
+
+      // Add a field for case-insensitive sorting
+      { $addFields: { sortField: { $toLower: `$${sort_by}` } } },
+
+      // Sort by the sortField
+      { $sort: { sortField: sortOrder } },
+
+      // Skip and limit for pagination
+      { $skip: skip },
+      { $limit: limitNumber },
+
+      // Lookup for role
+      {
+        $lookup: {
+          from: "roles", // The collection name for roles
+          localField: "role",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+
+      // Unwind the role array
+      {
+        $unwind: {
+          path: "$role",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Lookup for department
+      {
+        $lookup: {
+          from: "departments", // The collection name for departments
+          localField: "department",
+          foreignField: "_id",
+          as: "department",
+        },
+      },
+
+      // Unwind the department array
+      {
+        $unwind: {
+          path: "$department",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Project to include only the department name
+      {
+        $project: {
+          role: "$role.name",
+          role_permissions: "$role.permissions",
+          department: "$department.name",
+          username: 1,
+          email: 1,
+          firstname: 1,
+          lastname: 1,
+          employee_id: 1,
+          phone_number: 1,
+          is_active: 1,
+          special_permissions: 1,
+          updated_at: 0,
+          last_login: 1,
+        },
+      },
+    ];
+
+    const users = await User.aggregate(pipeline);
+
+    // const users = await User.find(query)
+    //   .select("-created_at -is_deleted -organization_id")
+    //   .skip(skip)
+    //   .limit(limitNumber)
+    //   .populate({ path: "role", select: "name -_id" })
+    //   .populate({ path: "department", select: "name -_id  " });
+
+    // const transformedUsers = users.map((user) => ({
+    //   ...user.toObject(),
+    //   role: user.role.name,
+    //   department: user.department.name,
+    // }));
+
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limitNumber);
+
+    // if (!transformedUsers.length) {
+    //   return errorResponse(res, 404, "Users not found");
+    // }
+
+    if (!users.length) {
+      return errorResponse(res, 404, "Users not found");
+    }
+    return successResponse(
+      res,
+      {
+        users,
+        pagination: {
+          totalUsers,
+          totalPages,
+          currentPage: pageNumber,
+          pageSize: limitNumber,
+        },
+      },
+      "Users retrieved successfully"
+    );
+  } catch (err) {
+    console.error("Get Users Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -557,4 +715,5 @@ module.exports = {
   checkUsername,
   checkEmail,
   checkEmployeeID,
+  getAllUsers,
 };

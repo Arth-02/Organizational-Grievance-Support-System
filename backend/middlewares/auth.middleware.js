@@ -18,7 +18,7 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     }
 
     const id = decoded.user.id;
-    const user = await User.findById(id).populate("role");
+    const user = await User.findOne({_id:id,is_active:true}).populate({path:"role",select:"name permissions"}).select("_id role organization_id department employee_id special_permissions");
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -52,7 +52,7 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
     }
 
     const id = decoded.user.id;
-    const user = await User.findById(id).populate("role");
+    const user = await User.findOne({_id:id,is_active:true}).populate({path:"role",select:"name permissions"}).select("_id role organization_id department employee_id special_permissions");
 
     if (!user) {
       return errorResponse(res, 404, "User not found");
