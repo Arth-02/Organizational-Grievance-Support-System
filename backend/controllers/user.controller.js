@@ -654,7 +654,6 @@ const getAllUsers = async (req, res) => {
           phone_number: 1,
           is_active: 1,
           special_permissions: 1,
-          updated_at: 0,
           last_login: 1,
         },
       },
