@@ -35,6 +35,7 @@ const resetPermissions = async (req, res) => {
   }
 };
 
+// create a new role
 const createRole = async (req, res) => {
   try {
     const { error, value } = createRoleSchema.validate(req.body, {
@@ -62,6 +63,7 @@ const createRole = async (req, res) => {
   }
 };
 
+// update role
 const updateRole = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -112,14 +114,56 @@ const getRoleById = async (req, res) => {
   }
 };
 
-// get all roles
-const getAllOrganizationsRoles = async (req, res) => {
+// get all roles name and id
+const getAllRoleName = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const roles = await Role.find({
       organization_id,
-    });
+    }).select("name");
     return successResponse(res, roles, "Roles retrieved successfully");
+  } catch (err) {
+    console.error(err);
+    return catchResponse(res);
+  }
+};
+
+// get all roles in pagination
+const getAllRoles = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const roles = await Role.find({ organization_id })
+      .skip(skip)
+      .limit(limitNumber);
+
+    if (roles.length === 0) {
+      return errorResponse(res, 404, "No roles found");
+    }
+    const totalRoles = await Role.countDocuments({ organization_id });
+    const totalPages = Math.ceil(totalRoles / limitNumber);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return successResponse(
+      res,
+      {
+        roles,
+        pagination: {
+          totalRoles,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+          hasNextPage,
+          hasPrevPage,
+        },
+      },
+      "Roles retrieved successfully"
+    );
   } catch (err) {
     console.error(err);
     return catchResponse(res);
@@ -207,5 +251,6 @@ module.exports = {
   updateRole,
   deleteRole,
   getRoleById,
-  getAllOrganizationsRoles,
+  getAllRoleName,
+  getAllRoles,
 };

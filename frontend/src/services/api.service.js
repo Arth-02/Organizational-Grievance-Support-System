@@ -37,6 +37,15 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
+    getAllUsers: builder.query({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "users/all",
+        method: "GET",
+      }),
+    }),
     createOrganization: builder.mutation({
       query: (body) => ({
         url: "organizations/create",
@@ -90,6 +99,24 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
+    getAllDepartmentName: builder.query({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "departments/allname",
+        method: "GET",
+      }),
+    }),
+    getAllDepartments: builder.query({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "departments/all",
+        method: "GET",
+      }),
+    }),
     updateDepartment: builder.mutation({
       query: (body) => ({
         headers: {
@@ -128,14 +155,22 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
-    getAllOrganizationsRoles: builder.mutation({
+    getAllRoleName: builder.query({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: "roles/allname",
+        method: "GET",
+      }),
+    }),
+    getAllRoles: builder.query({
       query: (body) => ({
         headers: {
           Authorization: `Bearer ${body.token}`,
         },
         url: "roles/all",
-        method: "POST",
-        body,
+        method: "GET",
       }),
     }),
     updateRole: builder.mutation({
@@ -233,17 +268,21 @@ export const {
   useUserLoginMutation,
   useGetProfileQuery,
   useGetUserDetailsQuery,
+  useGetAllUsersQuery,
   useCreateOrganizationMutation,
   useOtpGenerateMutation,
   useOrganizationVerifyMutation,
   useCreateSuperAdminMutation,
   useCreateDepartmentMutation,
   useGetDepartmentByIdQuery,
+  useGetAllDepartmentNameQuery,
+  useGetAllDepartmentsQuery,
   useUpdateDepartmentMutation,
   useDeleteDepartmentMutation,
   useCreateRoleMutation,
   useGetRoleByIdQuery,
-  useGetAllOrganizationsRolesMutation,
+  useGetAllRoleNameQuery,
+  useGetAllRolesQuery,
   useUpdateRoleMutation,
   useDeleteRoleMutation,
   useCreateUserMutation,

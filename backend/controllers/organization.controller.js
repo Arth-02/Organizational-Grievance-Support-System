@@ -11,6 +11,7 @@ const {
   updateOrganizationSchema,
 } = require("../validators/organization.validator");
 
+// Create a new organization
 const createOrganization = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -84,6 +85,7 @@ const createOrganization = async (req, res) => {
   }
 };
 
+// Update an organization
 const updateOrganization = async (req, res) => {
   try {
     const { error, value } = updateOrganizationSchema.validate(req.body, {

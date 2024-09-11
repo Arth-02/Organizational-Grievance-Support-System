@@ -18,6 +18,7 @@ const {
   updateFullGrievanceSchema,
 } = require("../validators/grievance.validator");
 
+// Create a grievance
 async function createGrievance(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();

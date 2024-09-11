@@ -101,27 +101,27 @@ async function updateDepartment(req, res) {
   }
 }
 
-// Get all departments
-async function getAllOrganizationDepartments(req, res) {
+// Get all departments in pagination
+async function getAllDepartment(req, res) {
   try {
     const { organization_id } = req.user;
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
 
     const totalDepartments = await Department.countDocuments({
       organization_id,
     });
     const departments = await Department.find({ organization_id })
-      .sort({ name: 1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limitNumber);
 
     if (!departments.length) {
       return errorResponse(res, 404, "No departments found");
     }
 
-    const totalPages = Math.ceil(totalDepartments / limit);
+    const totalPages = Math.ceil(totalDepartments / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
@@ -143,6 +143,20 @@ async function getAllOrganizationDepartments(req, res) {
     return catchResponse(res);
   }
 }
+
+// get all departments name
+const getAllDepartmentName = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const departments = await Department.find({
+      organization_id,
+    }).select("name");
+    return successResponse(res, departments, "Departments retrieved successfully");
+  } catch (err) {
+    console.error(err);
+    return catchResponse(res);
+  }
+};
 
 // Get a single department by ID
 async function getDepartmentById(req, res) {
@@ -170,6 +184,7 @@ async function getDepartmentById(req, res) {
   }
 }
 
+// Delete a department
 const deleteDepartment = async (req, res) => {
   const session = await mongoose.startSession();
 
@@ -248,7 +263,8 @@ const deleteDepartment = async (req, res) => {
 
 module.exports = {
   createDepartment,
-  getAllOrganizationDepartments,
+  getAllDepartment,
+  getAllDepartmentName,
   getDepartmentById,
   updateDepartment,
   deleteDepartment,

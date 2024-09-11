@@ -549,7 +549,6 @@ const checkEmployeeID = async (req, res) => {
 };
 
 // get all users
-
 const getAllUsers = async (req, res) => {
   try {
     const { organization_id, _id } = req.user;
@@ -661,25 +660,10 @@ const getAllUsers = async (req, res) => {
 
     const users = await User.aggregate(pipeline);
 
-    // const users = await User.find(query)
-    //   .select("-created_at -is_deleted -organization_id")
-    //   .skip(skip)
-    //   .limit(limitNumber)
-    //   .populate({ path: "role", select: "name -_id" })
-    //   .populate({ path: "department", select: "name -_id  " });
-
-    // const transformedUsers = users.map((user) => ({
-    //   ...user.toObject(),
-    //   role: user.role.name,
-    //   department: user.department.name,
-    // }));
-
     const totalUsers = await User.countDocuments(query);
     const totalPages = Math.ceil(totalUsers / limitNumber);
-
-    // if (!transformedUsers.length) {
-    //   return errorResponse(res, 404, "Users not found");
-    // }
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
 
     if (!users.length) {
       return errorResponse(res, 404, "Users not found");
@@ -693,6 +677,8 @@ const getAllUsers = async (req, res) => {
           totalPages,
           currentPage: pageNumber,
           pageSize: limitNumber,
+          hasNextPage,
+          hasPrevPage,
         },
       },
       "Users retrieved successfully"
