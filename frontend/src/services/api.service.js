@@ -104,7 +104,7 @@ export const apiService = createApi({
         headers: {
           Authorization: `Bearer ${body.token}`,
         },
-        url: "departments/allname",
+        url: "departments/names",
         method: "GET",
       }),
     }),
@@ -160,7 +160,7 @@ export const apiService = createApi({
         headers: {
           Authorization: `Bearer ${body.token}`,
         },
-        url: "roles/allname",
+        url: "roles/names",
         method: "GET",
       }),
     }),

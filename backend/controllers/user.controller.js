@@ -552,8 +552,6 @@ const checkEmployeeID = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const { organization_id, _id } = req.user;
-    console.log("Object ID:", req.user);
-    console.log("ID:", req.user.id);
     const {
       page = 1,
       limit = 10,
@@ -562,6 +560,7 @@ const getAllUsers = async (req, res) => {
       employee_id,
       role,
       department,
+      permissions,
       sort_by = "username",
       order = "asc",
     } = req.query;
@@ -569,7 +568,7 @@ const getAllUsers = async (req, res) => {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
-    const query = { organization_id, is_deleted: false, _id: { $ne: _id } };
+    const query = { organization_id, is_deleted: false, _id: { $ne: _id } }; //
     if (is_active === "true" || is_active === "false") {
       query.is_active = is_active === "true";
     }
@@ -585,78 +584,77 @@ const getAllUsers = async (req, res) => {
     if (department) {
       query.department = new ObjectId(department);
     }
-    console.log("Query:", query);
 
     const sortOrder = order === "asc" ? 1 : -1;
-
     const pipeline = [
-      // Match the query conditions
       { $match: query },
-
-      // Add a field for case-insensitive sorting
       { $addFields: { sortField: { $toLower: `$${sort_by}` } } },
-
-      // Sort by the sortField
       { $sort: { sortField: sortOrder } },
-
-      // Skip and limit for pagination
       { $skip: skip },
       { $limit: limitNumber },
-
-      // Lookup for role
       {
         $lookup: {
-          from: "roles", // The collection name for roles
+          from: "roles",
           localField: "role",
           foreignField: "_id",
           as: "role",
         },
       },
-
-      // Unwind the role array
       {
         $unwind: {
           path: "$role",
           preserveNullAndEmptyArrays: true,
         },
       },
-
-      // Lookup for department
       {
         $lookup: {
-          from: "departments", // The collection name for departments
+          from: "departments",
           localField: "department",
           foreignField: "_id",
           as: "department",
         },
       },
-
-      // Unwind the department array
       {
         $unwind: {
           path: "$department",
           preserveNullAndEmptyArrays: true,
         },
       },
-
-      // Project to include only the department name
       {
-        $project: {
-          role: "$role.name",
-          role_permissions: "$role.permissions",
-          department: "$department.name",
-          username: 1,
-          email: 1,
-          firstname: 1,
-          lastname: 1,
-          employee_id: 1,
-          phone_number: 1,
-          is_active: 1,
-          special_permissions: 1,
-          last_login: 1,
+        $addFields: {
+          merged_permissions: {
+            $concatArrays: ["$role.permissions", "$special_permissions"],
+          },
         },
       },
     ];
+
+    if (permissions) {
+      pipeline.push({
+        $match: {
+          $expr: {
+            $setIsSubset: [permissions.split(","), "$merged_permissions"],
+          },
+        },
+      });
+    }
+
+    pipeline.push({
+      $project: {
+        role: "$role.name",
+        role_permissions: "$role.permissions",
+        department: "$department.name",
+        username: 1,
+        email: 1,
+        firstname: 1,
+        lastname: 1,
+        employee_id: 1,
+        phone_number: 1,
+        is_active: 1,
+        special_permissions: 1,
+        last_login: 1,
+      },
+    });
 
     const users = await User.aggregate(pipeline);
 

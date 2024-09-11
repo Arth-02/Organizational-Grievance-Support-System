@@ -105,15 +105,22 @@ async function updateDepartment(req, res) {
 async function getAllDepartment(req, res) {
   try {
     const { organization_id } = req.user;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, is_active,name } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const totalDepartments = await Department.countDocuments({
-      organization_id,
-    });
-    const departments = await Department.find({ organization_id })
+    const query = { organization_id };
+
+    if (is_active === "true" || is_active === "false") {
+      query.is_active = is_active === "true";
+    }
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    const totalDepartments = await Department.countDocuments(query);
+    const departments = await Department.find(query)
       .skip(skip)
       .limit(limitNumber);
 
@@ -150,8 +157,13 @@ const getAllDepartmentName = async (req, res) => {
     const { organization_id } = req.user;
     const departments = await Department.find({
       organization_id,
+      is_active: true,
     }).select("name");
-    return successResponse(res, departments, "Departments retrieved successfully");
+    return successResponse(
+      res,
+      departments,
+      "Departments retrieved successfully"
+    );
   } catch (err) {
     console.error(err);
     return catchResponse(res);

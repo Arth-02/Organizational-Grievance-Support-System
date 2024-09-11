@@ -120,6 +120,7 @@ const getAllRoleName = async (req, res) => {
     const { organization_id } = req.user;
     const roles = await Role.find({
       organization_id,
+      is_active: true,
     }).select("name");
     return successResponse(res, roles, "Roles retrieved successfully");
   } catch (err) {
@@ -132,19 +133,31 @@ const getAllRoleName = async (req, res) => {
 const getAllRoles = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, is_active, name, permissions } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const roles = await Role.find({ organization_id })
-      .skip(skip)
-      .limit(limitNumber);
+    const query = { organization_id };
+
+    if (is_active == "true" || is_active == "false") {
+      query.is_active = is_active == "true";
+    }
+
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+
+    if (permissions) {
+      query.permissions = { $all: permissions.split(',') };
+    }
+
+    const roles = await Role.find(query).skip(skip).limit(limitNumber);
 
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
     }
-    const totalRoles = await Role.countDocuments({ organization_id });
+    const totalRoles = await Role.countDocuments(query);
     const totalPages = Math.ceil(totalRoles / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;

@@ -4,7 +4,7 @@ const router = require("express").Router();
 
 router.get("/reset-permissions", resetPermissions);
 router.get("/details/:id",checkPermission(["VIEW_ROLE"]), getRoleById);
-router.get("/allname",checkPermission(["VIEW_ROLE"]), getAllRoleName);
+router.get("/names",checkPermission(["VIEW_ROLE"]), getAllRoleName);
 router.get("/all",checkPermission(["VIEW_ROLE"]), getAllRoles);
 router.post("/create",checkPermission(["CREATE_ROLE"]), createRole);
 router.patch("/update/:id",checkPermission(["UPDATE_ROLE"]), updateRole);
