@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { isValidObjectId } = require("mongoose");
 const uploadFiles = require("../helpers/cloudinary");
 const Organization = require("../models/organization.model");
 const {
@@ -138,4 +139,25 @@ const updateOrganization = async (req, res) => {
   }
 };
 
-module.exports = { createOrganization, updateOrganization };
+// get by id
+const getOrganizationById = async (req, res) => {
+  try{
+    const {id} = req.params;
+    if(!id){
+      return errorResponse(res, 400, "Organization id is required");
+    }
+    if(!isValidObjectId(id)){
+      return errorResponse(res, 400, "Invalid organization id");
+    }
+    const organization = await Organization.findOne({_id:id, is_active:true});
+    if (!organization) {
+      return errorResponse(res, 404, "Organization not found");
+    }
+    return successResponse(res, organization, "Organization found");
+  } catch (err) {
+    console.error(err);
+    return catchResponse(res);
+  }
+};
+
+module.exports = { createOrganization, updateOrganization, getOrganizationById };

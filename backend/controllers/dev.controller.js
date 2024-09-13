@@ -40,7 +40,7 @@ const approveOrganization = async (req, res) => {
       `
                   <h1>Your organization has been verified</h1>
                   <p>Please click the link below to create your admin account</p>
-                  <a href="${process.env.CLIENT_URL}/${organization._id}/create-admin">Create Admin Account</a>
+                  <a href="${process.env.CLIENT_URL}/superadmin?id=${organization._id}">Create Admin Account</a>
                  `
     );
 

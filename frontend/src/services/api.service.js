@@ -17,7 +17,7 @@ export const apiService = createApi({
       },
       transformErrorResponse: (response) => {
         return response.data;
-      }
+      },
     }),
     getProfile: builder.query({
       query: (body) => ({
@@ -57,7 +57,7 @@ export const apiService = createApi({
       },
       transformErrorResponse: (response) => {
         return response.data;
-      }
+      },
     }),
     otpGenerate: builder.mutation({
       query: (body) => ({
@@ -72,6 +72,21 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
+    }),
+    getOrganizationById: builder.query({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${body.token}`,
+        },
+        url: `organizations/details/${body.organization_id}`,
+        method: "GET",
+      }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
     }),
     createSuperAdmin: builder.mutation({
       query: (body) => ({
@@ -272,6 +287,7 @@ export const {
   useCreateOrganizationMutation,
   useOtpGenerateMutation,
   useOrganizationVerifyMutation,
+  useLazyGetOrganizationByIdQuery,
   useCreateSuperAdminMutation,
   useCreateDepartmentMutation,
   useGetDepartmentByIdQuery,

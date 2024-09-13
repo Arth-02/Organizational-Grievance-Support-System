@@ -24,11 +24,15 @@ const Login = () => {
         : { username, password };
 
       const response = await login(loginData).unwrap();
-      console.log(response);
       if (response) {
         toast.success("Login successful!");
         saveToLocalStorage("user", response);
-        navigate("/");
+        if(response.role.name) {
+          navigate("/home");
+        }else {
+          toast.error('You are not authorized to access page!');
+          navigate("/login");
+        }
       } else {
         toast.error('Something went wrong! Please try again later.');
       }

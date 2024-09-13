@@ -25,7 +25,6 @@ const {
   updateUserSchema,
   superAdminSchema,
 } = require("../validators/user.validator");
-const { pipeline } = require("nodemailer/lib/xoauth2");
 
 // Login user
 async function login(req, res) {
@@ -43,7 +42,7 @@ async function login(req, res) {
     const user = await User.findOne({
       $or: [{ email }, { username }],
       is_active: true,
-    }).select("+password");
+    }).select("+password").populate({path: "role", select: "name"});
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }

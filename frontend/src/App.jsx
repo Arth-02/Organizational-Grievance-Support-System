@@ -4,6 +4,8 @@ import Page from "./components/Page";
 import { io } from "socket.io-client";
 import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
+import SuperAdmin from "./components/auth/SuperAdmin";
+import Home from "./components/page/Home";
 const socket = io("http://localhost:9001");
 
 socket.on("connect", () => {
@@ -22,9 +24,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Counter />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/page" element={<Page />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterOrg />} />
+          <Route path="/superadmin" element={<SuperAdmin />} />
         </Routes>
       </BrowserRouter>
     </>
