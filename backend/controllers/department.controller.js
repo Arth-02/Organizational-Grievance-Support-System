@@ -65,6 +65,9 @@ async function updateDepartment(req, res) {
   try {
     const { id } = req.params;
     const { organization_id } = req.user;
+    if (!id) {
+      return errorResponse(res, 400, "Department ID is required");
+    }
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
@@ -84,14 +87,13 @@ async function updateDepartment(req, res) {
         "Please provide name or description to update"
       );
     }
-
-    const department = await Department.findOneAndUpdate(
-      { _id: id, organization_id },
-      value,
-      {
-        new: true,
-      }
-    );
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const department = await Department.findOneAndUpdate(query, value, {
+      new: true,
+    });
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }
@@ -105,13 +107,15 @@ async function updateDepartment(req, res) {
 async function getAllDepartment(req, res) {
   try {
     const { organization_id } = req.user;
-    const { page = 1, limit = 10, is_active,name } = req.query;
+    const { page = 1, limit = 10, is_active, name } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const query = { organization_id };
-
+    const query = {};
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
     if (is_active === "true" || is_active === "false") {
       query.is_active = is_active === "true";
     }
@@ -155,10 +159,11 @@ async function getAllDepartment(req, res) {
 const getAllDepartmentName = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const departments = await Department.find({
-      organization_id,
-      is_active: true,
-    }).select("name");
+    const query = { is_active: true };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const departments = await Department.find(query).select("name");
     return successResponse(
       res,
       departments,
@@ -175,14 +180,19 @@ async function getDepartmentById(req, res) {
   try {
     const { id } = req.params;
     const { organization_id } = req.user;
+    if (!id) {
+      return errorResponse(res, 400, "Department ID is required");
+    }
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
 
-    const department = await Department.findOne({
-      _id: id,
-      organization_id,
-    });
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+
+    const department = await Department.findOne(query);
     if (!department) {
       return errorResponse(res, 404, "Department not found");
     }

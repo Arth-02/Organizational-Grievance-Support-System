@@ -29,7 +29,7 @@ async function createGrievance(req, res) {
       return errorResponse(res, 400, error.details[0].message);
     }
 
-    const { title, description, severity, status, department_id } = value;
+    const { title, description, priority, status, department_id } = value;
     const { organization_id, employee_id } = req.user;
     const reported_by = req.user._id;
 
@@ -46,7 +46,7 @@ async function createGrievance(req, res) {
       title,
       description,
       department_id,
-      severity,
+      priority,
       status,
       reported_by,
       employee_id,
@@ -130,14 +130,13 @@ async function updateGrievance(req, res) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-
-    const updatedGrievance = await Grievance.findOneAndUpdate(
-      { _id: id, organization_id },
-      value,
-      {
-        new: true,
-      }
-    );
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
+      new: true,
+    });
     if (!updatedGrievance) {
       return errorResponse(res, 404, "Grievance not found");
     }
@@ -155,12 +154,20 @@ async function updateGrievance(req, res) {
 // Soft delete a grievance
 async function deleteGrievance(req, res) {
   try {
+    const { organization_id } = req.user;
     const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, 400, "Grievance ID is required");
+    }
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
 
-    const grievance = await Grievance.findById(id);
+    const grievance = await Grievance.findOne(query);
     if (!grievance) {
       return errorResponse(res, 404, "Grievance not found");
     }

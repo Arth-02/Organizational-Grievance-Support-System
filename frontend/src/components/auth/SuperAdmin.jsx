@@ -69,7 +69,6 @@ const SuperAdmin = () => {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="w-full max-w-6xl bg-preprimary rounded-l-[2.5rem] rounded-r-[3rem]">
-        <div className="">
           <div className="flex flex-col md:flex-row">
             <div className="md:w-2/5 flex items-center justify-center">
               <div className="max-w-md z-50">
@@ -108,7 +107,6 @@ const SuperAdmin = () => {
               </form>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );

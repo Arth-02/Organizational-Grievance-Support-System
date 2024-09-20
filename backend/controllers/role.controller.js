@@ -78,14 +78,14 @@ const updateRole = async (req, res) => {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
+    const query = { _id: req.params.id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
 
-    const role = await Role.findOneAndUpdate(
-      { _id: req.params.id, organization_id },
-      value,
-      {
-        new: true,
-      }
-    );
+    const role = await Role.findOneAndUpdate(query, value, {
+      new: true,
+    });
     if (!role) {
       return errorResponse(res, 404, "Role not found");
     }
@@ -103,7 +103,11 @@ const getRoleById = async (req, res) => {
     if (!isValidObjectId(req.params.id)) {
       return errorResponse(res, 400, "Invalid id");
     }
-    const role = await Role.findOne({ _id: req.params.id, organization_id });
+    const query = { _id: req.params.id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const role = await Role.findOne(query);
     if (!role) {
       return errorResponse(res, 404, "Role not found");
     }
@@ -118,10 +122,11 @@ const getRoleById = async (req, res) => {
 const getAllRoleName = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const roles = await Role.find({
-      organization_id,
-      is_active: true,
-    }).select("name");
+    const query = { is_active: true };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const roles = await Role.find(query).select("name");
     return successResponse(res, roles, "Roles retrieved successfully");
   } catch (err) {
     console.error(err);
@@ -138,18 +143,18 @@ const getAllRoles = async (req, res) => {
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const query = { organization_id };
-
+    const query = {};
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
     if (is_active == "true" || is_active == "false") {
       query.is_active = is_active == "true";
     }
-
     if (name) {
       query.name = { $regex: name, $options: "i" };
     }
-
     if (permissions) {
-      query.permissions = { $all: permissions.split(',') };
+      query.permissions = { $all: permissions.split(",") };
     }
 
     const roles = await Role.find(query).skip(skip).limit(limitNumber);

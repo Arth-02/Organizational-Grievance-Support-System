@@ -20,7 +20,7 @@ const GrievanceSchema = new mongoose.Schema(
       ref: "Department",
       required: [true, "Department is required"],
     },
-    severity: {
+    priority: {
       type: String,
       enum: ["low", "medium", "high"],
       required: true,

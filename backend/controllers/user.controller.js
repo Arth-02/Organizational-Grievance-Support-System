@@ -211,7 +211,11 @@ async function getUser(req, res) {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const user = await User.findOne({ _id: id, organization_id }).select(
+    const query = { _id: id};
+    if(organization_id){
+      query.organization_id = organization_id;
+    }
+    const user = await User.findOne(query).select(
       "-createdAt -updatedAt -last_login -is_active -is_deleted"
     );
     if (!user) {
@@ -231,6 +235,7 @@ async function updateUser(req, res) {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
+    console.log(req.user);
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
@@ -241,9 +246,13 @@ async function updateUser(req, res) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, "Validation error", errors);
     }
-    // Find and update the user
+    const query = { _id: id };
+
+    if(organization_id){
+      query.organization_id = organization_id;
+    }
     const user = await User.findOneAndUpdate(
-      { _id: id, organization_id },
+      query,
       value,
       {
         new: true,
@@ -271,8 +280,12 @@ const deleteUser = async (req, res) => {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
+    const query = { _id: id };
+    if(organization_id){
+      query.organization_id = organization_id;
+    }
     const user = await User.findOneAndUpdate(
-      { _id: id, organization_id },
+      query,
       { is_active: false, is_deleted: true }
     );
     if (!user) {
@@ -567,9 +580,12 @@ const getAllUsers = async (req, res) => {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
-    const query = { organization_id, is_deleted: false, _id: { $ne: _id } }; //
+    const query = { is_deleted: false, _id: { $ne: _id } }; //
     if (is_active === "true" || is_active === "false") {
       query.is_active = is_active === "true";
+    }
+    if(organization_id){
+      query.organization_id = organization_id;
     }
     if (username) {
       query.username = { $regex: username, $options: "i" };
@@ -657,7 +673,7 @@ const getAllUsers = async (req, res) => {
 
     const users = await User.aggregate(pipeline);
 
-    const totalUsers = await User.countDocuments(query);
+    const totalUsers = users.length;
     const totalPages = Math.ceil(totalUsers / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
