@@ -1,17 +1,22 @@
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Loader, Lock, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserLoginMutation } from "@/services/api.service";
 import { saveToLocalStorage } from "@/utils";
 import { toast } from "react-hot-toast";
+import { loginSchema } from "@/validators/users";
 
 const Login = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+
   const [login, { isLoading }] = useUserLoginMutation();
   const navigate = useNavigate();
 
@@ -27,14 +32,14 @@ const Login = () => {
       if (response) {
         toast.success("Login successful!");
         saveToLocalStorage("user", response);
-        if(response.role.name) {
+        if (response.role.name) {
           navigate("/home");
-        }else {
-          toast.error('You are not authorized to access page!');
+        } else {
+          toast.error("You are not authorized to access the page!");
           navigate("/login");
         }
       } else {
-        toast.error('Something went wrong! Please try again later.');
+        toast.error("Something went wrong! Please try again later.");
       }
     } catch (error) {
       console.log(error);
@@ -74,9 +79,7 @@ const Login = () => {
                       : "border-gray-300 focus:border-primary focus:text-primary"
                   }`}
                   placeholder="Username or Email"
-                  {...register("username", {
-                    required: "Username or Email is required",
-                  })}
+                  {...register("username")}
                 />
                 <User
                   className={`absolute left-0 top-[2px] h-5 w-5 ${
@@ -110,9 +113,7 @@ const Login = () => {
                       : "border-gray-300 focus:border-primary focus:text-primary"
                   }`}
                   placeholder="Password"
-                  {...register("password", {
-                    required: "Password is required",
-                  })}
+                  {...register("password")}
                 />
                 <Lock
                   className={`absolute left-0 top-[2px] h-5 w-5 ${

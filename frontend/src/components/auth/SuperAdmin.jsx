@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useCreateSuperAdminMutation,
-//   useOtpGenerateMutation,
+  useOtpGenerateMutation,
 } from "@/services/api.service";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,25 +10,27 @@ import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { SuperAdminSchema } from "@/validators/users";
+
 
 const SuperAdmin = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: zodResolver(SuperAdminSchema),
+  });
 
   const [superAdmin] = useCreateSuperAdminMutation();
+  const [generateOtp] = useOtpGenerateMutation();
 
   const [step, setStep] = useState(1);
   const [animationClass, setAnimationClass] = useState("");
 
-  //   const [generateOtp] = useOtpGenerateMutation();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
-
-  console.log(id);
 
   const onSubmit = async (data) => {
     if (step === 1) {
@@ -36,17 +39,24 @@ const SuperAdmin = () => {
         toast.error("Passwords do not match. Please try again.");
         return;
       }
-      //   const response = await generateOtp({ organization_id: id }).unwrap();
-      //   console.log(response);
-      setAnimationClass("slide-enter");
-      setTimeout(() => {
-        setStep(2);
-        setAnimationClass("slide-enter-active");
-      }, 0);
+      try {
+        const response = await generateOtp({ organization_id: id }).unwrap();
+        if (!response) {
+          toast.error("Error generating OTP. Please try again.");
+          return;
+        }
+        setAnimationClass("slide-enter");
+        setTimeout(() => {
+          setStep(2);
+          setAnimationClass("slide-enter-active");
+        }, 0);
+      } catch (error) {
+        console.log(error)
+        toast.error("Error generating OTP. Please try again.");
+      }
     } else {
       try {
         const response = await superAdmin(data).unwrap();
-        console.log(response);
         if (response) {
           toast.success("Register successful!");
         } else {
@@ -69,44 +79,44 @@ const SuperAdmin = () => {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="w-full max-w-6xl bg-preprimary rounded-l-[2.5rem] rounded-r-[3rem]">
-          <div className="flex flex-col md:flex-row">
-            <div className="md:w-2/5 flex items-center justify-center">
-              <div className="max-w-md z-50">
-                <img
-                  src="/images/super-admin.png"
-                  alt="Meeting illustration"
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-            <div className="md:w-3/5 p-6 bg-white rounded-[2.5rem]">
-              <h1 className="text-3xl font-bold mb-6">Super Admin</h1>
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className={`space-y-4 min-h-[480px] ${animationClass} z-10`}
-              >
-                {step === 1 ? (
-                  <SuperAdminDetailsForm register={register} errors={errors} />
-                ) : (
-                  <OTP register={register} errors={errors} />
-                )}
-                <div className="flex justify-between">
-                  {step === 2 && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={handleBack}
-                    >
-                      Back
-                    </Button>
-                  )}
-                  <Button type="submit" className="ml-auto">
-                    {step === 1 ? "Next" : "Register"}
-                  </Button>
-                </div>
-              </form>
+        <div className="flex flex-col md:flex-row">
+          <div className="md:w-2/5 flex items-center justify-center">
+            <div className="max-w-md z-50">
+              <img
+                src="/images/super-admin.png"
+                alt="Meeting illustration"
+                className="w-full h-auto"
+              />
             </div>
           </div>
+          <div className="md:w-3/5 p-6 bg-white rounded-[2.5rem]">
+            <h1 className="text-3xl font-bold mb-6">Super Admin</h1>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className={`space-y-4 min-h-[480px] ${animationClass} z-10`}
+            >
+              {step === 1 ? (
+                <SuperAdminDetailsForm register={register} errors={errors} />
+              ) : (
+                <OTPForm register={register} errors={errors} />
+              )}
+              <div className="flex justify-between">
+                {step === 2 && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleBack}
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button type="submit" className="ml-auto">
+                  {step === 1 ? "Next" : "Register"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -123,6 +133,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -130,18 +141,14 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
           label="First Name"
           type="text"
           placeholder="Enter your first name"
-          {...register("firstname", {
-            required: "Firstname is required",
-          })}
+          {...register("firstname")}
           error={errors.firstname}
         />
         <CustomInput
           label="Last Name"
           type="text"
           placeholder="Enter your last name"
-          {...register("lastname", {
-            required: "Lastname is required",
-          })}
+          {...register("lastname")}
           error={errors.lastname}
         />
       </div>
@@ -149,22 +156,14 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
         type="text"
         label="Username"
         placeholder="Enter your username"
-        {...register("username", {
-          required: "Username is required",
-        })}
+        {...register("username")}
         error={errors.username}
       />
       <CustomInput
         label="E-mail"
         type="email"
         placeholder="you@gmail.com"
-        {...register("email", {
-          required: "Email is required",
-          pattern: {
-            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: "Invalid email address",
-          },
-        })}
+        {...register("email")}
         error={errors.email}
       />
       <div className="grid grid-cols-2 gap-4">
@@ -173,9 +172,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
             label="Password"
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
-            {...register("password", {
-              required: "Password is required",
-            })}
+            {...register("password")}
             error={errors.password}
           />
           <button
@@ -183,11 +180,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
             onClick={togglePasswordVisibility}
             className="absolute top-6 inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
           >
-            {showPassword ? (
-              <EyeOff className="text-gray-400" />
-            ) : (
-              <Eye className="text-gray-400" />
-            )}
+            {showPassword ? <EyeOff className="text-gray-400" /> : <Eye className="text-gray-400" />}
           </button>
         </div>
         <div className="relative">
@@ -195,9 +188,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
             label="Confirm-Password"
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Enter your confirm password"
-            {...register("confirmpassword", {
-              required: "Confirm Password is required",
-            })}
+            {...register("confirmpassword")}
             error={errors.confirmpassword}
           />
           <button
@@ -205,11 +196,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
             onClick={toggleConfirmPasswordVisibility}
             className="absolute top-6 inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
           >
-            {showConfirmPassword ? (
-              <EyeOff className="text-gray-400" />
-            ) : (
-              <Eye className="text-gray-400" />
-            )}
+            {showConfirmPassword ? <EyeOff className="text-gray-400" /> : <Eye className="text-gray-400" />}
           </button>
         </div>
       </div>
@@ -218,21 +205,14 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
           label="Employee-ID"
           type="text"
           placeholder="Enter your Employee-ID"
-          {...register("employee_id", {
-            required: "Employee-ID is required",
-          })}
+          {...register("employee_id")}
           error={errors.employee_id}
         />
         <CustomInput
           label="Phone"
-          type="number"
+          type="text"
           placeholder="Enter your phone number"
-          {...register("phone", {
-            pattern: {
-              value: /^[0-9]{10}$/i,
-              message: "Invalid phone number",
-            },
-          })}
+          {...register("phone")}
           error={errors.phone}
         />
       </div>
@@ -240,16 +220,14 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
   );
 };
 
-const OTP = ({ register, errors }) => {
+const OTPForm = ({ register, errors }) => {
   return (
-    <>
-      <CustomInput
-        placeholder="Enter your OTP"
-        label="OTP"
-        {...register("otp", { required: "OTP is required" })}
-        error={errors.otp}
-      />
-    </>
+    <CustomInput
+      placeholder="Enter your OTP"
+      label="OTP"
+      {...register("otp")}
+      error={errors.otp}
+    />
   );
 };
 

@@ -6,18 +6,23 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { CustomCheckbox } from "../ui/checkbox";
 import { CustomTextarea } from "../ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { addressDetailsSchema, organizationDetailsSchema } from "@/validators/users";
 
 const RegisterOrg = () => {
+  const [createOrganization] = useCreateOrganizationMutation();
+  const [step, setStep] = useState(1);
+  const [animationClass, setAnimationClass] = useState("");
+
+  // Use appropriate resolver depending on the step
+  const formSchema = step === 1 ? organizationDetailsSchema : addressDetailsSchema;
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
-
-  const [createOrganization] = useCreateOrganizationMutation();
-
-  const [step, setStep] = useState(1);
-  const [animationClass, setAnimationClass] = useState("");
+  } = useForm({
+    resolver: zodResolver(formSchema),
+  });
 
   const onSubmit = async (data) => {
     if (step === 1) {
@@ -29,7 +34,6 @@ const RegisterOrg = () => {
     } else {
       try {
         const response = await createOrganization(data).unwrap();
-        console.log(response);
         if (response) {
           toast.success("Register successful!");
         } else {
@@ -61,20 +65,13 @@ const RegisterOrg = () => {
                 className={`space-y-4 min-h-[480px] ${animationClass} z-10`}
               >
                 {step === 1 ? (
-                  <OrganizationDetailsForm
-                    register={register}
-                    errors={errors}
-                  />
+                  <OrganizationDetailsForm register={register} errors={errors} />
                 ) : (
                   <AddressDetailsForm register={register} errors={errors} />
                 )}
                 <div className="flex justify-between">
                   {step === 2 && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={handleBack}
-                    >
+                    <Button type="button" variant="secondary" onClick={handleBack}>
                       Back
                     </Button>
                   )}
@@ -100,113 +97,98 @@ const RegisterOrg = () => {
   );
 };
 
-const OrganizationDetailsForm = ({ register, errors }) => {
-  return (
-    <>
+const OrganizationDetailsForm = ({ register, errors }) => (
+  <>
+    <CustomInput
+      label="Company Name"
+      type="text"
+      placeholder="Company Name"
+      {...register("name")}
+      error={errors.name}
+    />
+    <div className="grid grid-cols-2 gap-4">
       <CustomInput
-        label="Company Name"
+        label="E-mail"
+        type="email"
+        placeholder="you@gmail.com"
+        {...register("email")}
+        error={errors.email}
+      />
+      <CustomInput
+        label="Phone"
         type="text"
-        placeholder="Company Name"
-        {...register("name", { required: "Company Name is required" })}
-        error={errors.name}
+        placeholder="1234567890"
+        {...register("phone")}
+        error={errors.phone}
       />
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="E-mail"
-          type="email"
-          placeholder="you@gmail.com"
-          {...register("email", {
-            required: "Email is required",
-            pattern: {
-              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: "Invalid email address",
-            },
-          })}
-          error={errors.email}
-        />
-        <CustomInput
-          label="Phone"
-          type="number"
-          placeholder="1234567890"
-          {...register("phone", {
-            required: "Phone is required",
-            pattern: {
-              value: /^[0-9]{10}$/i,
-              message: "Invalid phone number",
-            },
-          })}
-          error={errors.phone}
-        />
-      </div>
-      <CustomInput
-        type="text"
-        placeholder="Website URL"
-        label="Website"
-        {...register("website")}
-      />
-      <CustomInput
-        type="file"
-        className="p-1 text-muted-foreground"
-        label="Logo URL"
-        {...register("logo")}
-      />
-      <CustomTextarea
-        label="Description"
-        placeholder="What does your company do?"
-        {...register("description", { required: "Descriptions is required" })}
-        error={errors.description}
-      />
-    </>
-  );
-};
+    </div>
+    <CustomInput
+      type="text"
+      placeholder="Website URL"
+      label="Website"
+      {...register("website")}
+    />
+    <CustomInput
+      type="file"
+      className="p-1 text-muted-foreground"
+      label="Logo URL"
+      {...register("logo")}
+    />
+    <CustomTextarea
+      label="Description"
+      placeholder="What does your company do?"
+      {...register("description")}
+      error={errors.description}
+    />
+  </>
+);
 
-const AddressDetailsForm = ({ register, errors }) => {
-  return (
-    <>
-      <CustomTextarea
-        placeholder="Enter your address"
-        label="Address"
-        {...register("address", { required: "Address is required" })}
-        error={errors.address}
+const AddressDetailsForm = ({ register, errors }) => (
+  <>
+    <CustomTextarea
+      placeholder="Enter your address"
+      label="Address"
+      {...register("address")}
+      error={errors.address}
+    />
+    <div className="grid grid-cols-2 gap-4">
+      <CustomInput
+        label="City"
+        {...register("city")}
+        error={errors.city}
       />
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="City"
-          {...register("city", { required: "City is required" })}
-          error={errors.city}
-        />
-        <CustomInput
-          label="State"
-          {...register("state", { required: "State is required" })}
-          error={errors.state}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="Country"
-          {...register("country", { required: "Country is required" })}
-          error={errors.country}
-        />
-        <CustomInput
-          label="Pincode"
-          {...register("pincode", { required: "Pincode is required" })}
-          error={errors.pincode}
-        />
-      </div>
-      <CustomCheckbox
-        id="terms"
-        label={
-          <>
-            I agree to the{" "}
-            <span className="text-primary font-medium">Terms and Conditions</span> and{" "}
-            <span className="text-primary font-medium">Privacy Policy</span>
-          </>
-        }
-        error={errors.terms}
-        
+      <CustomInput
+        label="State"
+        {...register("state")}
+        error={errors.state}
       />
-    </>
-  );
-};
+    </div>
+    <div className="grid grid-cols-2 gap-4">
+      <CustomInput
+        label="Country"
+        {...register("country")}
+        error={errors.country}
+      />
+      <CustomInput
+        label="Pincode"
+        {...register("pincode")}
+        error={errors.pincode}
+      />
+    </div>
+    <CustomCheckbox
+      id="terms"
+      label={
+        <>
+          I agree to the{" "}
+          <span className="text-primary font-medium">Terms and Conditions</span>{" "}
+          and{" "}
+          <span className="text-primary font-medium">Privacy Policy</span>
+        </>
+      }
+      {...register("terms")}
+      error={errors.terms}
+    />
+  </>
+);
 
 export default RegisterOrg;
