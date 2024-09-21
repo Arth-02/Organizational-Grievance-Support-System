@@ -1,7 +1,8 @@
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
-import { Loader, Lock, User } from "lucide-react";
+import { Loader, Lock, User, Eye, EyeOff } from "lucide-react"; // Import Eye and EyeOff icons
 import { Link, useNavigate } from "react-router-dom";
 import { useUserLoginMutation } from "@/services/api.service";
 import { saveToLocalStorage } from "@/utils";
@@ -19,6 +20,12 @@ const Login = () => {
 
   const [login, { isLoading }] = useUserLoginMutation();
   const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = React.useState(false); // State to toggle password visibility
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevState) => !prevState); // Toggle the state
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -73,7 +80,7 @@ const Login = () => {
                   disabled={isLoading}
                   type="text"
                   id="username"
-                  className={`peer w-full pl-7 bg-transparent border-b-2 text-gray-700 focus:outline-none ${
+                  className={`peer w-full pl-7 pb-[2px] bg-transparent border-b-2 text-gray-700 focus:outline-none ${
                     errors.username
                       ? "border-red-500 text-red-500"
                       : "border-gray-300 focus:border-primary focus:text-primary"
@@ -82,7 +89,8 @@ const Login = () => {
                   {...register("username")}
                 />
                 <User
-                  className={`absolute left-0 top-[2px] h-5 w-5 ${
+                  size={19}
+                  className={`absolute left-0 top-[4px] ${
                     errors.username
                       ? "text-red-500"
                       : "text-gray-400 peer-focus:text-primary"
@@ -105,9 +113,9 @@ const Login = () => {
               <div className="relative">
                 <input
                   disabled={isLoading}
-                  type="password"
+                  type={showPassword ? "text" : "password"} // Toggle between text and password
                   id="password"
-                  className={`peer w-full pl-7 bg-transparent border-b-2 focus:outline-none ${
+                  className={`peer w-full pb-[2px] pl-7 bg-transparent border-b-2 focus:outline-none ${
                     errors.password
                       ? "border-red-500 text-red-500"
                       : "border-gray-300 focus:border-primary focus:text-primary"
@@ -116,12 +124,20 @@ const Login = () => {
                   {...register("password")}
                 />
                 <Lock
-                  className={`absolute left-0 top-[2px] h-5 w-5 ${
+                  size={19}
+                  className={`absolute left-0 top-[4px] ${
                     errors.password
                       ? "text-red-500"
                       : "text-gray-400 peer-focus:text-primary"
                   }`}
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-1 top-[4px] text-gray-400 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                </button>
               </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">

@@ -60,6 +60,9 @@ export const theme = {
       md: "calc(var(--radius) - 2px)",
       sm: "calc(var(--radius) - 4px)",
     },
+    boxShadow: {
+      'custom': '0px 0px 15px 5px rgba(0, 0, 0, 0.1)',
+    },
     keyframes: {
       "accordion-down": {
         from: { height: "0" },

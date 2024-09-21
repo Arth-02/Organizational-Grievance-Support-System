@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Eye, EyeOff } from "lucide-react";
 
 const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
   return (
@@ -28,14 +29,43 @@ const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
 });
 Input.displayName = "Input";
 
-const CustomInput = React.forwardRef(({ label, error, ...props }, ref) => (
-  <div className="space-y-1">
-    <label htmlFor={props.id} className="block text-sm font-medium">
-      {label}
-    </label>
-    <Input ref={ref} error={error} className={"bg-secondary/15"} {...props} />
-  </div>
-));
-CustomInput.displayName = 'CustomInput';
+const CustomInput = React.forwardRef(({ label, error, type, ...props }, ref) => {
+  const [showPassword, setShowPassword] = React.useState(false);
 
-export { Input, CustomInput }
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevState) => !prevState);
+  };
+
+  return (
+    <div className="space-y-1 relative">
+      <label htmlFor={props.id} className="block text-sm font-medium">
+        {label}
+      </label>
+      <div className="relative">
+        <Input
+          ref={ref}
+          error={error}
+          type={showPassword && type === "password" ? "text" : type}
+          className={"bg-secondary/15"}
+          {...props}
+        />
+        {type === "password" && (
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute top-2 right-2 flex items-center text-sm leading-5"
+          >
+            {showPassword ? (
+              <EyeOff className="text-gray-400" size={20} />
+            ) : (
+              <Eye className="text-gray-400" size={20} />
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
+CustomInput.displayName = "CustomInput";
+
+export { Input, CustomInput };

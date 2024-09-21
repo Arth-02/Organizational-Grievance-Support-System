@@ -5,7 +5,6 @@ import {
   useOtpGenerateMutation,
 } from "@/services/api.service";
 import toast from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -77,11 +76,11 @@ const SuperAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="w-full max-w-6xl bg-preprimary rounded-l-[2.5rem] rounded-r-[3rem]">
-        <div className="flex flex-col md:flex-row">
-          <div className="md:w-2/5 flex items-center justify-center">
-            <div className="max-w-md z-50">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-7xl bg-preprimary rounded-[2.5rem]">
+        <div className="flex flex-col md:flex-row shadow-custom rounded-[2.5rem]">
+          <div className="md:w-2/5 hidden md:flex items-center justify-center">
+            <div className="max-w-md p-6 z-50">
               <img
                 src="/images/super-admin.png"
                 alt="Meeting illustration"
@@ -89,18 +88,18 @@ const SuperAdmin = () => {
               />
             </div>
           </div>
-          <div className="md:w-3/5 p-6 bg-white rounded-[2.5rem]">
-            <h1 className="text-3xl font-bold mb-6">Super Admin</h1>
+          <div className="md:w-3/5 p-6 px-10 bg-white rounded-[2.5rem]">
+            <h1 className="text-3xl font-bold my-6 mb-8">Super Admin</h1>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className={`space-y-4 min-h-[480px] ${animationClass} z-10`}
+              className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
             >
               {step === 1 ? (
                 <SuperAdminDetailsForm register={register} errors={errors} />
               ) : (
                 <OTPForm register={register} errors={errors} />
               )}
-              <div className="flex justify-between">
+              <div className="flex justify-between !mt-8">
                 {step === 2 && (
                   <Button
                     type="button"
@@ -123,16 +122,6 @@ const SuperAdmin = () => {
 };
 
 const SuperAdminDetailsForm = ({ register, errors }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
 
   return (
     <>
@@ -167,38 +156,20 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
         error={errors.email}
       />
       <div className="grid grid-cols-2 gap-4">
-        <div className="relative">
           <CustomInput
             label="Password"
-            type={showPassword ? "text" : "password"}
+            type="password"
             placeholder="Enter your password"
             {...register("password")}
             error={errors.password}
           />
-          <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute top-6 inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-          >
-            {showPassword ? <EyeOff className="text-gray-400" /> : <Eye className="text-gray-400" />}
-          </button>
-        </div>
-        <div className="relative">
           <CustomInput
             label="Confirm-Password"
-            type={showConfirmPassword ? "text" : "password"}
+            type="password"
             placeholder="Enter your confirm password"
             {...register("confirmpassword")}
             error={errors.confirmpassword}
           />
-          <button
-            type="button"
-            onClick={toggleConfirmPasswordVisibility}
-            className="absolute top-6 inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-          >
-            {showConfirmPassword ? <EyeOff className="text-gray-400" /> : <Eye className="text-gray-400" />}
-          </button>
-        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
