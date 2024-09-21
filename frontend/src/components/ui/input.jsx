@@ -56,9 +56,9 @@ const CustomInput = React.forwardRef(({ label, error, type, ...props }, ref) => 
             className="absolute top-2 right-2 flex items-center text-sm leading-5"
           >
             {showPassword ? (
-              <EyeOff className="text-gray-400" size={20} />
+              <EyeOff className="text-gray-400" size={19} />
             ) : (
-              <Eye className="text-gray-400" size={20} />
+              <Eye className="text-gray-400" size={19} />
             )}
           </button>
         )}
