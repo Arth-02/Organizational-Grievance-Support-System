@@ -48,7 +48,7 @@ export const SuperAdminSchema = z
       .string()
       .min(8, "Confirm password must be at least 8 characters long"),
     employee_id: z.string().min(1, { message: "Employee ID is required" }),
-    phone: z
+    phone_number: z
       .string()
       .regex(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
       .optional(),

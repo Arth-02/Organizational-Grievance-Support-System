@@ -8,8 +8,9 @@ import toast from "react-hot-toast";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { SuperAdminSchema } from "@/validators/users";
+import { useSearchParams } from "react-router-dom";
+import { CustomOTPInput } from "../ui/input-otp";
 
 
 const SuperAdmin = () => {
@@ -24,12 +25,11 @@ const SuperAdmin = () => {
   const [superAdmin] = useCreateSuperAdminMutation();
   const [generateOtp] = useOtpGenerateMutation();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   const [animationClass, setAnimationClass] = useState("");
 
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const id = params.get("id");
+  const [searchParams] = useSearchParams();
+  const organizationId = searchParams.get("id");
 
   const onSubmit = async (data) => {
     if (step === 1) {
@@ -39,7 +39,7 @@ const SuperAdmin = () => {
         return;
       }
       try {
-        const response = await generateOtp({ organization_id: id }).unwrap();
+        const response = await generateOtp({ organization_id: organizationId }).unwrap();
         if (!response) {
           toast.error("Error generating OTP. Please try again.");
           return;
@@ -183,8 +183,8 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
           label="Phone"
           type="text"
           placeholder="Enter your phone number"
-          {...register("phone")}
-          error={errors.phone}
+          {...register("phone_number")}
+          error={errors.phone_number}
         />
       </div>
     </>
@@ -193,9 +193,15 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
 
 const OTPForm = ({ register, errors }) => {
   return (
-    <CustomInput
-      placeholder="Enter your OTP"
+    // <CustomInput
+    //   placeholder="Enter your OTP"
+    //   label="OTP"
+    //   {...register("otp")}
+    //   error={errors.otp}
+    // />
+    <CustomOTPInput
       label="OTP"
+      maxLength={6}
       {...register("otp")}
       error={errors.otp}
     />

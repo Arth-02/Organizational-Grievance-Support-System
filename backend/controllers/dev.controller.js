@@ -21,6 +21,7 @@ const approveOrganization = async (req, res) => {
     const organization = await Organization.findById(id, {
       is_approved: 1,
       email: 1,
+      name: 1,
     });
     if (!organization) {
       return errorResponse(res, 404, "Organization not found");
@@ -33,14 +34,13 @@ const approveOrganization = async (req, res) => {
     organization.is_approved = true;
     await organization.save();
 
-    // Have to send email to organization with link to create admin account
     const isMailSend = await sendEmail(
       organization.email,
       "Organization Verified",
       `
                   <h1>Your organization has been verified</h1>
                   <p>Please click the link below to create your admin account</p>
-                  <a href="${process.env.CLIENT_URL}/superadmin?id=${organization._id}">Create Admin Account</a>
+                  <a href="${process.env.CLIENT_URL}/organization/super-admin/create?id=${organization._id}">Create Admin Account</a>
                  `
     );
 
