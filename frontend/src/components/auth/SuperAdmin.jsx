@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  useCheckUsernameMutation,
   useCreateSuperAdminMutation,
   useOtpGenerateMutation,
 } from "@/services/api.service";
@@ -14,29 +15,53 @@ import { CustomOTPInput } from "../ui/input-otp";
 import { Loader2 } from "lucide-react";
 
 const SuperAdmin = () => {
-  const [superAdmin, {isLoading}] = useCreateSuperAdminMutation();
+  const [superAdmin, { isLoading }] = useCreateSuperAdminMutation();
   const [generateOtp, { isLoading: isOTPGenerating }] = useOtpGenerateMutation();
+  const [checkUsername] = useCheckUsernameMutation();
 
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
   const [animationClass, setAnimationClass] = useState("");
   const [formData, setFormData] = useState({});
 
   const [searchParams] = useSearchParams();
   const organizationId = searchParams.get("id");
 
-  const formSchema = step === 1 ? superAdminSchema : superAdminSchemaWithOTP;
-
   const {
     register,
-    control,
     handleSubmit,
     formState: { errors },
+    trigger,
   } = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(superAdminSchema),
+    mode: "onChange",
   });
+
+  const {
+    control: otpControl,
+    handleSubmit: handleOtpSubmit,
+    formState: { errors: otpErrors },
+  } = useForm({
+    resolver: zodResolver(superAdminSchemaWithOTP),
+    mode: "onSubmit",
+  });
+
+  const checkIfUsernameExists = async (username) => {
+    try {
+      const response = await checkUsername({ username }).unwrap();
+      if (response) {
+        return response;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error checking username. Please try again.");
+    }
+  }
 
   const onSubmit = async (data) => {
     if (step === 1) {
+      const isValid = await trigger();
+      if (!isValid) return;
+
       // eslint-disable-next-line no-unused-vars
       const { confirmpassword, ...dataWithoutConfirm } = data;
       setFormData(dataWithoutConfirm);
@@ -57,18 +82,21 @@ const SuperAdmin = () => {
         console.log(error);
         toast.error("Error generating OTP. Please try again.");
       }
-    } else {
-      try {
-        const allData = { ...formData, ...data, organization_id: organizationId };
-        const response = await superAdmin(allData).unwrap();
-        if (response) {
-          toast.success("Register successful!");
-        } else {
-          toast.error("Something went wrong! Please try again later.");
-        }
-      } catch (error) {
-        toast.error(error.message);
+    }
+  };
+
+  const onOtpSubmit = async (otpData) => {
+    try {
+      const allData = { ...formData, ...otpData, organization_id: organizationId };
+      const response = await superAdmin(allData).unwrap();
+      if (response) {
+        toast.success("Register successful!");
+      } else {
+        toast.error("Something went wrong! Please try again later.");
       }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
     }
   };
 
@@ -80,7 +108,6 @@ const SuperAdmin = () => {
     }, 0);
   };
 
-  console.log(errors);
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-7xl bg-preprimary rounded-[2.5rem]">
@@ -96,21 +123,31 @@ const SuperAdmin = () => {
           </div>
           <div className="md:w-3/5 p-6 px-10 bg-white rounded-[2.5rem]">
             <h1 className="text-3xl font-bold my-6 mb-8">Super Admin</h1>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
-            >
-              {step === 1 ? (
-                <SuperAdminDetailsForm register={register} errors={errors} />
-              ) : (
+            {step === 1 ? (
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
+              >
+                <SuperAdminDetailsForm register={register} errors={errors} checkIfUsernameExists={checkIfUsernameExists} />
+                <div className="flex justify-end !mt-8">
+                  <Button type="submit" disabled={isLoading || isOTPGenerating}>
+                    Next
+                    {(isLoading || isOTPGenerating) && (
+                      <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
+                    )}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form
+                onSubmit={handleOtpSubmit(onOtpSubmit)}
+                className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
+              >
                 <OTPForm
-                  register={register}
-                  errors={errors}
-                  control={control}
+                  control={otpControl}
+                  errors={otpErrors}
                 />
-              )}
-              <div className="flex justify-between !mt-8">
-                {step === 2 && (
+                <div className="flex justify-between !mt-8">
                   <Button
                     type="button"
                     variant="secondary"
@@ -118,15 +155,15 @@ const SuperAdmin = () => {
                   >
                     Back
                   </Button>
-                )}
-                <Button type="submit" className="ml-auto" disabled={isLoading || isOTPGenerating} >
-                  {step === 1 ? "Next" : "Register"}
-                  {(isLoading || isOTPGenerating) && (
-                    <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
-                  )}
-                </Button>
-              </div>
-            </form>
+                  <Button type="submit" disabled={isLoading}>
+                    Register
+                    {isLoading && (
+                      <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
+                    )}
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>
@@ -134,7 +171,7 @@ const SuperAdmin = () => {
   );
 };
 
-const SuperAdminDetailsForm = ({ register, errors }) => {
+const SuperAdminDetailsForm = ({ register, errors, checkIfUsernameExists }) => {
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -157,7 +194,9 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
         type="text"
         label="Username"
         placeholder="Enter your username"
-        {...register("username")}
+        {...register("username", {
+          onChange: (e) => checkIfUsernameExists(e.target.value)
+        })}
         error={errors.username}
       />
       <CustomInput
@@ -203,13 +242,14 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
   );
 };
 
-const OTPForm = ({ control }) => {
+const OTPForm = ({ control, errors }) => {
   return (
     <CustomOTPInput
       control={control}
       name="otp"
       label="Enter OTP"
       maxLength={6}
+      error={errors.otp}
     />
   );
 };
