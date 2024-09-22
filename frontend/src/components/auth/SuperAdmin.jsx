@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  useCheckEmailMutation,
   useCheckUsernameMutation,
   useCreateSuperAdminMutation,
   useOtpGenerateMutation,
@@ -162,9 +163,12 @@ const SuperAdmin = () => {
 const SuperAdminDetailsForm = ({ register, errors }) => {
 
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [isUserNameAvailable, setIsUserNameAvailable] = useState(undefined);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(undefined);
 
   const [checkUsername, { isLoading: checkingUserName }] = useCheckUsernameMutation();
+  const [checkEmail, { isLoading: checkingEmail }] = useCheckEmailMutation();
 
   const checkIfUsernameExists = useCallback(async (username) => {
     if (!username) return;
@@ -179,10 +183,28 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Error checking username. Please try again.");
+      const errorMessages = error.message.join(", ");
+      setIsUserNameAvailable(false);
+      toast.error(errorMessages);
     }
   }, [checkUsername]);
 
+  const checkIfEmailExists = useCallback(async (email) => {
+    if (!email) return;
+    try {
+      const response = await checkEmail({ email }).unwrap();
+      if (response) {
+        setIsEmailAvailable(!response.exists);
+      }
+    } catch (error) {
+      console.log(error);
+      const errorMessages = error.message.join(", ");
+      setIsEmailAvailable(false);
+      toast.error(errorMessages);
+    }
+  }, [checkEmail]);
+
+  useDebounce(email, 500, checkIfEmailExists);
   useDebounce(username, 500, checkIfUsernameExists);
 
   return (
@@ -217,7 +239,7 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
           <div className="absolute right-2 top-8">
             {
               isUserNameAvailable === undefined || checkingUserName ? (
-                <Loader2 size={20} className="animate-spin text-orange-400" />
+                <Loader2 size={20} className="animate-spin text-primary" />
               ) : (
                 isUserNameAvailable ? (
                   <CustomTooltip className='bg-green-50 text-green-600 tracking-wide' content="Username is available">
@@ -233,13 +255,36 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
           </div>
         )}
       </div>
-      <CustomInput
-        label="E-mail"
-        type="email"
-        placeholder="you@gmail.com"
-        {...register("email")}
-        error={errors.email}
-      />
+      <div className="relative">
+        <CustomInput
+          label="E-mail"
+          type="email"
+          placeholder="you@gmail.com"
+          {...register("email", {
+            onBlur: (e) => setEmail(e.target.value),
+          })}
+          error={errors.email}
+        />
+        {email && (
+          <div className="absolute right-2 top-8">
+            {
+              isEmailAvailable === undefined || checkingEmail ? (
+                <Loader2 size={20} className="animate-spin text-primary" />
+              ) : (
+                isEmailAvailable ? (
+                  <CustomTooltip className='bg-green-50 text-green-600 tracking-wide' content="Email is available">
+                    <BadgeCheck className="text-green-500 rounded-full overflow-hidden" size={20} />
+                  </CustomTooltip>
+                ) : (
+                  <CustomTooltip className='bg-red-50 text-red-500 tracking-wide' content="Email is not available">
+                    <BadgeAlert className="text-red-500 rounded-full" size={20} />
+                  </CustomTooltip>
+                )
+              )
+            }
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
           label="Password"

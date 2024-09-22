@@ -487,16 +487,12 @@ const checkUsername = async (req, res) => {
     }
     const { username } = value;
 
-    if(!req.user?.organization_id){
-      return successResponse(res, { exists: false }, "Username available");
+    const query = { username, is_deleted: false };
+    if(req.user?.organization_id){
+      query.organization_id = req.user.organization_id;
     }
 
-    const { organization_id } = req.user;
-    const user = await User.findOne({
-      username,
-      organization_id,
-      is_deleted: false,
-    });
+    const user = await User.findOne(query);
     if (user) {
       return successResponse(res, { exists: true }, "Username exists");
     }
@@ -520,12 +516,13 @@ const checkEmail = async (req, res) => {
     }
     const { email } = value;
 
-    const { organization_id } = req.user;
-    const user = await User.findOne({
-      email,
-      organization_id,
-      is_deleted: false,
-    });
+    const query = { email, is_deleted: false };
+
+    if(req.user?.organization_id){
+      query.organization_id = req.user.organization_id;
+    }
+
+    const user = await User.findOne(query);
     if (user) {
       return successResponse(res, { exists: true }, "Email exists");
     }

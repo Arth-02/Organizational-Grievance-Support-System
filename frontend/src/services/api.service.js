@@ -271,6 +271,12 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
     }),
     checkEmployeeID: builder.mutation({
       query: (body) => ({
