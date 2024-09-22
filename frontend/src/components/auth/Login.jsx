@@ -2,7 +2,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
-import { Loader, Lock, User, Eye, EyeOff } from "lucide-react"; // Import Eye and EyeOff icons
+import { Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserLoginMutation } from "@/services/api.service";
 import { saveToLocalStorage } from "@/utils";
@@ -21,10 +21,10 @@ const Login = () => {
   const [login, { isLoading }] = useUserLoginMutation();
   const navigate = useNavigate();
 
-  const [showPassword, setShowPassword] = React.useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const togglePasswordVisibility = () => {
-    setShowPassword((prevState) => !prevState); // Toggle the state
+    setShowPassword((prevState) => !prevState);
   };
 
   const onSubmit = async (data) => {
@@ -38,7 +38,10 @@ const Login = () => {
       const response = await login(loginData).unwrap();
       if (response) {
         toast.success("Login successful!");
-        saveToLocalStorage("user", response);
+        saveToLocalStorage("token", response.token);
+        saveToLocalStorage("roleId", response.role._id);
+        saveToLocalStorage("userId", response.id);
+        saveToLocalStorage("organizationId", response.organization_id);
         if (response.role.name) {
           navigate("/home");
         } else {
@@ -113,7 +116,7 @@ const Login = () => {
               <div className="relative">
                 <input
                   disabled={isLoading}
-                  type={showPassword ? "text" : "password"} // Toggle between text and password
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   className={`peer w-full pb-[2px] pl-7 bg-transparent border-b-2 focus:outline-none ${
                     errors.password
@@ -148,7 +151,7 @@ const Login = () => {
             <Button type="submit" className="w-full">
               {isLoading ? (
                 <span>
-                  <Loader />
+                  <Loader2 className="animate-spin" />
                 </span>
               ) : (
                 "Login"

@@ -5,8 +5,6 @@ import { useLazyGetOrganizationByIdQuery } from "@/services/api.service";
 import { setUserDetails } from "@/features/userSlice";
 import { setOrganizationDetails } from "@/features/organizationSlice";
 import { saveToLocalStorage } from "@/utils";
-
-import Navbar from "./Navbar";
 import SidebarPage from "./SidebarPage";
 
 const Home = () => {
@@ -51,8 +49,8 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchUserData();
-    fetchOrganizationData();
+    // fetchUserData();
+    // fetchOrganizationData();
   }, []);
 
   useEffect(() => {
