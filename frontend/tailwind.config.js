@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export const darkMode = ["class"];
 export const content = [
-  './pages/**/*.{js,jsx}',
-  './components/**/*.{js,jsx}',
-  './app/**/*.{js,jsx}',
-  './src/**/*.{js,jsx}',
+  "./pages/**/*.{js,jsx}",
+  "./components/**/*.{js,jsx}",
+  "./app/**/*.{js,jsx}",
+  "./src/**/*.{js,jsx}",
 ];
 export const prefix = "";
 export const theme = {
@@ -26,7 +26,7 @@ export const theme = {
         DEFAULT: "hsl(var(--primary))",
         foreground: "hsl(var(--primary-foreground))",
       },
-      preprimary:{
+      preprimary: {
         DEFAULT: "hsl(var(--preprimary))",
       },
       secondary: {
@@ -61,7 +61,7 @@ export const theme = {
       sm: "calc(var(--radius) - 4px)",
     },
     boxShadow: {
-      'custom': '0px 0px 15px 5px rgba(0, 0, 0, 0.1)',
+      custom: "0px 0px 15px 5px rgba(0, 0, 0, 0.1)",
     },
     keyframes: {
       "accordion-down": {
@@ -72,10 +72,15 @@ export const theme = {
         from: { height: "var(--radix-accordion-content-height)" },
         to: { height: "0" },
       },
+      "caret-blink": {
+        "0%,70%,100%": { opacity: "1" },
+        "20%,50%": { opacity: "0" },
+      },
     },
     animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
+      "caret-blink": "caret-blink 1.25s ease-out infinite",
     },
   },
 };

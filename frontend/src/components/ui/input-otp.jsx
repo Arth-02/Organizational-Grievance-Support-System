@@ -1,5 +1,6 @@
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
+import { useController } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
 
@@ -17,7 +18,7 @@ const InputOTPGroup = React.forwardRef(({ className, ...props }, ref) => (
 ))
 InputOTPGroup.displayName = "InputOTPGroup"
 
-const InputOTPSlot = React.forwardRef(({ index, className, ...props }, ref) => {
+const InputOTPSlot = React.forwardRef(({ index, className, error, ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext)
   const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index]
 
@@ -25,8 +26,9 @@ const InputOTPSlot = React.forwardRef(({ index, className, ...props }, ref) => {
     <div
       ref={ref}
       className={cn(
-        "relative flex h-9 w-9 items-center justify-center rounded-md border bg-secondary/15 text-sm transition-all",
+        "relative flex h-9 w-9 items-center justify-center border first:rounded-l-md last:rounded-r-md bg-secondary/15 text-sm transition-all",
         isActive && "z-10 ring-2 ring-primary",
+        error && !isActive && "border-red-500 border-r-0 last:border-r text-red-500",
         className
       )}
       {...props}>
@@ -41,7 +43,16 @@ const InputOTPSlot = React.forwardRef(({ index, className, ...props }, ref) => {
 })
 InputOTPSlot.displayName = "InputOTPSlot"
 
-const CustomOTPInput = React.forwardRef(({ label, error, maxLength = 6, ...props }, ref) => {
+const CustomOTPInput = React.forwardRef(({ label, error, maxLength = 6, control, name, ...props }, ref) => {
+  const {
+    field: { onChange, value },
+    fieldState: { error: fieldError }
+  } = useController({
+    name,
+    control,
+    defaultValue: ""
+  })
+
   return (
     <div className="space-y-1">
       {label && (
@@ -52,16 +63,19 @@ const CustomOTPInput = React.forwardRef(({ label, error, maxLength = 6, ...props
       <InputOTP
         maxLength={maxLength}
         ref={ref}
+        value={value}
+        onChange={onChange}
+        autoFocus
         {...props}
       >
-        <InputOTPGroup className="gap-2">
+        <InputOTPGroup>
           {[...Array(maxLength)].map((_, index) => (
-            <InputOTPSlot key={index} index={index} />
+            <InputOTPSlot key={index} index={index} error={error || fieldError} />
           ))}
         </InputOTPGroup>
       </InputOTP>
-      {error && (
-        <p className="mt-1 text-xs text-red-500">{error.message}</p>
+      {(error || fieldError) && (
+        <p className="mt-1 text-xs text-red-500">{error?.message || fieldError?.message}</p>
       )}
     </div>
   )

@@ -8,38 +8,42 @@ import toast from "react-hot-toast";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import { SuperAdminSchema } from "@/validators/users";
+import { superAdminSchema, superAdminSchemaWithOTP } from "@/validators/users";
 import { useSearchParams } from "react-router-dom";
 import { CustomOTPInput } from "../ui/input-otp";
-
+import { Loader2 } from "lucide-react";
 
 const SuperAdmin = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(SuperAdminSchema),
-  });
-
-  const [superAdmin] = useCreateSuperAdminMutation();
-  const [generateOtp] = useOtpGenerateMutation();
+  const [superAdmin, {isLoading}] = useCreateSuperAdminMutation();
+  const [generateOtp, { isLoading: isOTPGenerating }] = useOtpGenerateMutation();
 
   const [step, setStep] = useState(2);
   const [animationClass, setAnimationClass] = useState("");
+  const [formData, setFormData] = useState({});
 
   const [searchParams] = useSearchParams();
   const organizationId = searchParams.get("id");
 
+  const formSchema = step === 1 ? superAdminSchema : superAdminSchemaWithOTP;
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(formSchema),
+  });
+
   const onSubmit = async (data) => {
     if (step === 1) {
-      const { password, confirmpassword } = data;
-      if (password !== confirmpassword) {
-        toast.error("Passwords do not match. Please try again.");
-        return;
-      }
+      // eslint-disable-next-line no-unused-vars
+      const { confirmpassword, ...dataWithoutConfirm } = data;
+      setFormData(dataWithoutConfirm);
       try {
-        const response = await generateOtp({ organization_id: organizationId }).unwrap();
+        const response = await generateOtp({
+          organization_id: organizationId,
+        }).unwrap();
         if (!response) {
           toast.error("Error generating OTP. Please try again.");
           return;
@@ -50,12 +54,13 @@ const SuperAdmin = () => {
           setAnimationClass("slide-enter-active");
         }, 0);
       } catch (error) {
-        console.log(error)
+        console.log(error);
         toast.error("Error generating OTP. Please try again.");
       }
     } else {
       try {
-        const response = await superAdmin(data).unwrap();
+        const allData = { ...formData, ...data, organization_id: organizationId };
+        const response = await superAdmin(allData).unwrap();
         if (response) {
           toast.success("Register successful!");
         } else {
@@ -75,6 +80,7 @@ const SuperAdmin = () => {
     }, 0);
   };
 
+  console.log(errors);
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-7xl bg-preprimary rounded-[2.5rem]">
@@ -97,7 +103,11 @@ const SuperAdmin = () => {
               {step === 1 ? (
                 <SuperAdminDetailsForm register={register} errors={errors} />
               ) : (
-                <OTPForm register={register} errors={errors} />
+                <OTPForm
+                  register={register}
+                  errors={errors}
+                  control={control}
+                />
               )}
               <div className="flex justify-between !mt-8">
                 {step === 2 && (
@@ -109,8 +119,11 @@ const SuperAdmin = () => {
                     Back
                   </Button>
                 )}
-                <Button type="submit" className="ml-auto">
+                <Button type="submit" className="ml-auto" disabled={isLoading || isOTPGenerating} >
                   {step === 1 ? "Next" : "Register"}
+                  {(isLoading || isOTPGenerating) && (
+                    <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
+                  )}
                 </Button>
               </div>
             </form>
@@ -122,7 +135,6 @@ const SuperAdmin = () => {
 };
 
 const SuperAdminDetailsForm = ({ register, errors }) => {
-
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -156,20 +168,20 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
         error={errors.email}
       />
       <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            {...register("password")}
-            error={errors.password}
-          />
-          <CustomInput
-            label="Confirm-Password"
-            type="password"
-            placeholder="Enter your confirm password"
-            {...register("confirmpassword")}
-            error={errors.confirmpassword}
-          />
+        <CustomInput
+          label="Password"
+          type="password"
+          placeholder="Enter your password"
+          {...register("password")}
+          error={errors.password}
+        />
+        <CustomInput
+          label="Confirm-Password"
+          type="password"
+          placeholder="Enter your confirm password"
+          {...register("confirmpassword")}
+          error={errors.confirmpassword}
+        />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
@@ -191,19 +203,13 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
   );
 };
 
-const OTPForm = ({ register, errors }) => {
+const OTPForm = ({ control }) => {
   return (
-    // <CustomInput
-    //   placeholder="Enter your OTP"
-    //   label="OTP"
-    //   {...register("otp")}
-    //   error={errors.otp}
-    // />
     <CustomOTPInput
-      label="OTP"
+      control={control}
+      name="otp"
+      label="Enter OTP"
       maxLength={6}
-      {...register("otp")}
-      error={errors.otp}
     />
   );
 };
