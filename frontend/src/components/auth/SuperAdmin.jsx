@@ -33,6 +33,8 @@ const SuperAdmin = () => {
     handleSubmit,
     formState: { errors },
     trigger,
+    setError,
+    clearErrors
   } = useForm({
     resolver: zodResolver(superAdminSchema)
   });
@@ -117,7 +119,7 @@ const SuperAdmin = () => {
                 onSubmit={handleSubmit(onSubmit)}
                 className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
               >
-                <SuperAdminDetailsForm register={register} errors={errors} />
+                <SuperAdminDetailsForm register={register} errors={errors} setError={setError} clearErrors={clearErrors} />
                 <div className="flex justify-end !mt-8">
                   <Button type="submit" disabled={isLoading || isOTPGenerating}>
                     Next
@@ -160,7 +162,7 @@ const SuperAdmin = () => {
   );
 };
 
-const SuperAdminDetailsForm = ({ register, errors }) => {
+const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -174,20 +176,26 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
     if (!username) return;
     if (username.length < 3) {
       setIsUserNameAvailable(false);
+      setError("username", { type: "manual", message: "Username must be at least 3 characters long" });
       return;
     }
     try {
       const response = await checkUsername({ username }).unwrap();
       if (response) {
         setIsUserNameAvailable(!response.exists);
+        if (response.exists) {
+          setError("username", { type: "manual", message: "Username is already taken" });
+        } else {
+          clearErrors("username");
+        }
       }
     } catch (error) {
       console.log(error);
       const errorMessages = error.message.join(", ");
       setIsUserNameAvailable(false);
-      toast.error(errorMessages);
+      setError("username", { type: "manual", message: errorMessages });
     }
-  }, [checkUsername]);
+  }, [checkUsername, setError, clearErrors]);
 
   const checkIfEmailExists = useCallback(async (email) => {
     if (!email) return;
@@ -195,14 +203,19 @@ const SuperAdminDetailsForm = ({ register, errors }) => {
       const response = await checkEmail({ email }).unwrap();
       if (response) {
         setIsEmailAvailable(!response.exists);
+        if (response.exists) {
+          setError("email", { type: "manual", message: "Email is already in use" });
+        } else {
+          clearErrors("email");
+        }
       }
     } catch (error) {
       console.log(error);
       const errorMessages = error.message.join(", ");
       setIsEmailAvailable(false);
-      toast.error(errorMessages);
+      setError("email", { type: "manual", message: errorMessages });
     }
-  }, [checkEmail]);
+  }, [checkEmail, setError, clearErrors]);
 
   useDebounce(email, 500, checkIfEmailExists);
   useDebounce(username, 500, checkIfUsernameExists);
