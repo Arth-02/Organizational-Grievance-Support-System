@@ -8,16 +8,17 @@ import {
 import toast from "react-hot-toast";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { superAdminSchema, superAdminSchemaWithOTP } from "@/validators/users";
 import { useSearchParams } from "react-router-dom";
 import { CustomOTPInput } from "../ui/input-otp";
-import { Loader2 } from "lucide-react";
+import { BadgeAlert, BadgeCheck, Loader2 } from "lucide-react";
+import useDebounce from "@/hooks/useDebounce";
+import { CustomTooltip } from "../ui/tooltip";
 
 const SuperAdmin = () => {
   const [superAdmin, { isLoading }] = useCreateSuperAdminMutation();
   const [generateOtp, { isLoading: isOTPGenerating }] = useOtpGenerateMutation();
-  const [checkUsername] = useCheckUsernameMutation();
 
   const [step, setStep] = useState(1);
   const [animationClass, setAnimationClass] = useState("");
@@ -32,8 +33,7 @@ const SuperAdmin = () => {
     formState: { errors },
     trigger,
   } = useForm({
-    resolver: zodResolver(superAdminSchema),
-    mode: "onChange",
+    resolver: zodResolver(superAdminSchema)
   });
 
   const {
@@ -44,18 +44,6 @@ const SuperAdmin = () => {
     resolver: zodResolver(superAdminSchemaWithOTP),
     mode: "onSubmit",
   });
-
-  const checkIfUsernameExists = async (username) => {
-    try {
-      const response = await checkUsername({ username }).unwrap();
-      if (response) {
-        return response;
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Error checking username. Please try again.");
-    }
-  }
 
   const onSubmit = async (data) => {
     if (step === 1) {
@@ -128,7 +116,7 @@ const SuperAdmin = () => {
                 onSubmit={handleSubmit(onSubmit)}
                 className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
               >
-                <SuperAdminDetailsForm register={register} errors={errors} checkIfUsernameExists={checkIfUsernameExists} />
+                <SuperAdminDetailsForm register={register} errors={errors} />
                 <div className="flex justify-end !mt-8">
                   <Button type="submit" disabled={isLoading || isOTPGenerating}>
                     Next
@@ -171,7 +159,32 @@ const SuperAdmin = () => {
   );
 };
 
-const SuperAdminDetailsForm = ({ register, errors, checkIfUsernameExists }) => {
+const SuperAdminDetailsForm = ({ register, errors }) => {
+
+  const [username, setUsername] = useState("");
+  const [isUserNameAvailable, setIsUserNameAvailable] = useState(undefined);
+
+  const [checkUsername, { isLoading: checkingUserName }] = useCheckUsernameMutation();
+
+  const checkIfUsernameExists = useCallback(async (username) => {
+    if (!username) return;
+    if (username.length < 3) {
+      setIsUserNameAvailable(false);
+      return;
+    }
+    try {
+      const response = await checkUsername({ username }).unwrap();
+      if (response) {
+        setIsUserNameAvailable(!response.exists);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error checking username. Please try again.");
+    }
+  }, [checkUsername]);
+
+  useDebounce(username, 500, checkIfUsernameExists);
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -190,15 +203,36 @@ const SuperAdminDetailsForm = ({ register, errors, checkIfUsernameExists }) => {
           error={errors.lastname}
         />
       </div>
-      <CustomInput
-        type="text"
-        label="Username"
-        placeholder="Enter your username"
-        {...register("username", {
-          onChange: (e) => checkIfUsernameExists(e.target.value)
-        })}
-        error={errors.username}
-      />
+      <div className="relative">
+        <CustomInput
+          type="text"
+          label="Username"
+          placeholder="Enter your username"
+          {...register("username", {
+            onChange: (e) => setUsername(e.target.value),
+          })}
+          error={errors.username}
+        />
+        {username && (
+          <div className="absolute right-2 top-8">
+            {
+              isUserNameAvailable === undefined || checkingUserName ? (
+                <Loader2 size={20} className="animate-spin text-orange-400" />
+              ) : (
+                isUserNameAvailable ? (
+                  <CustomTooltip className='bg-green-50 text-green-600 tracking-wide' content="Username is available">
+                    <BadgeCheck className="text-green-500 rounded-full overflow-hidden" size={20} />
+                  </CustomTooltip>
+                ) : (
+                  <CustomTooltip className='bg-red-50 text-red-500 tracking-wide' content={username.length < 3 ? 'Username must have atleast 3 character' : 'Username is not available'}>
+                    <BadgeAlert className="text-red-500 rounded-full" size={20} />
+                  </CustomTooltip>
+                )
+              )
+            }
+          </div>
+        )}
+      </div>
       <CustomInput
         label="E-mail"
         type="email"

@@ -487,6 +487,10 @@ const checkUsername = async (req, res) => {
     }
     const { username } = value;
 
+    if(!req.user?.organization_id){
+      return successResponse(res, { exists: false }, "Username available");
+    }
+
     const { organization_id } = req.user;
     const user = await User.findOne({
       username,

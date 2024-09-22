@@ -38,7 +38,7 @@ export const superAdminSchema = z
   .object({
     firstname: z.string().min(1, { message: "Firstname is required" }),
     lastname: z.string().min(1, { message: "Lastname is required" }),
-    username: z.string().min(1, { message: "Username is required" }),
+    username: z.string().min(3, { message: "Username must be at least 3 characters long" }),
     email: z
       .string()
       .email({ message: "Invalid email address" })
