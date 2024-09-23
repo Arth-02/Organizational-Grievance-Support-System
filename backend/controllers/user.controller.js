@@ -42,7 +42,7 @@ async function login(req, res) {
     const user = await User.findOne({
       $or: [{ email }, { username }],
       is_active: true,
-    }).select("+password").populate({path: "role", select: "name"});
+    }).select("+password").populate({path: "role", select: "name"}).populate({path: "department", select: "name"}).populate({path: "organization_id", select: "name logo"});
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }

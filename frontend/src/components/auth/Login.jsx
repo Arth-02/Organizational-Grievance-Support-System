@@ -5,7 +5,6 @@ import { Button } from "../ui/button";
 import { Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserLoginMutation } from "@/services/api.service";
-import { saveToLocalStorage } from "@/utils";
 import { toast } from "react-hot-toast";
 import { loginSchema } from "@/validators/users";
 
@@ -38,12 +37,8 @@ const Login = () => {
       const response = await login(loginData).unwrap();
       if (response) {
         toast.success("Login successful!");
-        saveToLocalStorage("token", response.token);
-        saveToLocalStorage("roleId", response.role._id);
-        saveToLocalStorage("userId", response.id);
-        saveToLocalStorage("organizationId", response.organization_id);
         if (response.role.name) {
-          navigate("/home");
+          navigate("/");
         } else {
           toast.error("You are not authorized to access the page!");
           navigate("/login");

@@ -7,7 +7,7 @@ const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
     return (
-      <div className="h-screen bg-gray-100">
+      <div className="h-screen">
         <Header setIsSidebarOpen={setIsSidebarOpen} />
         <div className="flex overflow-hidden h-[calc(100vh-64px)]">
             <Sidebar isOpen={isSidebarOpen} />
@@ -17,7 +17,7 @@ const Layout = () => {
                 className="fixed inset-0 bg-black bg-opacity-50 z-10"
                 />
             )}
-            <main className="flex-1 min-w-full overflow-y-auto p-4">
+            <main className="flex-1 min-w-full overflow-y-auto p-4 bg-secondary/20">
                 <Outlet />
             </main>
         </div>

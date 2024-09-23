@@ -6,8 +6,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const Header = ({ setIsSidebarOpen }) => {
+  
+  const organization = useSelector((state) => state.user.organization);
+  const role = useSelector((state) => state.user.role);
+  const department = useSelector((state) => state.user.department);
+  const user = useSelector((state) => state.user.user);
+  console.log(organization, role, department, user);
+
     return (
       <header className="bg-white shadow-md p-4 flex justify-between items-center h-[64px]">
         <Button
