@@ -5,6 +5,7 @@ import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
 import Layout from "./components/layout/Layout";
+import Employees from "./components/page/employees/Employees";
 const socket = io("http://localhost:9001");
 
 socket.on("connect", () => {
@@ -28,7 +29,7 @@ function App() {
 
           <Route path="/" element={<Layout />} >
             <Route path="/dashboard" element={<Counter />} />
-            <Route path="/employee" element={<Counter />} />
+            <Route path="/employees" element={<Employees />} />
           </Route>
         </Routes>
       </BrowserRouter>

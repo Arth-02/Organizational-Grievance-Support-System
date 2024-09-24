@@ -1,3 +1,4 @@
+import { getFromLocalStorage } from "@/utils";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -38,13 +39,22 @@ export const apiService = createApi({
       }),
     }),
     getAllUsers: builder.query({
-      query: (body) => ({
-        headers: {
-          Authorization: `Bearer ${body.token}`,
-        },
-        url: "users/all",
-        method: "GET",
-      }),
+      query: (filters) => {
+        const params = new URLSearchParams(filters).toString();
+        return {
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `users/all?${params}`,
+          method: "GET",
+        };
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      }
     }),
     createOrganization: builder.mutation({
       query: (body) => ({
