@@ -49,7 +49,6 @@ import { Checkbox } from "../../ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -502,45 +501,43 @@ const Employees = () => {
 
       {selectedRows.length > 0 && (
         <div className="absolute bottom-5 left-1/2 -translate-x-1/2 border border-secondary flex gap-2 py-2 px-3 bg-white shadow-customlight rounded-md items-center">
-          <TooltipProvider>
-            <div className="border border-dashed rounded-lg border-black/30 px-1 py-1 flex gap-2 justify-between items-center">
-              <span className="mb-[2px] ml-2">
-                {selectedRows.length} selected
-              </span>
-              <Tooltip>
-                <TooltipTrigger
-                  className="h-6 w-6 p-1 hover:bg-secondary rounded-md"
-                  onClick={() => setSelectedRows([])}
-                >
-                  <X size={14} />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Clear Selection</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="w-[1px] h-[27px] bg-black/20" />
-            <>
-              {selectedRows.length === 1 && (
-                <Tooltip>
-                  <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
-                    <Edit3 size={18} />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit Row</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+          <div className="border border-dashed rounded-lg border-black/30 px-1 py-1 flex gap-2 justify-between items-center">
+            <span className="mb-[2px] ml-2">
+              {selectedRows.length} selected
+            </span>
+            <Tooltip>
+              <TooltipTrigger
+                className="h-6 w-6 p-1 hover:bg-secondary rounded-md"
+                onClick={() => setSelectedRows([])}
+              >
+                <X size={14} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Clear Selection</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="w-[1px] h-[27px] bg-black/20" />
+          <>
+            {selectedRows.length === 1 && (
               <Tooltip>
                 <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
-                  <Trash size={18} />
+                  <Edit3 size={18} />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Delete Row</p>
+                  <p>Edit Row</p>
                 </TooltipContent>
               </Tooltip>
-            </>
-          </TooltipProvider>
+            )}
+            <Tooltip>
+              <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
+                <Trash size={18} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete Row</p>
+              </TooltipContent>
+            </Tooltip>
+          </>
         </div>
       )}
 
