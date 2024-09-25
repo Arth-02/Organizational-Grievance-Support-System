@@ -299,6 +299,38 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Delete multiple users
+const deleteUsers = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const { ids } = req.body;
+    if (!ids || !ids.length) {
+      return errorResponse(res, 400, "User ids are required");
+    }
+    for (let i = 0; i < ids.length; i++) {
+      if (!isValidObjectId(ids[i])) {
+        return errorResponse(res, 400, "Invalid user id");
+      }
+    }
+    const query = { _id: { $in: ids } };
+    if(organization_id){
+      query.organization_id = organization_id;
+    }
+    const users = await User.updateMany(
+      query,
+      { is_active: false, is_deleted: true }
+    );
+    if (!users) {
+      return errorResponse(res, 404, "Users not found");
+    }
+
+    return successResponse(res, {}, "Users deleted successfully");
+  } catch (err) {
+    console.error("Delete Users Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 // Create super admin
 const createSuperAdmin = async (req, res) => {
   const session = await mongoose.startSession();
@@ -711,6 +743,7 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  deleteUsers,
   createSuperAdmin,
   sendOTPEmail,
   checkUsername,
