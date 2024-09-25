@@ -37,12 +37,21 @@ import {
   ArrowUp,
   Check,
   ChevronsUpDown,
+  Edit3,
   EyeOff,
   RefreshCw,
   Settings2,
+  Trash,
+  X,
 } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Checkbox } from "../../ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -189,9 +198,11 @@ const Employees = () => {
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(allColumns.map((column) => {
-      if (column.hideable === true) return column.accessorKey;
-    }));
+    setVisibleColumns(
+      allColumns.map((column) => {
+        if (column.hideable === true) return column.accessorKey;
+      })
+    );
   };
 
   const handleSortChange = (column, order) => {
@@ -284,7 +295,11 @@ const Employees = () => {
             <span className="mr-2">Rows per page</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="data-[state=open]:bg-muted"
+                >
                   {filters.limit} <ChevronsUpDown size={16} className="ml-2" />
                 </Button>
               </DropdownMenuTrigger>
@@ -302,7 +317,11 @@ const Employees = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
+              <Button
+                variant="outline"
+                size="sm"
+                className="data-[state=open]:bg-muted"
+              >
                 <Settings2 size={18} className="mr-2" />
                 View
               </Button>
@@ -368,7 +387,11 @@ const Employees = () => {
                       header.column.columnDef.hideable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="data-[state=open]:bg-muted/40">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="data-[state=open]:bg-muted/40"
+                            >
                               {flexRender(
                                 header.column.columnDef.header,
                                 header.getContext()
@@ -475,6 +498,50 @@ const Employees = () => {
             </PaginationItem>
           </PaginationContent>
         </Pagination>
+      )}
+
+      {selectedRows.length > 0 && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 border border-secondary flex gap-2 py-2 px-3 bg-white shadow-customlight rounded-md items-center">
+          <TooltipProvider>
+            <div className="border border-dashed rounded-lg border-black/30 px-1 py-1 flex gap-2 justify-between items-center">
+              <span className="mb-[2px] ml-2">
+                {selectedRows.length} selected
+              </span>
+              <Tooltip>
+                <TooltipTrigger
+                  className="h-6 w-6 p-1 hover:bg-secondary rounded-md"
+                  onClick={() => setSelectedRows([])}
+                >
+                  <X size={14} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clear Selection</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="w-[1px] h-[27px] bg-black/20" />
+            <>
+              {selectedRows.length === 1 && (
+                <Tooltip>
+                  <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
+                    <Edit3 size={18} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit Row</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
+                  <Trash size={18} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Row</p>
+                </TooltipContent>
+              </Tooltip>
+            </>
+          </TooltipProvider>
+        </div>
       )}
 
       {isLoading && <div>Loading...</div>}
