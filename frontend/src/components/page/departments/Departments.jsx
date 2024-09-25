@@ -248,7 +248,7 @@ const Departments = () => {
             <span className="mr-2">Rows per page</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="text-base">
+                <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
                   {filters.limit} <ChevronsUpDown size={16} className="ml-2" />
                 </Button>
               </DropdownMenuTrigger>
@@ -266,7 +266,7 @@ const Departments = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-base">
+              <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
                 <Settings2 size={18} className="mr-3" />
                 View
               </Button>
