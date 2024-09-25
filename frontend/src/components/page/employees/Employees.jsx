@@ -145,7 +145,9 @@ const Employees = () => {
   ];
 
   const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((column) => column.accessorKey)
+    allColumns.map((column) => {
+      if (column.hideable === true) return column.accessorKey;
+    })
   );
 
   const filteredColumns = allColumns.filter(
@@ -176,7 +178,7 @@ const Employees = () => {
 
   const handleColumnVisibilityChange = (column) => {
     const col = allColumns.find((col) => col.accessorKey === column);
-    if (col && !col.hideable) return; // Prevent hiding non-hideable columns
+    if (col && !col.hideable) return;
 
     if (visibleColumns.length === 1 && visibleColumns.includes(column)) return;
     setVisibleColumns((prev) =>
@@ -187,7 +189,9 @@ const Employees = () => {
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(allColumns.map((column) => column.accessorKey));
+    setVisibleColumns(allColumns.map((column) => {
+      if (column.hideable === true) return column.accessorKey;
+    }));
   };
 
   const handleSortChange = (column, order) => {
@@ -400,7 +404,9 @@ const Employees = () => {
                                   <ArrowDown className="mr-3" size={16} />
                                   Desc
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                {header.column.columnDef.hideable && (
+                                  <DropdownMenuSeparator />
+                                )}
                               </>
                             )}
                             {header.column.columnDef.hideable && (

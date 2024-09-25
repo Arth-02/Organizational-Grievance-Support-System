@@ -110,7 +110,9 @@ const Departments = () => {
     },
   ];
 
-  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.accessorKey));
+  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((column) => {
+    if (column.hideable === true) return column.accessorKey;
+  }));
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -151,7 +153,9 @@ const Departments = () => {
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(allColumns.map((column) => column.accessorKey));
+    setVisibleColumns(allColumns.map((column) => {
+      if (column.hideable === true) return column.accessorKey;
+    }));
   };
 
   const handleSortChange = (column, order) => {
@@ -363,7 +367,9 @@ const Departments = () => {
                                   <ArrowDown className="mr-3" size={16} />
                                   Desc
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                {header.column.columnDef.hideable && (
+                                  <DropdownMenuSeparator />
+                                )}
                               </>
                             )}
                             {header.column.columnDef.hideable && (

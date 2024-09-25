@@ -109,7 +109,9 @@ const Roles = () => {
     },
   ];
 
-  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.accessorKey));
+  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((column) => {
+    if (column.hideable === true) return column.accessorKey;
+  }));
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -150,7 +152,9 @@ const Roles = () => {
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(allColumns.map((col) => col.accessorKey));
+    setVisibleColumns(allColumns.map(allColumns.map((column) => {
+      if (column.hideable === true) return column.accessorKey;
+    })));
   };
 
   const handleSortChange = (column, order) => {
@@ -420,7 +424,9 @@ const Roles = () => {
                                   <ArrowDown className="mr-3" size={16} />
                                   Desc
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                {header.column.columnDef.hideable && (
+                                  <DropdownMenuSeparator />
+                                )}
                               </>
                             )}
                             {header.column.columnDef.hideable && (
