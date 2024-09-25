@@ -35,7 +35,7 @@ const MenuItem = ({ item, isActive }) => {
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center justify-between w-full p-2 rounded-lg text-gray-700 hover:text-primary ${
             isActive
-              ? "bg-primary/10 hover:bg-primary/15 text-primary"
+              ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
               : "hover:bg-primary/10"
           }`}
         >
@@ -61,7 +61,7 @@ const MenuItem = ({ item, isActive }) => {
                 to={child.path}
                 className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary ${
                   location.pathname === child.path
-                    ? "bg-primary/10 hover:bg-primary/15 text-primary"
+                    ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
                     : "hover:bg-primary/10"
                 }`}
               >
@@ -79,7 +79,7 @@ const MenuItem = ({ item, isActive }) => {
       to={item.path}
       className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary ${
         isActive
-          ? "bg-primary/10 hover:bg-primary/15 text-primary"
+          ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
           : "hover:bg-primary/10"
       }`}
     >
