@@ -6,6 +6,8 @@ import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
 import Layout from "./components/layout/Layout";
 import Employees from "./components/page/employees/Employees";
+import Departments from "./components/page/departments/Departments";
+import Roles from "./components/page/roles/Roles";
 const socket = io("http://localhost:9001");
 
 socket.on("connect", () => {
@@ -30,6 +32,8 @@ function App() {
           <Route path="/" element={<Layout />} >
             <Route path="/dashboard" element={<Counter />} />
             <Route path="/employees" element={<Employees />} />
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/roles" element={<Roles />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -581,7 +581,7 @@ const getAllUsers = async (req, res) => {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
-    const query = { is_deleted: false, _id: { $ne: _id } }; //
+    const query = { is_deleted: false, _id: { $ne: _id } };
     if (is_active === "true" || is_active === "false") {
       query.is_active = is_active === "true";
     }

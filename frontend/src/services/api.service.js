@@ -134,13 +134,22 @@ export const apiService = createApi({
       }),
     }),
     getAllDepartments: builder.query({
-      query: (body) => ({
-        headers: {
-          Authorization: `Bearer ${body.token}`,
-        },
-        url: "departments/all",
-        method: "GET",
-      }),
+      query: (filters) => {
+        const params = new URLSearchParams(filters).toString();
+        return {
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `departments/all?${params}`,
+          method: "GET",
+        };
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      }
     }),
     updateDepartment: builder.mutation({
       query: (body) => ({
@@ -190,13 +199,22 @@ export const apiService = createApi({
       }),
     }),
     getAllRoles: builder.query({
-      query: (body) => ({
-        headers: {
-          Authorization: `Bearer ${body.token}`,
-        },
-        url: "roles/all",
-        method: "GET",
-      }),
+      query: (filters) => {
+        const params = new URLSearchParams(filters).toString();
+        return {
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `roles/all?${params}`,
+          method: "GET",
+        };
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      }
     }),
     updateRole: builder.mutation({
       query: (body) => ({

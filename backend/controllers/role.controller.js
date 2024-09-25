@@ -138,7 +138,15 @@ const getAllRoleName = async (req, res) => {
 const getAllRoles = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const { page = 1, limit = 10, is_active, name, permissions } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      is_active,
+      name,
+      permissions,
+      sort_by = "created_at",
+      order = "desc",
+    } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
@@ -157,7 +165,11 @@ const getAllRoles = async (req, res) => {
       query.permissions = { $all: permissions.split(",") };
     }
 
-    const roles = await Role.find(query).skip(skip).limit(limitNumber);
+    const roles = await Role.find(query)
+      .collation({ locale: "en", strength: 2 }) // Case-insensitive collation
+      .sort({ [sort_by]: order === "desc" ? -1 : 1 })
+      .skip(skip)
+      .limit(limitNumber);
 
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
@@ -167,18 +179,20 @@ const getAllRoles = async (req, res) => {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
+    const pagination = {
+      currentPage: pageNumber,
+      totalPages: totalPages,
+      totalDepartments: totalRoles,
+      limit: limitNumber,
+      hasNextPage: hasNextPage,
+      hasPrevPage: hasPrevPage,
+    };
+
     return successResponse(
       res,
       {
         roles,
-        pagination: {
-          totalRoles,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-          hasNextPage,
-          hasPrevPage,
-        },
+        pagination,
       },
       "Roles retrieved successfully"
     );

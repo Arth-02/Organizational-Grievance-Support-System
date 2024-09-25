@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useGetAllUsersQuery } from "@/services/api.service";
+import { useGetAllDepartmentsQuery } from "@/services/api.service";
 import {
   ArrowDown,
   ArrowUp,
@@ -44,31 +44,27 @@ import {
 import { Button } from "../../ui/button";
 import { Checkbox } from "../../ui/checkbox";
 
-const Employees = () => {
+const Departments = () => {
   const [filters, setFilters] = useState({
     page: 1,
     limit: 1,
-    username: "",
     is_active: "",
-    employee_id: "",
-    role: "",
-    department: "",
-    sort_by: "created_at",
-    order: "desc",
-    search: "",
+    name: "",
   });
+
+  
 
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const { data, isLoading } = useGetAllUsersQuery(filters);
-
+  const { data, isLoading } = useGetAllDepartmentsQuery(filters);
   const allColumns = [
     {
       accessorKey: "select",
       header: () => (
         <Checkbox
           checked={
-            selectedRows.length === data?.users.length && data?.users.length > 0
+            selectedRows.length === data?.departments.length &&
+            data?.departments.length > 0
           }
           onCheckedChange={() => handleSelectAll()}
           className="mt-1"
@@ -84,34 +80,14 @@ const Employees = () => {
       hideable: false, // This column cannot be hidden
     },
     {
-      accessorKey: "username",
-      header: "Username",
-      sortable: true,
-      hideable: true,
-    },
-    { accessorKey: "email", header: "Email", sortable: true, hideable: true },
-    {
-      accessorKey: "firstname",
-      header: "First Name",
+      accessorKey: "name",
+      header: "Name",
       sortable: true,
       hideable: true,
     },
     {
-      accessorKey: "lastname",
-      header: "Last Name",
-      sortable: true,
-      hideable: true,
-    },
-    {
-      accessorKey: "employee_id",
-      header: "Employee ID",
-      sortable: false,
-      hideable: true,
-    },
-    { accessorKey: "role", header: "Role", sortable: true, hideable: true },
-    {
-      accessorKey: "department",
-      header: "Department",
+      accessorKey: "description",
+      header: "Description",
       sortable: true,
       hideable: true,
     },
@@ -120,16 +96,6 @@ const Employees = () => {
       header: "Status",
       sortable: false,
       cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive"),
-      hideable: true,
-    },
-    {
-      accessorKey: "last_login",
-      header: "Last Login",
-      sortable: false,
-      cell: ({ row }) =>
-        row.original.last_login
-          ? new Date(row.original.last_login).toLocaleString()
-          : "-",
       hideable: true,
     },
     {
@@ -144,9 +110,7 @@ const Employees = () => {
     },
   ];
 
-  const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((column) => column.accessorKey)
-  );
+  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.accessorKey));
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -154,7 +118,7 @@ const Employees = () => {
   );
 
   const table = useReactTable({
-    data: data?.users || [],
+    data: data?.departments || [],
     columns: filteredColumns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -207,10 +171,10 @@ const Employees = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedRows.length === data?.users.length) {
+    if (selectedRows.length === data?.departments.length) {
       setSelectedRows([]);
     } else {
-      setSelectedRows(data?.users.map((user) => user._id));
+      setSelectedRows(data?.departments.map((user) => user._id));
     }
   };
 
@@ -475,4 +439,4 @@ const Employees = () => {
   );
 };
 
-export default Employees;
+export default Departments;

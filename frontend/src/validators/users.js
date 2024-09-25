@@ -42,7 +42,8 @@ export const superAdminSchema = z
     email: z
       .string()
       .email({ message: "Invalid email address" })
-      .min(1, { message: "Email is required" }),
+      .min(1, { message: "Email is required" })
+      .toLowerCase(),
     password: z.string().min(8, "Password must be at least 8 characters long"),
     confirmpassword: z
       .string()

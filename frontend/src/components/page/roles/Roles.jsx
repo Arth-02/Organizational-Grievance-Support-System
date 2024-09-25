@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useGetAllUsersQuery } from "@/services/api.service";
+import { useGetAllRolesQuery } from "@/services/api.service";
 import {
   ArrowDown,
   ArrowUp,
@@ -44,31 +44,26 @@ import {
 import { Button } from "../../ui/button";
 import { Checkbox } from "../../ui/checkbox";
 
-const Employees = () => {
+const Roles = () => {
   const [filters, setFilters] = useState({
     page: 1,
     limit: 1,
-    username: "",
+    name: "",
     is_active: "",
-    employee_id: "",
-    role: "",
-    department: "",
-    sort_by: "created_at",
-    order: "desc",
-    search: "",
+    permissions: "",
   });
 
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const { data, isLoading } = useGetAllUsersQuery(filters);
-
+  const { data, isLoading } = useGetAllRolesQuery(filters);
+  console.log(data);
   const allColumns = [
     {
       accessorKey: "select",
       header: () => (
         <Checkbox
           checked={
-            selectedRows.length === data?.users.length && data?.users.length > 0
+            selectedRows.length === data?.roles.length && data?.roles.length > 0
           }
           onCheckedChange={() => handleSelectAll()}
           className="mt-1"
@@ -84,35 +79,15 @@ const Employees = () => {
       hideable: false, // This column cannot be hidden
     },
     {
-      accessorKey: "username",
-      header: "Username",
-      sortable: true,
-      hideable: true,
-    },
-    { accessorKey: "email", header: "Email", sortable: true, hideable: true },
-    {
-      accessorKey: "firstname",
-      header: "First Name",
+      accessorKey: "name",
+      header: "Name",
       sortable: true,
       hideable: true,
     },
     {
-      accessorKey: "lastname",
-      header: "Last Name",
-      sortable: true,
-      hideable: true,
-    },
-    {
-      accessorKey: "employee_id",
-      header: "Employee ID",
+      accessorKey: "permissions",
+      header: "Permissions",
       sortable: false,
-      hideable: true,
-    },
-    { accessorKey: "role", header: "Role", sortable: true, hideable: true },
-    {
-      accessorKey: "department",
-      header: "Department",
-      sortable: true,
       hideable: true,
     },
     {
@@ -120,16 +95,6 @@ const Employees = () => {
       header: "Status",
       sortable: false,
       cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive"),
-      hideable: true,
-    },
-    {
-      accessorKey: "last_login",
-      header: "Last Login",
-      sortable: false,
-      cell: ({ row }) =>
-        row.original.last_login
-          ? new Date(row.original.last_login).toLocaleString()
-          : "-",
       hideable: true,
     },
     {
@@ -144,9 +109,7 @@ const Employees = () => {
     },
   ];
 
-  const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((column) => column.accessorKey)
-  );
+  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.accessorKey));
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -154,7 +117,7 @@ const Employees = () => {
   );
 
   const table = useReactTable({
-    data: data?.users || [],
+    data: data?.roles || [],
     columns: filteredColumns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -187,7 +150,7 @@ const Employees = () => {
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(allColumns.map((column) => column.accessorKey));
+    setVisibleColumns(allColumns.map((col) => col.accessorKey));
   };
 
   const handleSortChange = (column, order) => {
@@ -207,10 +170,10 @@ const Employees = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedRows.length === data?.users.length) {
+    if (selectedRows.length === data?.roles.length) {
       setSelectedRows([]);
     } else {
-      setSelectedRows(data?.users.map((user) => user._id));
+      setSelectedRows(data?.roles.map((user) => user._id));
     }
   };
 
@@ -241,15 +204,42 @@ const Employees = () => {
 
   const renderPageButtons = () => {
     const buttons = [];
-
-    for (let i = 1; i <= data.pagination.totalPages; i++) {
+    const { currentPage, totalPages } = data.pagination;
+  
+    // Always show the first page
+    buttons.push(
+      <PaginationItem key={1}>
+        <Button
+          variant="ghost"
+          onClick={() => handlePageChange(1)}
+          className={`${
+            currentPage === 1
+              ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
+              : ""
+          }`}
+        >
+          1
+        </Button>
+      </PaginationItem>
+    );
+  
+    // Show the current page and the next two pages, with conditions for "..."
+    if (currentPage > 3) {
+      buttons.push(
+        <PaginationItem key="ellipsis-1">
+          <span className="mx-2">…</span>
+        </PaginationItem>
+      );
+    }
+  
+    for (let i = Math.max(2, currentPage); i <= Math.min(currentPage + 2, totalPages - 1); i++) {
       buttons.push(
         <PaginationItem key={i}>
           <Button
             variant="ghost"
             onClick={() => handlePageChange(i)}
-            className={` ${
-              data.pagination.currentPage === i
+            className={`${
+              currentPage === i
                 ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
                 : ""
             }`}
@@ -259,9 +249,38 @@ const Employees = () => {
         </PaginationItem>
       );
     }
-
+  
+    // Show ellipsis if currentPage + 2 is less than totalPages - 1
+    if (currentPage + 2 < totalPages - 1) {
+      buttons.push(
+        <PaginationItem key="ellipsis-2">
+          <span className="mx-2">…</span>
+        </PaginationItem>
+      );
+    }
+  
+    // Always show the last page if totalPages > 1
+    if (totalPages > 1) {
+      buttons.push(
+        <PaginationItem key={totalPages}>
+          <Button
+            variant="ghost"
+            onClick={() => handlePageChange(totalPages)}
+            className={`${
+              currentPage === totalPages
+                ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
+                : ""
+            }`}
+          >
+            {totalPages}
+          </Button>
+        </PaginationItem>
+      );
+    }
+  
     return buttons;
   };
+  
 
   return (
     <div className="space-y-4">
@@ -435,7 +454,7 @@ const Employees = () => {
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className="text-center text-nowrap align-middle"
+                    className="text-center text-wrap align-middle"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
@@ -475,4 +494,4 @@ const Employees = () => {
   );
 };
 
-export default Employees;
+export default Roles;

@@ -107,7 +107,14 @@ async function updateDepartment(req, res) {
 async function getAllDepartment(req, res) {
   try {
     const { organization_id } = req.user;
-    const { page = 1, limit = 10, is_active, name } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      is_active,
+      name,
+      sort_by = "created_at",
+      order = "desc",
+    } = req.query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
@@ -123,8 +130,9 @@ async function getAllDepartment(req, res) {
       query.name = { $regex: name, $options: "i" };
     }
 
-    const totalDepartments = await Department.countDocuments(query);
     const departments = await Department.find(query)
+      .collation({ locale: "en", strength: 2 }) // Case-insensitive collation
+      .sort({ [sort_by]: order === "desc" ? -1 : 1 })
       .skip(skip)
       .limit(limitNumber);
 
@@ -132,22 +140,23 @@ async function getAllDepartment(req, res) {
       return errorResponse(res, 404, "No departments found");
     }
 
+    const totalDepartments = await Department.countDocuments(query);
     const totalPages = Math.ceil(totalDepartments / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
-    const paginationInfo = {
-      currentPage: page,
+    const pagination = {
+      currentPage: pageNumber,
       totalPages: totalPages,
       totalDepartments: totalDepartments,
-      limit: limit,
+      limit: limitNumber,
       hasNextPage: hasNextPage,
       hasPrevPage: hasPrevPage,
     };
 
     return successResponse(
       res,
-      { departments, paginationInfo },
+      { departments, pagination },
       "Departments retrieved successfully"
     );
   } catch (error) {
