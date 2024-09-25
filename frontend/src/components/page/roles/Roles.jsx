@@ -76,7 +76,7 @@ const Roles = () => {
           className="mt-1"
         />
       ),
-      hideable: false, // This column cannot be hidden
+      hideable: false,
     },
     {
       accessorKey: "name",
@@ -139,7 +139,7 @@ const Roles = () => {
 
   const handleColumnVisibilityChange = (column) => {
     const col = allColumns.find((col) => col.accessorKey === column);
-    if (col && !col.hideable) return; // Prevent hiding non-hideable columns
+    if (col && !col.hideable) return;
 
     if (visibleColumns.length === 1 && visibleColumns.includes(column)) return;
     setVisibleColumns((prev) =>
@@ -199,7 +199,7 @@ const Roles = () => {
   };
 
   const handleLimitChange = (newLimit) => {
-    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 })); // Reset to first page on limit change
+    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 }));
   };
 
   const renderPageButtons = () => {
@@ -211,8 +211,9 @@ const Roles = () => {
       <PaginationItem key={1}>
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => handlePageChange(1)}
-          className={`${
+          className={`h-8 w-8 ${
             currentPage === 1
               ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
               : ""
@@ -237,8 +238,9 @@ const Roles = () => {
         <PaginationItem key={i}>
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => handlePageChange(i)}
-            className={`${
+            className={`h-8 w-8 ${
               currentPage === i
                 ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
                 : ""
@@ -266,7 +268,7 @@ const Roles = () => {
           <Button
             variant="ghost"
             onClick={() => handlePageChange(totalPages)}
-            className={`${
+            className={`h-8 w-8 ${
               currentPage === totalPages
                 ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
                 : ""
@@ -290,7 +292,7 @@ const Roles = () => {
             placeholder="Search"
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
-            className="max-w-28"
+            className="w-96"
           />
         </div>
         <div className="flex gap-2 items-center">
@@ -298,7 +300,7 @@ const Roles = () => {
             <span className="mr-2">Rows per page</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="text-base">
+                <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
                   {filters.limit} <ChevronsUpDown size={16} className="ml-2" />
                 </Button>
               </DropdownMenuTrigger>
@@ -316,7 +318,7 @@ const Roles = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-base">
+              <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
                 <Settings2 size={18} className="mr-3" />
                 View
               </Button>
@@ -382,7 +384,7 @@ const Roles = () => {
                       header.column.columnDef.hideable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost">
+                            <Button variant="ghost" size="sm" className="data-[state=open]:bg-muted/40">
                               {flexRender(
                                 header.column.columnDef.header,
                                 header.getContext()

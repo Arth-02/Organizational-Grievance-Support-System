@@ -52,8 +52,8 @@ const PaginationPrevious = ({
   <Button 
     variant="ghost"
     aria-label="Go to previous page"
-    size="default"
-    className={cn("gap-1 pl-2.5 select-none", className)}
+    size="sm"
+    className={cn("gap-1 pl-2.5 h-8 select-none", className)}
     {...props}>
     <ChevronLeft className="h-4 w-4" />
     <span>Previous</span>
@@ -68,8 +68,8 @@ const PaginationNext = ({
   <Button
     variant="ghost"
     aria-label="Go to next page"
-    size="default"
-    className={cn("gap-1 pr-2.5 select-none", className)}
+    size="sm"
+    className={cn("gap-1 pr-2.5 h-8 select-none", className)}
     {...props}>
     <span>Next</span>
     <ChevronRight className="h-4 w-4" />

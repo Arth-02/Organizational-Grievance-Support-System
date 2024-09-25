@@ -211,8 +211,9 @@ const Departments = () => {
         <PaginationItem key={i}>
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => handlePageChange(i)}
-            className={` ${
+            className={`h-8 w-8 ${
               data.pagination.currentPage === i
                 ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
                 : ""
@@ -322,12 +323,11 @@ const Departments = () => {
                     )}
                   >
                     {
-                      // Render sorting icon if column is sortable
                       header.column.columnDef.sortable ||
                       header.column.columnDef.hideable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost">
+                            <Button variant="ghost" size="sm" className="data-[state=open]:bg-muted/40">
                               {flexRender(
                                 header.column.columnDef.header,
                                 header.getContext()

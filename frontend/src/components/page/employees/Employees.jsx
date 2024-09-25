@@ -71,17 +71,17 @@ const Employees = () => {
             selectedRows.length === data?.users.length && data?.users.length > 0
           }
           onCheckedChange={() => handleSelectAll()}
-          className="mt-1"
+          className="mt-1 ml-1 mr-2"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={selectedRows.includes(row.original._id)}
           onCheckedChange={() => handleRowSelect(row.original._id)}
-          className="mt-1"
+          className="mt-1 ml-1 mr-2"
         />
       ),
-      hideable: false, // This column cannot be hidden
+      hideable: false,
     },
     {
       accessorKey: "username",
@@ -247,8 +247,9 @@ const Employees = () => {
         <PaginationItem key={i}>
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => handlePageChange(i)}
-            className={` ${
+            className={`h-8 w-8 ${
               data.pagination.currentPage === i
                 ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
                 : ""
@@ -271,7 +272,7 @@ const Employees = () => {
             placeholder="Search"
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
-            className="max-w-28"
+            className="w-96"
           />
         </div>
         <div className="flex gap-2 items-center">
@@ -279,7 +280,7 @@ const Employees = () => {
             <span className="mr-2">Rows per page</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="text-base">
+                <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
                   {filters.limit} <ChevronsUpDown size={16} className="ml-2" />
                 </Button>
               </DropdownMenuTrigger>
@@ -297,8 +298,8 @@ const Employees = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-base">
-                <Settings2 size={18} className="mr-3" />
+              <Button variant="outline" size="sm" className="data-[state=open]:bg-muted">
+                <Settings2 size={18} className="mr-2" />
                 View
               </Button>
             </DropdownMenuTrigger>
@@ -363,7 +364,7 @@ const Employees = () => {
                       header.column.columnDef.hideable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost">
+                            <Button variant="ghost" size="sm" className="data-[state=open]:bg-muted/40">
                               {flexRender(
                                 header.column.columnDef.header,
                                 header.getContext()
