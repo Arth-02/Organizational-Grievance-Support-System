@@ -574,8 +574,8 @@ const getAllUsers = async (req, res) => {
       role,
       department,
       permissions,
-      sort_by = "username",
-      order = "asc",
+      sort_by = "created_at",
+      order = "desc",
     } = req.query;
 
     const pageNumber = parseInt(page, 10);
@@ -669,12 +669,14 @@ const getAllUsers = async (req, res) => {
         is_active: 1,
         special_permissions: 1,
         last_login: 1,
+        created_at: 1,
       },
     });
 
-    const users = await User.aggregate(pipeline);
-
-    const totalUsers = users.length;
+    const [users, totalUsers] = await Promise.all([
+      User.aggregate(pipeline),
+      User.countDocuments(query)
+    ]);
     const totalPages = Math.ceil(totalUsers / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
