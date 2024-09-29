@@ -604,6 +604,7 @@ const getAllUsers = async (req, res) => {
       is_active,
       employee_id,
       role,
+      email,
       department,
       permissions,
       sort_by = "created_at",
@@ -622,6 +623,9 @@ const getAllUsers = async (req, res) => {
     }
     if (username) {
       query.username = { $regex: username, $options: "i" };
+    }
+    if (email) {
+      query.email = { $regex: email, $options: "i" };
     }
     if (employee_id) {
       query.employee_id = { $regex: employee_id, $options: "i" };
