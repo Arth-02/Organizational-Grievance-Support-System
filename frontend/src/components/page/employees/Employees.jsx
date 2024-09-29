@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteAllUsersMutation, useGetAllUsersQuery } from "@/services/api.service";
+import { useDeleteAllUsersMutation, useGetAllDepartmentNameQuery, useGetAllUsersQuery } from "@/services/api.service";
 import {
   ArrowDown,
   ArrowUp,
@@ -51,11 +51,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
     page: 1,
-    limit: 1,
+    limit: 10,
     username: "",
     is_active: "",
     employee_id: "",
@@ -68,8 +69,15 @@ const Employees = () => {
 
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const { data, isLoading } = useGetAllUsersQuery(filters);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+  } = useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();
+  const { data: departmentNames } = useGetAllDepartmentNameQuery();
 
   const allColumns = [
     {
@@ -238,12 +246,13 @@ const Employees = () => {
     }
   };
 
-  // const handleDelete = () => {
-  //   if (selectedRows.length > 0) {
-  //     console.log("Delete rows: ", selectedRows);
-  //     setSelectedRows([]);
-  //   }
-  // };
+  const handleDepartmentChange = (departmentId) => {
+    if (departmentId === "all") {
+      setFilters((prev) => ({ ...prev, department: "" }));
+    } else {
+      setFilters((prev) => ({ ...prev, department: departmentId }));
+    }
+  };
 
   const isSelected = (column) => visibleColumns.includes(column);
 
@@ -260,7 +269,7 @@ const Employees = () => {
   };
 
   const handleLimitChange = (newLimit) => {
-    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 })); // Reset to first page on limit change
+    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 }));
   };
 
   const renderPageButtons = () => {
@@ -288,6 +297,42 @@ const Employees = () => {
     return buttons;
   };
 
+  const showNoDataMessage = !isLoading && !isFetching && (!data || data.users.length === 0 || isError);
+
+  const renderLoadingState = () => (
+    <TableRow>
+      <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
+        Loading...
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderNoDataMessage = () => (
+    <TableRow>
+      <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
+        {isError ? `${error?.message || 'Failed to fetch data'}` : 'No data found'}
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderTableRows = () => (
+    table.getRowModel().rows.map((row) => (
+      <TableRow key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id} className="text-center text-nowrap align-middle">
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ))
+  );
+
+  const renderTableContent = () => {
+    if (isLoading || isFetching) return renderLoadingState();
+    if (showNoDataMessage) return renderNoDataMessage();
+    return renderTableRows();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-end">
@@ -300,6 +345,25 @@ const Employees = () => {
           />
         </div>
         <div className="flex gap-2 items-center">
+          <Select onValueChange={handleDepartmentChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Department" />
+            </SelectTrigger>
+            <SelectContent>
+              {
+                departmentNames?.length > 0 && (
+                  <SelectItem key="all" value="all">All</SelectItem>
+                )
+              }
+              {
+                departmentNames?.length > 0 && departmentNames?.map((department) => (
+                  <SelectItem key={department._id} value={department._id}>
+                    {department.name}
+                  </SelectItem>
+                ))
+              }
+            </SelectContent>
+          </Select>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -339,18 +403,8 @@ const Employees = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Uncomment if Delete Selected button is needed */}
-          {/* <button
-      className="bg-red-500 text-white px-4 py-2 rounded"
-      disabled={selectedRows.length === 0}
-      onClick={handleDelete}
-    >
-      Delete Selected
-    </button> */}
         </div>
       </div>
-
       <div className="rounded-md">
         <Table>
           <TableHeader>
@@ -367,7 +421,6 @@ const Employees = () => {
                     )}
                   >
                     {
-                      // Render sorting icon if column is sortable
                       header.column.columnDef.sortable ||
                       header.column.columnDef.hideable ? (
                         <DropdownMenu>
@@ -445,18 +498,7 @@ const Employees = () => {
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className="text-center text-nowrap align-middle"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {renderTableContent()}
           </TableBody>
         </Table>
       </div>
@@ -465,7 +507,7 @@ const Employees = () => {
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">
             Showing {table.getRowModel().rows.length} of{" "}
-            {data?.pagination?.totalDocs || 0} results
+            {data?.pagination?.totalUsers || 0} results
           </span>
           <div className="flex items-center gap-3">
             <div className="flex items-center">
@@ -482,7 +524,7 @@ const Employees = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {[1, 10, 20, 30, 40, 50].map((limit) => (
+                  {[10, 20, 30, 40, 50].map((limit) => (
                     <DropdownMenuItem
                       key={limit}
                       onClick={() => handleLimitChange(limit)}
@@ -559,8 +601,6 @@ const Employees = () => {
           </>
         </div>
       )}
-
-      {isLoading && <div>Loading...</div>}
     </div>
   );
 };

@@ -124,15 +124,29 @@ export const apiService = createApi({
         url: `departments/details/${body.departmentId}`,
         method: "GET",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      providesTags: ["Departments"],
     }),
     getAllDepartmentName: builder.query({
-      query: (body) => ({
+      query: () => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "departments/names",
         method: "GET",
       }),
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+      providesTags: ["Departments"],
     }),
     getAllDepartments: builder.query({
       query: (filters) => {

@@ -633,7 +633,7 @@ const getAllUsers = async (req, res) => {
       query.department = new ObjectId(department);
     }
 
-    const isSortedField = sort_by === "role" || sort_by === "department";
+    const isSortedFieldPresent = sort_by === "role" || sort_by === "department";
 
     const sortOrder = order === "asc" ? 1 : -1;
     const pipeline = [{ $match: query }];
@@ -684,7 +684,7 @@ const getAllUsers = async (req, res) => {
       }
     );
     
-    if (isSortedField) {
+    if (isSortedFieldPresent) {
       pipeline.push(
         { $addFields: { sortField: { $toLower: `$${sort_by}.name` } } },
         { $sort: { sortField: sortOrder } },
