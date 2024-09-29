@@ -31,13 +31,19 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteAllUsersMutation, useGetAllDepartmentNameQuery, useGetAllUsersQuery } from "@/services/api.service";
+import {
+  useDeleteAllUsersMutation,
+  useGetAllDepartmentNameQuery,
+  useGetAllRoleNameQuery,
+  useGetAllUsersQuery,
+} from "@/services/api.service";
 import {
   ArrowDown,
   ArrowUp,
   Check,
   ChevronsUpDown,
   Edit3,
+  Eye,
   EyeOff,
   RefreshCw,
   Settings2,
@@ -51,7 +57,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+// import { DataTableFilter } from "@/components/ui/Filter";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -69,15 +82,11 @@ const Employees = () => {
 
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-  } = useGetAllUsersQuery(filters);
+  const { data, isLoading, isFetching, isError, error } =
+    useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();
   const { data: departmentNames } = useGetAllDepartmentNameQuery();
+  const { data: roleNames } = useGetAllRoleNameQuery();
 
   const allColumns = [
     {
@@ -159,6 +168,25 @@ const Employees = () => {
           : "-",
       hideable: true,
     },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      hideable: false,
+      sortable: false,
+      cell: () => (
+        <div className="flex gap-2 ml-2">
+          <Button variant="ghost" size="sm" className="p-2 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700">
+            <Edit3 size={15} />
+          </Button>
+          <Button variant="ghost" size="sm" className="p-2 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700">
+            <Trash size={15} />
+          </Button>
+          <Button variant="ghost" size="sm" className="p-2 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700">
+            <Eye size={15} />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   const [visibleColumns, setVisibleColumns] = useState(
@@ -169,7 +197,7 @@ const Employees = () => {
 
   const filteredColumns = allColumns.filter(
     (col) =>
-      visibleColumns.includes(col.accessorKey) || col.accessorKey === "select"
+      visibleColumns.includes(col.accessorKey) || col.accessorKey === "select" || col.accessorKey === "actions"
   );
 
   const table = useReactTable({
@@ -254,6 +282,14 @@ const Employees = () => {
     }
   };
 
+  const handleRoleChange = (role) => {
+    if (role === "all") {
+      setFilters((prev) => ({ ...prev, role: "" }));
+    } else {
+      setFilters((prev) => ({ ...prev, role: role }));
+    }
+  };
+
   const isSelected = (column) => visibleColumns.includes(column);
 
   const getSortIcon = (key) => {
@@ -297,7 +333,8 @@ const Employees = () => {
     return buttons;
   };
 
-  const showNoDataMessage = !isLoading && !isFetching && (!data || data.users.length === 0 || isError);
+  const showNoDataMessage =
+    !isLoading && !isFetching && (!data || data.users.length === 0 || isError);
 
   const renderLoadingState = () => (
     <TableRow>
@@ -310,22 +347,26 @@ const Employees = () => {
   const renderNoDataMessage = () => (
     <TableRow>
       <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
-        {isError ? `${error?.message || 'Failed to fetch data'}` : 'No data found'}
+        {isError
+          ? `${error?.message || "Failed to fetch data"}`
+          : "No data found"}
       </TableCell>
     </TableRow>
   );
 
-  const renderTableRows = () => (
+  const renderTableRows = () =>
     table.getRowModel().rows.map((row) => (
       <TableRow key={row.id}>
         {row.getVisibleCells().map((cell) => (
-          <TableCell key={cell.id} className="text-center text-nowrap align-middle">
+          <TableCell
+            key={cell.id}
+            className="text-center text-nowrap align-middle"
+          >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
       </TableRow>
-    ))
-  );
+    ));
 
   const renderTableContent = () => {
     if (isLoading || isFetching) return renderLoadingState();
@@ -344,26 +385,70 @@ const Employees = () => {
             className="w-96"
           />
         </div>
-        <div className="flex gap-2 items-center">
-          <Select onValueChange={handleDepartmentChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Department" />
-            </SelectTrigger>
-            <SelectContent>
-              {
-                departmentNames?.length > 0 && (
-                  <SelectItem key="all" value="all">All</SelectItem>
-                )
-              }
-              {
-                departmentNames?.length > 0 && departmentNames?.map((department) => (
-                  <SelectItem key={department._id} value={department._id}>
-                    {department.name}
+        <div className="flex gap-4 items-center">
+
+        {/* <DataTableFilter
+            column={{
+              getFilterValue: () => filters.department,
+              setFilterValue: (value) => handleFilterChange("department", value),
+            }}
+            title="Department"
+            options={departmentNames?.map(dept => ({ value: dept._id, label: dept.name })) || []}
+          />
+
+          <DataTableFilter
+            column={{
+              getFilterValue: () => filters.role,
+              setFilterValue: (value) => handleFilterChange("role", value),
+            }}
+            title="Role"
+            options={roleNames?.map(role => ({ value: role._id, label: role.name })) || []}
+          /> */}
+
+          <div className="flex flex-nowrap items-center gap-2">
+            <span>Department</span>
+            <Select onValueChange={handleDepartmentChange}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                {departmentNames?.length > 0 && (
+                  <SelectItem key="all" value="all">
+                    All
                   </SelectItem>
-                ))
-              }
-            </SelectContent>
-          </Select>
+                )}
+                {departmentNames?.length > 0 &&
+                  departmentNames?.map((department) => (
+                    <SelectItem key={department._id} value={department._id}>
+                      {department.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-nowrap items-center gap-2">
+            <span>Role</span>
+            <Select onValueChange={handleRoleChange}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleNames?.length > 0 && (
+                  <SelectItem key="all" value="all">
+                    All
+                  </SelectItem>
+                )}
+                {roleNames?.length > 0 &&
+                  roleNames?.map((role) => (
+                    <SelectItem key={role._id} value={role._id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -420,86 +505,80 @@ const Employees = () => {
                         : ""
                     )}
                   >
-                    {
-                      header.column.columnDef.sortable ||
-                      header.column.columnDef.hideable ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="data-[state=open]:bg-muted/40"
-                            >
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                              {header.column.columnDef.sortable &&
-                                getSortIcon(
-                                  header.column.columnDef.accessorKey
-                                )}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            {header.column.columnDef.sortable && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleSortChange(
-                                      header.column.columnDef,
-                                      "asc"
-                                    )
-                                  }
-                                >
-                                  <ArrowUp className="mr-3" size={16} />
-                                  Asc
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleSortChange(
-                                      header.column.columnDef,
-                                      "desc"
-                                    )
-                                  }
-                                >
-                                  <ArrowDown className="mr-3" size={16} />
-                                  Desc
-                                </DropdownMenuItem>
-                                {header.column.columnDef.hideable && (
-                                  <DropdownMenuSeparator />
-                                )}
-                              </>
+                    {header.column.columnDef.sortable ||
+                    header.column.columnDef.hideable ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="data-[state=open]:bg-muted/40"
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
                             )}
-                            {header.column.columnDef.hideable && (
+                            {header.column.columnDef.sortable &&
+                              getSortIcon(header.column.columnDef.accessorKey)}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {header.column.columnDef.sortable && (
+                            <>
                               <DropdownMenuItem
                                 onClick={() =>
-                                  handleColumnVisibilityChange(
-                                    header.column.columnDef.accessorKey
+                                  handleSortChange(
+                                    header.column.columnDef,
+                                    "asc"
                                   )
                                 }
                               >
-                                <EyeOff className="mr-3" size={16} />
-                                Hide
+                                <ArrowUp className="mr-3" size={16} />
+                                Asc
                               </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleSortChange(
+                                    header.column.columnDef,
+                                    "desc"
+                                  )
+                                }
+                              >
+                                <ArrowDown className="mr-3" size={16} />
+                                Desc
+                              </DropdownMenuItem>
+                              {header.column.columnDef.hideable && (
+                                <DropdownMenuSeparator />
+                              )}
+                            </>
+                          )}
+                          {header.column.columnDef.hideable && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleColumnVisibilityChange(
+                                  header.column.columnDef.accessorKey
+                                )
+                              }
+                            >
+                              <EyeOff className="mr-3" size={16} />
+                              Hide
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
                       )
-                    }
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
             ))}
           </TableHeader>
 
-          <TableBody>
-            {renderTableContent()}
-          </TableBody>
+          <TableBody>{renderTableContent()}</TableBody>
         </Table>
       </div>
 
@@ -517,7 +596,7 @@ const Employees = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="data-[state=open]:bg-muted h-8 px-2 pl-3"
+                    className="data-[state=open]:bg-muted h-9 px-2 pl-3"
                   >
                     {filters.limit}{" "}
                     <ChevronsUpDown size={16} className="ml-1" />

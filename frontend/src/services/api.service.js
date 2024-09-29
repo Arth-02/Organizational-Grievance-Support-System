@@ -194,6 +194,13 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Roles"],
     }),
     getRoleById: builder.query({
       query: (body) => ({
@@ -203,15 +210,29 @@ export const apiService = createApi({
         url: `roles/details/${body.roleId}`,
         method: "GET",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      providesTags: ["Roles"],
     }),
     getAllRoleName: builder.query({
-      query: (body) => ({
+      query: () => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "roles/names",
         method: "GET",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      providesTags: ["Roles"],
     }),
     getAllRoles: builder.query({
       query: (filters) => {
@@ -229,7 +250,8 @@ export const apiService = createApi({
       },
       transformErrorResponse: (response) => {
         return response.data;
-      }
+      },
+      providesTags: ["Roles"],
     }),
     updateRole: builder.mutation({
       query: (body) => ({
@@ -240,6 +262,13 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Roles"],
     }),
     deleteRole: builder.mutation({
       query: (body) => ({
@@ -249,6 +278,13 @@ export const apiService = createApi({
         url: `roles/delete/${body.roleId}`,
         method: "DELETE",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Roles"],
     }),
     createUser: builder.mutation({
       query: (body) => ({
@@ -259,6 +295,13 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Users"],
     }),
     updateUser: builder.mutation({
       query: (body) => ({
@@ -269,6 +312,12 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
       invalidatesTags: ["Users"],
     }),
     updateUserSelf: builder.mutation({
@@ -280,6 +329,12 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
       invalidatesTags: ["Users"],
     }),
     deleteUser: builder.mutation({
@@ -290,6 +345,12 @@ export const apiService = createApi({
         url: `users/delete/${body.userId}`,
         method: "DELETE",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
       invalidatesTags: ["Users"],
     }),
     deleteAllUsers: builder.mutation({
@@ -301,10 +362,10 @@ export const apiService = createApi({
         method: "DELETE",
         body,
       }),
-      transformErrorResponse: (response) => {
+      transformResponse: (response) => {
         return response.data;
       },
-      transformResponse: (response) => {
+      transformErrorResponse: (response) => {
         return response.data;
       },
       invalidatesTags: ["Users"],
