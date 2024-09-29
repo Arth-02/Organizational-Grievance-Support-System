@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useDeleteAllUsersMutation,
+  useDeleteUserMutation,
   useGetAllDepartmentNameQuery,
   useGetAllRoleNameQuery,
   useGetAllUsersQuery,
@@ -87,6 +88,7 @@ const Employees = () => {
   const [deleteAllUsers] = useDeleteAllUsersMutation();
   const { data: departmentNames } = useGetAllDepartmentNameQuery();
   const { data: roleNames } = useGetAllRoleNameQuery();
+  const [deleteUser] = useDeleteUserMutation();
 
   const allColumns = [
     {
@@ -173,15 +175,28 @@ const Employees = () => {
       header: "Actions",
       hideable: false,
       sortable: false,
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex gap-2 ml-2">
-          <Button variant="ghost" size="sm" className="p-2 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+          >
             <Edit3 size={15} />
           </Button>
-          <Button variant="ghost" size="sm" className="p-2 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700">
+          <Button
+            variant="ghost"
+            onClick={() => handleDelete(row.original._id)}
+            size="sm"
+            className="p-2 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+          >
             <Trash size={15} />
           </Button>
-          <Button variant="ghost" size="sm" className="p-2 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
+          >
             <Eye size={15} />
           </Button>
         </div>
@@ -197,7 +212,9 @@ const Employees = () => {
 
   const filteredColumns = allColumns.filter(
     (col) =>
-      visibleColumns.includes(col.accessorKey) || col.accessorKey === "select" || col.accessorKey === "actions"
+      visibleColumns.includes(col.accessorKey) ||
+      col.accessorKey === "select" ||
+      col.accessorKey === "actions"
   );
 
   const table = useReactTable({
@@ -272,6 +289,11 @@ const Employees = () => {
       };
       deleteAllUsers(body);
     }
+  };
+
+  const handleDelete = (id) => {
+    console.log(id);
+    deleteUser(id);
   };
 
   const handleDepartmentChange = (departmentId) => {
@@ -386,25 +408,6 @@ const Employees = () => {
           />
         </div>
         <div className="flex gap-4 items-center">
-
-        {/* <DataTableFilter
-            column={{
-              getFilterValue: () => filters.department,
-              setFilterValue: (value) => handleFilterChange("department", value),
-            }}
-            title="Department"
-            options={departmentNames?.map(dept => ({ value: dept._id, label: dept.name })) || []}
-          />
-
-          <DataTableFilter
-            column={{
-              getFilterValue: () => filters.role,
-              setFilterValue: (value) => handleFilterChange("role", value),
-            }}
-            title="Role"
-            options={roleNames?.map(role => ({ value: role._id, label: role.name })) || []}
-          /> */}
-
           <div className="flex flex-nowrap items-center gap-2">
             <span>Department</span>
             <Select onValueChange={handleDepartmentChange}>
@@ -426,7 +429,6 @@ const Employees = () => {
               </SelectContent>
             </Select>
           </div>
-
           <div className="flex flex-nowrap items-center gap-2">
             <span>Role</span>
             <Select onValueChange={handleRoleChange}>
@@ -448,7 +450,6 @@ const Employees = () => {
               </SelectContent>
             </Select>
           </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

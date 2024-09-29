@@ -338,11 +338,11 @@ export const apiService = createApi({
       invalidatesTags: ["Users"],
     }),
     deleteUser: builder.mutation({
-      query: (body) => ({
+      query: (id) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `users/delete/${body.userId}`,
+        url: `users/delete/${id}`,
         method: "DELETE",
       }),
       transformResponse: (response) => {
