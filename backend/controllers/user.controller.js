@@ -42,7 +42,11 @@ async function login(req, res) {
     const user = await User.findOne({
       $or: [{ email }, { username }],
       is_active: true,
-    }).select("+password").populate({path: "role", select: "name"}).populate({path: "department", select: "name"}).populate({path: "organization_id", select: "name logo"});
+    })
+      .select("+password")
+      .populate({ path: "role", select: "name" })
+      .populate({ path: "department", select: "name" })
+      .populate({ path: "organization_id", select: "name logo" });
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -211,8 +215,8 @@ async function getUser(req, res) {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const query = { _id: id};
-    if(organization_id){
+    const query = { _id: id };
+    if (organization_id) {
       query.organization_id = organization_id;
     }
     const user = await User.findOne(query).select(
@@ -248,16 +252,12 @@ async function updateUser(req, res) {
     }
     const query = { _id: id };
 
-    if(organization_id){
+    if (organization_id) {
       query.organization_id = organization_id;
     }
-    const user = await User.findOneAndUpdate(
-      query,
-      value,
-      {
-        new: true,
-      }
-    );
+    const user = await User.findOneAndUpdate(query, value, {
+      new: true,
+    });
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -281,13 +281,13 @@ const deleteUser = async (req, res) => {
       return errorResponse(res, 400, "Invalid user id");
     }
     const query = { _id: id };
-    if(organization_id){
+    if (organization_id) {
       query.organization_id = organization_id;
     }
-    const user = await User.findOneAndUpdate(
-      query,
-      { is_active: false, is_deleted: true }
-    );
+    const user = await User.findOneAndUpdate(query, {
+      is_active: false,
+      is_deleted: true,
+    });
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -313,13 +313,13 @@ const deleteUsers = async (req, res) => {
       }
     }
     const query = { _id: { $in: ids } };
-    if(organization_id){
+    if (organization_id) {
       query.organization_id = organization_id;
     }
-    const users = await User.updateMany(
-      query,
-      { is_active: false, is_deleted: true }
-    );
+    const users = await User.updateMany(query, {
+      is_active: false,
+      is_deleted: true,
+    });
     if (!users) {
       return errorResponse(res, 404, "Users not found");
     }
@@ -520,7 +520,7 @@ const checkUsername = async (req, res) => {
     const { username } = value;
 
     const query = { username, is_deleted: false };
-    if(req.user?.organization_id){
+    if (req.user?.organization_id) {
       query.organization_id = req.user.organization_id;
     }
 
@@ -550,7 +550,7 @@ const checkEmail = async (req, res) => {
 
     const query = { email, is_deleted: false };
 
-    if(req.user?.organization_id){
+    if (req.user?.organization_id) {
       query.organization_id = req.user.organization_id;
     }
 
@@ -617,7 +617,7 @@ const getAllUsers = async (req, res) => {
     if (is_active === "true" || is_active === "false") {
       query.is_active = is_active === "true";
     }
-    if(organization_id){
+    if (organization_id) {
       query.organization_id = organization_id;
     }
     if (username) {
@@ -633,13 +633,20 @@ const getAllUsers = async (req, res) => {
       query.department = new ObjectId(department);
     }
 
+    const isSortedField = sort_by === "role" || sort_by === "department";
+
     const sortOrder = order === "asc" ? 1 : -1;
-    const pipeline = [
-      { $match: query },
-      { $addFields: { sortField: { $toLower: `$${sort_by}` } } },
-      { $sort: { sortField: sortOrder } },
-      { $skip: skip },
-      { $limit: limitNumber },
+    const pipeline = [{ $match: query }];
+
+    if (!isSortedField) {
+      pipeline.push(
+        { $addFields: { sortField: { $toLower: `$${sort_by}` } } },
+        { $sort: { sortField: sortOrder } },
+        { $skip: skip },
+        { $limit: limitNumber }
+      );
+    }
+    pipeline.push(
       {
         $lookup: {
           from: "roles",
@@ -674,8 +681,17 @@ const getAllUsers = async (req, res) => {
             $concatArrays: ["$role.permissions", "$special_permissions"],
           },
         },
-      },
-    ];
+      }
+    );
+    
+    if (isSortedField) {
+      pipeline.push(
+        { $addFields: { sortField: { $toLower: `$${sort_by}.name` } } },
+        { $sort: { sortField: sortOrder } },
+        { $skip: skip },
+        { $limit: limitNumber }
+      );
+    }
 
     if (permissions) {
       pipeline.push({
@@ -686,7 +702,7 @@ const getAllUsers = async (req, res) => {
         },
       });
     }
-
+    
     pipeline.push({
       $project: {
         role: "$role.name",
@@ -705,9 +721,10 @@ const getAllUsers = async (req, res) => {
       },
     });
 
+
     const [users, totalUsers] = await Promise.all([
       User.aggregate(pipeline),
-      User.countDocuments(query)
+      User.countDocuments(query),
     ]);
     const totalPages = Math.ceil(totalUsers / limitNumber);
     const hasNextPage = page < totalPages;
