@@ -11,7 +11,7 @@ const {
   checkEmail,
   checkEmployeeID,
   getAllUsers,
-  deleteUsers,
+  deleteAllUsers,
 } = require("../controllers/user.controller");
 const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware");
 
@@ -24,7 +24,7 @@ router.get("/all",checkPermission(["VIEW_USER"]), getAllUsers);
 router.patch("/profile/update", isLoggedIn, updateUser);
 router.patch("/update/:id",checkPermission(["UPDATE_USER"]), updateUser);
 router.delete("/delete/:id",checkPermission(["DELETE_USER"]), deleteUser);
-router.delete("/delete",checkPermission(["DELETE_USER"]), deleteUsers);
+router.delete("/delete",checkPermission(["DELETE_USER"]), deleteAllUsers);
 
 router.post("/create-super-admin", createSuperAdmin);
 router.post("/generate-otp", sendOTPEmail);

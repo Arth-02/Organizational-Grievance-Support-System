@@ -300,7 +300,7 @@ const deleteUser = async (req, res) => {
 };
 
 // Delete multiple users
-const deleteUsers = async (req, res) => {
+const deleteAllUsers = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const { ids } = req.body;
@@ -760,7 +760,7 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  deleteUsers,
+  deleteAllUsers,
   createSuperAdmin,
   sendOTPEmail,
   checkUsername,
