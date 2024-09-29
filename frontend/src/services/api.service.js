@@ -54,7 +54,8 @@ export const apiService = createApi({
       },
       transformErrorResponse: (response) => {
         return response.data;
-      }
+      },
+      providesTags: ["Users"],
     }),
     createOrganization: builder.mutation({
       query: (body) => ({
@@ -254,6 +255,7 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
+      invalidatesTags: ["Users"],
     }),
     updateUserSelf: builder.mutation({
       query: (body) => ({
@@ -264,6 +266,7 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
+      invalidatesTags: ["Users"],
     }),
     deleteUser: builder.mutation({
       query: (body) => ({
@@ -273,6 +276,24 @@ export const apiService = createApi({
         url: `users/delete/${body.userId}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Users"],
+    }),
+    deleteAllUsers: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: "users/delete",
+        method: "DELETE",
+        body,
+      }),
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      transformResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Users"],
     }),
     checkUsername: builder.mutation({
       query: (body) => ({
@@ -315,6 +336,12 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
     }),
   }),
 });
@@ -345,6 +372,7 @@ export const {
   useUpdateUserMutation,
   useUpdateUserSelfMutation,
   useDeleteUserMutation,
+  useDeleteAllUsersMutation,
   useCheckUsernameMutation,
   useCheckEmailMutation,
   useCheckEmployeeIDMutation,

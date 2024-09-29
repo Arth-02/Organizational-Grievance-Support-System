@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useGetAllUsersQuery } from "@/services/api.service";
+import { useDeleteAllUsersMutation, useGetAllUsersQuery } from "@/services/api.service";
 import {
   ArrowDown,
   ArrowUp,
@@ -69,6 +69,7 @@ const Employees = () => {
   const [selectedRows, setSelectedRows] = useState([]);
 
   const { data, isLoading } = useGetAllUsersQuery(filters);
+  const [deleteAllUsers] = useDeleteAllUsersMutation();
 
   const allColumns = [
     {
@@ -228,6 +229,15 @@ const Employees = () => {
     }
   };
 
+  const handleDeleteAll = () => {
+    if (selectedRows.length > 0) {
+      const body = {
+        ids: selectedRows,
+      };
+      deleteAllUsers(body);
+    }
+  };
+
   // const handleDelete = () => {
   //   if (selectedRows.length > 0) {
   //     console.log("Delete rows: ", selectedRows);
@@ -290,30 +300,6 @@ const Employees = () => {
           />
         </div>
         <div className="flex gap-2 items-center">
-          <div className="flex items-center">
-            <span className="mr-2">Rows per page</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="data-[state=open]:bg-muted"
-                >
-                  {filters.limit} <ChevronsUpDown size={16} className="ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {[1, 10, 20, 30, 40, 50].map((limit) => (
-                  <DropdownMenuItem
-                    key={limit}
-                    onClick={() => handleLimitChange(limit)}
-                  >
-                    {limit}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -476,27 +462,60 @@ const Employees = () => {
       </div>
 
       {data?.pagination && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() =>
-                  handlePageChange(data.pagination.currentPage - 1)
-                }
-                disabled={!data.pagination.hasPrevPage}
-              />
-            </PaginationItem>
-            {renderPageButtons()}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() =>
-                  handlePageChange(data.pagination.currentPage + 1)
-                }
-                disabled={!data.pagination.hasNextPage}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">
+            Showing {table.getRowModel().rows.length} of{" "}
+            {data?.pagination?.totalDocs || 0} results
+          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center">
+              <span className="mr-2">Rows per page</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="data-[state=open]:bg-muted h-8 px-2 pl-3"
+                  >
+                    {filters.limit}{" "}
+                    <ChevronsUpDown size={16} className="ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {[1, 10, 20, 30, 40, 50].map((limit) => (
+                    <DropdownMenuItem
+                      key={limit}
+                      onClick={() => handleLimitChange(limit)}
+                    >
+                      {limit}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      handlePageChange(data.pagination.currentPage - 1)
+                    }
+                    disabled={!data.pagination.hasPrevPage}
+                  />
+                </PaginationItem>
+                {renderPageButtons()}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      handlePageChange(data.pagination.currentPage + 1)
+                    }
+                    disabled={!data.pagination.hasNextPage}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </div>
       )}
 
       {selectedRows.length > 0 && (
@@ -531,7 +550,7 @@ const Employees = () => {
             )}
             <Tooltip>
               <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
-                <Trash size={18} />
+                <Trash size={18} onClick={handleDeleteAll} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Delete Row</p>
