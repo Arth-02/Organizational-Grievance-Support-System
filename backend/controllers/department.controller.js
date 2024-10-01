@@ -15,7 +15,7 @@ const {
 } = require("../validators/department.validator");
 
 // Create a new department
-async function createDepartment(req, res) {
+const createDepartment = async (req, res) => {
   try {
     const { error, value } = departmentSchema.validate(req.body, {
       abortEarly: false,
@@ -61,7 +61,7 @@ async function createDepartment(req, res) {
 }
 
 // Update a department
-async function updateDepartment(req, res) {
+const updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
     const { organization_id } = req.user;
@@ -104,7 +104,7 @@ async function updateDepartment(req, res) {
 }
 
 // Get all departments in pagination
-async function getAllDepartment(req, res) {
+const getAllDepartment = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const {
@@ -185,7 +185,7 @@ const getAllDepartmentName = async (req, res) => {
 };
 
 // Get a single department by ID
-async function getDepartmentById(req, res) {
+const getDepartmentById = async (req, res) => {
   try {
     const { id } = req.params;
     const { organization_id } = req.user;

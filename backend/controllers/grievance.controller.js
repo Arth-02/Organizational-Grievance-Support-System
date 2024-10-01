@@ -19,7 +19,7 @@ const {
 } = require("../validators/grievance.validator");
 
 // Create a grievance
-async function createGrievance(req, res) {
+const createGrievance = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -90,10 +90,10 @@ async function createGrievance(req, res) {
   } finally {
     session.endSession();
   }
-}
+};
 
 // Update a grievance
-async function updateGrievance(req, res) {
+const updateGrievance = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -149,10 +149,10 @@ async function updateGrievance(req, res) {
     console.error("Update Grievance Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Soft delete a grievance
-async function deleteGrievance(req, res) {
+const deleteGrievance = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
@@ -180,10 +180,10 @@ async function deleteGrievance(req, res) {
     console.error("Soft Delete Grievance Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Get all non-deleted grievances
-async function getAllGrievances(req, res) {
+const getAllGrievances = async (req, res) => {
   try {
     const grievances = await Grievance.find({ is_active: true })
       .populate("department", "name")
@@ -199,10 +199,10 @@ async function getAllGrievances(req, res) {
     console.error("Get All Grievances Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Get a specific grievance
-async function getGrievance(req, res) {
+const getGrievance = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id)) {
@@ -223,7 +223,7 @@ async function getGrievance(req, res) {
     console.error("Get Grievance Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 module.exports = {
   createGrievance,
