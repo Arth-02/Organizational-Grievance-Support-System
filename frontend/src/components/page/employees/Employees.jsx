@@ -8,7 +8,6 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -46,9 +45,12 @@ import {
   Edit3,
   Eye,
   EyeOff,
+  IdCard,
+  Mail,
   RefreshCw,
   Settings2,
   Trash,
+  User,
   X,
 } from "lucide-react";
 import { Button } from "../../ui/button";
@@ -65,6 +67,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CustomSearch from "@/components/ui/CustomSearch";
 // import { DataTableFilter } from "@/components/ui/Filter";
 
 const Employees = () => {
@@ -72,13 +75,13 @@ const Employees = () => {
     page: 1,
     limit: 10,
     username: "",
+    email: "",
     is_active: "",
     employee_id: "",
     role: "",
     department: "",
     sort_by: "created_at",
     order: "desc",
-    search: "",
   });
 
   const [selectedRows, setSelectedRows] = useState([]);
@@ -210,6 +213,12 @@ const Employees = () => {
     })
   );
 
+  const searchOptions = [
+    { label: "Username", example: "Arth", value: "username", icon: <User size={16} /> },
+    { label: "Email", example: "arth@gmail.com", value: "email", icon: <Mail size={16} /> },
+    { label: "Employee ID", example: "123456", value: "employee_id", icon: <IdCard size={16} /> },
+  ];
+
   const filteredColumns = allColumns.filter(
     (col) =>
       visibleColumns.includes(col.accessorKey) ||
@@ -230,9 +239,9 @@ const Employees = () => {
     pageCount: data?.pagination?.totalPages || -1,
   });
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  // const handleFilterChange = (key, value) => {
+  //   setFilters((prev) => ({ ...prev, [key]: value }));
+  // };
 
   const handlePageChange = (newPage) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
@@ -292,7 +301,6 @@ const Employees = () => {
   };
 
   const handleDelete = (id) => {
-    console.log(id);
     deleteUser(id);
   };
 
@@ -328,6 +336,9 @@ const Employees = () => {
 
   const handleLimitChange = (newLimit) => {
     setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 }));
+  };
+  const handleSearchChange = (searchField, searchValue) => {
+    setFilters((prev) => ({ ...prev, [searchField]: searchValue }));
   };
 
   const renderPageButtons = () => {
@@ -400,11 +411,16 @@ const Employees = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-end">
         <div>
-          <Input
+          {/* <Input
             placeholder="Search"
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             className="w-96"
+          /> */}
+          <CustomSearch
+            onSearch={handleSearchChange}
+            searchOptions={searchOptions}
+            apiCall={handleSearchChange}
           />
         </div>
         <div className="flex gap-4 items-center">
