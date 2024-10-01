@@ -27,7 +27,7 @@ const {
 } = require("../validators/user.validator");
 
 // Login user
-async function login(req, res) {
+const login = async (req, res) => {
   try {
     const { error, value } = loginSchema.validate(req.body, {
       abortEarly: false,
@@ -90,10 +90,10 @@ async function login(req, res) {
     console.error("Login Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Create new user
-async function createUser(req, res) {
+const createUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
     // Validate request body.
@@ -202,10 +202,10 @@ async function createUser(req, res) {
     console.error("Registration Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Get user profile
-async function getUser(req, res) {
+const getUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
@@ -232,14 +232,13 @@ async function getUser(req, res) {
     console.error("Get Profile Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Update user profile
-async function updateUser(req, res) {
+const updateUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const id = req.params.id || req.user.id;
-    console.log(req.user);
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
@@ -267,7 +266,7 @@ async function updateUser(req, res) {
     console.error("Update Profile Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Delete user
 const deleteUser = async (req, res) => {
@@ -687,7 +686,7 @@ const getAllUsers = async (req, res) => {
         },
       }
     );
-    
+
     if (isSortedFieldPresent) {
       pipeline.push(
         { $addFields: { sortField: { $toLower: `$${sort_by}.name` } } },
@@ -706,7 +705,7 @@ const getAllUsers = async (req, res) => {
         },
       });
     }
-    
+
     pipeline.push({
       $project: {
         role: "$role.name",
@@ -724,7 +723,6 @@ const getAllUsers = async (req, res) => {
         created_at: 1,
       },
     });
-
 
     const [users, totalUsers] = await Promise.all([
       User.aggregate(pipeline),

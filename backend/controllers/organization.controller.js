@@ -39,7 +39,9 @@ const createOrganization = async (req, res) => {
       address,
     } = value;
 
-    let existingOrganization = await Organization.findOne({ email }).session(session);
+    let existingOrganization = await Organization.findOne({ email }).session(
+      session
+    );
     if (existingOrganization) {
       await session.abortTransaction();
       return errorResponse(res, 400, "Organization already exists");
@@ -89,6 +91,7 @@ const createOrganization = async (req, res) => {
 // Update an organization
 const updateOrganization = async (req, res) => {
   try {
+    const { organization_id } = req.user;
     const { error, value } = updateOrganizationSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -96,41 +99,19 @@ const updateOrganization = async (req, res) => {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-
-    const {
-      _id,
-      name,
-      website,
-      logo,
-      description,
-      city,
-      state,
-      country,
-      pincode,
-      phone,
-      address,
-    } = value;
-
-    let existingOrganization = await Organization.findById(_id);
-    if (!existingOrganization) {
-      return errorResponse(res, 400, "Organization does not exist");
+    const organization = await Organization.findOneAndUpdate(
+      { _id: organization_id },
+      value,
+      {
+        new: true,
+      }
+    );
+    if (!organization) {
+      return errorResponse(res, 404, "Organization not found");
     }
-
-    existingOrganization.name = name;
-    existingOrganization.website = website;
-    existingOrganization.logo = logo;
-    existingOrganization.description = description;
-    existingOrganization.city = city;
-    existingOrganization.state = state;
-    existingOrganization.country = country;
-    existingOrganization.pincode = pincode;
-    existingOrganization.phone = phone;
-    existingOrganization.address = address;
-
-    const updatedOrg = await existingOrganization.save();
     return successResponse(
       res,
-      updatedOrg,
+      organization,
       "Organization updated successfully"
     );
   } catch (err) {
@@ -141,15 +122,18 @@ const updateOrganization = async (req, res) => {
 
 // get by id
 const getOrganizationById = async (req, res) => {
-  try{
-    const {id} = req.params;
-    if(!id){
+  try {
+    const { id } = req.params;
+    if (!id) {
       return errorResponse(res, 400, "Organization id is required");
     }
-    if(!isValidObjectId(id)){
+    if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid organization id");
     }
-    const organization = await Organization.findOne({_id:id, is_active:true});
+    const organization = await Organization.findOne({
+      _id: id,
+      is_active: true,
+    });
     if (!organization) {
       return errorResponse(res, 404, "Organization not found");
     }
@@ -160,4 +144,8 @@ const getOrganizationById = async (req, res) => {
   }
 };
 
-module.exports = { createOrganization, updateOrganization, getOrganizationById };
+module.exports = {
+  createOrganization,
+  updateOrganization,
+  getOrganizationById,
+};
