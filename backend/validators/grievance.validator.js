@@ -53,9 +53,15 @@ const updateStatusGrievanceSchema = Joi.object({
     .required(),
 });
 
+const updateGrievanceAttachmentSchema = Joi.object({
+  attachments: Joi.array().items(Joi.object()),
+  delete_attachments: Joi.array().items(Joi.string()),
+});
+
 module.exports = {
   createGrievanceSchema,
   updateFullGrievanceSchema,
   updateAssignedGrievanceSchema,
-  updateStatusGrievanceSchema
+  updateStatusGrievanceSchema,
+  updateGrievanceAttachmentSchema,
 };

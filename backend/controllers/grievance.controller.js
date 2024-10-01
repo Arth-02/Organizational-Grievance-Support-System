@@ -16,7 +16,9 @@ const {
   updateStatusGrievanceSchema,
   updateAssignedGrievanceSchema,
   updateFullGrievanceSchema,
+  updateGrievanceAttachmentSchema,
 } = require("../validators/grievance.validator");
+const { query } = require("express");
 
 // Create a grievance
 const createGrievance = async (req, res) => {
@@ -96,8 +98,11 @@ const createGrievance = async (req, res) => {
 const updateGrievance = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, 400, "Grievance ID is required");
+    }
     if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid department ID");
+      return errorResponse(res, 400, "Invalid grievance ID");
     }
     const { organization_id, role } = req.user;
     const permissions = await Role.findById(role).select("permissions");
@@ -151,76 +156,106 @@ const updateGrievance = async (req, res) => {
   }
 };
 
-// Soft delete a grievance
-const deleteGrievance = async (req, res) => {
+// update grievance attachment
+const updateGrievanceAttachment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { organization_id } = req.user;
     const { id } = req.params;
+    const { organization_id, _id } = req.user;
     if (!id) {
+      await session.abortTransaction();
       return errorResponse(res, 400, "Grievance ID is required");
     }
     if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid department ID");
+      await session.abortTransaction();
+      return errorResponse(res, 400, "Invalid grievance ID");
+    }
+    const { error, value } = updateGrievanceAttachmentSchema.validate(req.body);
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return errorResponse(res, 400, errors);
+    }
+    const grievance = await Grievance.findOne({ _id: id, organization_id });
+    if (!grievance) {
+      await session.abortTransaction();
+      return errorResponse(res, 404, "Grievance not found");
+    }
+    // if(grievance.reported_by.toString() !== _id.toString()) {
+    //   return errorResponse(res, 403, "Permission denied");
+    // }
+    if (
+      grievance?.attachments?.length +
+        req.files?.length -
+        value?.delete_attachments?.length >
+      5
+    ) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, "Maximum 5 attachments allowed");
+    }
+    if (value?.delete_attachments && value?.delete_attachments.length > 0) {
+      const { delete_attachments } = value;
+      await Attachment.updateMany(
+        { _id: { $in: delete_attachments } },
+        { is_active: false }
+      );
+      grievance.attachments = grievance.attachments.filter(
+        (attachment) => !delete_attachments.includes(attachment._id.toString())
+      );
+      console.log(grievance.attachments);
+    }
+    if (req.files && req.files.length > 0) {
+      for (let file of req.files) {
+        const result = await uploadFiles(file, organization_id);
+        if (!result) {
+          await session.abortTransaction();
+          return errorResponse(res, 400, "Error uploading attachments");
+        }
+        const newAttachment = new Attachment({
+          filename: file.originalname,
+          public_id: result.public_id,
+          filetype: file.mimetype,
+          filesize: file.size,
+          url: result.secure_url,
+          grievance_id: grievance._id,
+          organization_id,
+          uploaded_by: req.user._id,
+        });
+        const savedAttachment = await newAttachment.save({ session });
+        grievance.attachments.push(savedAttachment._id);
+      }
+    }
+    await grievance.save({ session });
+    session.commitTransaction();
+    return successResponse(res, grievance, "Grievance updated successfully");
+  } catch (err) {
+    console.error("Update Grievance Attachment Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// get grievance by id
+const getGrievanceById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { organization_id } = req.user;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid grievance ID");
     }
     const query = { _id: id };
     if (organization_id) {
       query.organization_id = organization_id;
     }
-
     const grievance = await Grievance.findOne(query);
     if (!grievance) {
       return errorResponse(res, 404, "Grievance not found");
     }
-
-    grievance.is_active = false;
-    await grievance.save();
-
-    return successResponse(res, null, "Grievance deleted successfully");
+    return successResponse(res, grievance, "Grievance fetched successfully");
   } catch (err) {
-    console.error("Soft Delete Grievance Error:", err.message);
-    return catchResponse(res);
-  }
-};
-
-// Get all non-deleted grievances
-const getAllGrievances = async (req, res) => {
-  try {
-    const grievances = await Grievance.find({ is_active: true })
-      .populate("department", "name")
-      .populate("reportedBy", "username")
-      .populate("assignedTo", "username");
-
-    return successResponse(
-      res,
-      grievances,
-      "Grievances retrieved successfully"
-    );
-  } catch (err) {
-    console.error("Get All Grievances Error:", err.message);
-    return catchResponse(res);
-  }
-};
-
-// Get a specific grievance
-const getGrievance = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid department ID");
-    }
-
-    const grievance = await Grievance.findOne({ _id: id, is_active: true })
-      .populate("department", "name")
-      .populate("reportedBy", "username")
-      .populate("assignedTo", "username");
-
-    if (!grievance) {
-      return errorResponse(res, 404, "Grievance not found");
-    }
-
-    return successResponse(res, grievance, "Grievance retrieved successfully");
-  } catch (err) {
-    console.error("Get Grievance Error:", err.message);
+    console.error("Get Grievance By Id Error:", err.message);
     return catchResponse(res);
   }
 };
@@ -228,7 +263,6 @@ const getGrievance = async (req, res) => {
 module.exports = {
   createGrievance,
   updateGrievance,
-  deleteGrievance,
-  getAllGrievances,
-  getGrievance,
+  updateGrievanceAttachment,
+  getGrievanceById,
 };
