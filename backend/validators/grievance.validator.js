@@ -53,6 +53,20 @@ const updateStatusGrievanceSchema = Joi.object({
     .required(),
 });
 
+const updateMyGrievanceSchema = Joi.object({
+  title: Joi.string().min(5).max(100),
+  description: Joi.string().min(10).max(1000),
+  priority: Joi.string().valid("low", "medium", "high"),
+  status: Joi.string().valid(
+    "submitted",
+    "reviewing",
+    "assigned",
+    "in-progress",
+    "resolved",
+    "dismissed"
+  ),
+});
+
 const updateGrievanceAttachmentSchema = Joi.object({
   attachments: Joi.array().items(Joi.object()),
   delete_attachments: Joi.array().items(Joi.string()),
@@ -64,4 +78,5 @@ module.exports = {
   updateAssignedGrievanceSchema,
   updateStatusGrievanceSchema,
   updateGrievanceAttachmentSchema,
+  updateMyGrievanceSchema,
 };

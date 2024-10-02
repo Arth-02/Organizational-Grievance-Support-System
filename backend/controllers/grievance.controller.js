@@ -17,6 +17,7 @@ const {
   updateAssignedGrievanceSchema,
   updateFullGrievanceSchema,
   updateGrievanceAttachmentSchema,
+  updateMyGrievanceSchema,
 } = require("../validators/grievance.validator");
 const { query } = require("express");
 
@@ -104,32 +105,51 @@ const updateGrievance = async (req, res) => {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid grievance ID");
     }
-    const { organization_id, role } = req.user;
+    const { organization_id, role, _id } = req.user;
     const permissions = await Role.findById(role).select("permissions");
     if (!permissions) {
       return errorResponse(res, 400, "Role not found");
     }
     const permission = permissions.permissions;
     let schema;
+    // if (permission.includes("UPDATE_GRIEVANCE")) {
+    //   schema = updateFullGrievanceSchema;
+    //   if (!isValidObjectId(req.body.department_id)) {
+    //     return errorResponse(res, 400, "Invalid department ID");
+    //   }
+    // } else if (
+    //   permission.includes("UPDATE_GRIEVANCE_STATUS") &&
+    //   req.body.status
+    // ) {
+    //   schema = updateStatusGrievanceSchema;
+    // } else if (
+    //   permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
+    //   req.body.assigned_to
+    // ) {
+    //   schema = updateAssignedGrievanceSchema;
+    // } else {
+    //   return errorResponse(res, 403, "Permission denied");
+    // }
+    
     if (permission.includes("UPDATE_GRIEVANCE")) {
       schema = updateFullGrievanceSchema;
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
-    } else if (
-      permission.includes("UPDATE_GRIEVANCE_STATUS") &&
-      req.body.status
-    ) {
-      schema = updateStatusGrievanceSchema;
-    } else if (
-      permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
-      req.body.assigned_to
-    ) {
-      schema = updateAssignedGrievanceSchema;
-    } else {
+    } else{
+      if(req.body.reported_by.toString() === _id.toString()){
+        schema = schema.concat(updateMyGrievanceSchema);
+      }
+      if(permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status){
+        schema = schema.concat(updateStatusGrievanceSchema);
+      }
+      if(permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") && req.body.assigned_to){
+        schema = schema.concat(updateAssignedGrievanceSchema);
+      }
+    }
+    if(!schema){
       return errorResponse(res, 403, "Permission denied");
     }
-
     const { error, value } = schema.validate(req.body);
     if (error) {
       const errors = error.details.map((detail) => detail.message);
@@ -176,20 +196,26 @@ const updateGrievanceAttachment = async (req, res) => {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-    const grievance = await Grievance.findOne({ _id: id, organization_id });
+    const grievance = await Grievance.findOne({
+      _id: id,
+      organization_id,
+    }).session(session);
     if (!grievance) {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
     }
-    // if(grievance.reported_by.toString() !== _id.toString()) {
-    //   return errorResponse(res, 403, "Permission denied");
-    // }
-    if (
-      grievance?.attachments?.length +
-        req.files?.length -
-        value?.delete_attachments?.length >
-      5
-    ) {
+    if(grievance.reported_by.toString() !== _id.toString()) {
+      await session.abortTransaction();
+      return errorResponse(res, 403, "Permission denied");
+    }
+    let totalAttachments = grievance?.attachments?.length;
+    if (value?.delete_attachments) {
+      totalAttachments -= value?.delete_attachments?.length;
+    }
+    if (req.files && req.files.length > 0) {
+      totalAttachments += req.files?.length;
+    }
+    if (totalAttachments > 5) {
       await session.abortTransaction();
       return errorResponse(res, 400, "Maximum 5 attachments allowed");
     }
@@ -226,7 +252,7 @@ const updateGrievanceAttachment = async (req, res) => {
       }
     }
     await grievance.save({ session });
-    session.commitTransaction();
+    await session.commitTransaction();
     return successResponse(res, grievance, "Grievance updated successfully");
   } catch (err) {
     console.error("Update Grievance Attachment Error:", err.message);
@@ -260,9 +286,47 @@ const getGrievanceById = async (req, res) => {
   }
 };
 
+// delete grievance by id
+const deleteGrievanceById = async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { organization_id } = req.user;
+    if (!id) {
+      return errorResponse(res, 400, "Grievance ID is required");
+    }
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid grievance ID");
+    }
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const grievance = await Grievance.findOne(query);
+    if (!grievance) {
+      return errorResponse(res, 404, "Grievance not found");
+    }
+    await Grievance.updateOne({ _id: id }, { is_active: false });
+    return successResponse(res, grievance, "Grievance deleted successfully");
+  } catch (err) {
+    console.error("Delete Grievance By Id Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// get all grievances
+// const getAllGrievances = async (req, res) => {
+//   try{
+//     const { organization_id } = req.user;
+//     const { page, limit, sort, search, status, priority, department_id, employee_id } = req.query;
+//   } catch (err) {
+//     console.error("Get All Grievances Error:", err.message);
+//     return catchResponse(res);
+//   }
+// }
 module.exports = {
   createGrievance,
   updateGrievance,
   updateGrievanceAttachment,
   getGrievanceById,
+  deleteGrievanceById,
 };
