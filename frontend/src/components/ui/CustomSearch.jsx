@@ -17,7 +17,7 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
   const debouncedSearch = useCallback(
     debounce((option, term) => {
       onSearch(option, term);
-    }, 300),
+    }, 500),
     [onSearch]
   );
 
@@ -47,8 +47,8 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
 
   return (
     <div
-      className={`relative flex items-center justify-around h-10 rounded-md border bg-background px-3 py-2 pr-1 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 ease-in-out ${
-        selectedOption ? "w-[350px]" : "w-[250px]"
+      className={`relative flex items-center justify-around h-9 rounded-md border bg-background py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 ease-in-out ${
+        selectedOption ? "px-3 pr-1 w-[350px]" : " px-1 w-[250px]"
       }`}
     >
       {selectedOption ? (
@@ -61,11 +61,11 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus
-            className="border-none bg-transparent focus:outline-none min-w-48 px-1 py-0"
+            className={`border-none bg-transparent focus:outline-none min-w-48 px-1 py-0`}
           />
           <X
-            size={30}
-            className="w-9 h-8 cursor-pointer p-[6px] hover:bg-secondary/30 rounded-md transition-all duration-300"
+            size={20}
+            className="w-9 h-7 cursor-pointer p-1 hover:bg-secondary/30 rounded-md transition-all duration-300"
             onClick={handleClearSearch}
           />
         </div>
@@ -83,9 +83,10 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
             {searchOptions.map((option) => (
               <DropdownMenuItem
                 key={option.value}
+                className={'cursor-pointer'}
                 onSelect={() => handleOptionSelect(option)}
               >
-                <div className="flex items-center hover:bg-secondary/15 px-2 py-1 rounded-md cursor-pointer">
+                <div className="flex items-center hover:bg-secondary/15 px-1 py-1 rounded-md">
                   {option.icon}
                   <span className="text-sm font-medium ml-2">
                     {option.label}

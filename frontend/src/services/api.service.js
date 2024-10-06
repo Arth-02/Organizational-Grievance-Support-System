@@ -40,7 +40,13 @@ export const apiService = createApi({
     }),
     getAllUsers: builder.query({
       query: (filters) => {
-        const params = new URLSearchParams(filters).toString();
+        const cleanedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+          if (value !== '' && value !== null && value !== undefined && value !== 'all') {
+            acc[key] = value;
+          }
+          return acc;
+        }, {});
+        const params = new URLSearchParams(cleanedFilters).toString();
         return {
           headers: {
             Authorization: `Bearer ${getFromLocalStorage("token")}`,

@@ -17,8 +17,8 @@ const Employees = () => {
     email: "",
     is_active: "",
     employee_id: "",
-    role: "",
-    department: "",
+    role: "all",
+    department: "all",
     sort_by: "created_at",
     order: "desc",
   });
@@ -31,7 +31,7 @@ const Employees = () => {
 
   const columns = [
     { accessorKey: "username", header: "Username", sortable: true, hideable: false },
-    { accessorKey: "email", header: "Email", sortable: true, },
+    { accessorKey: "email", header: "Email", sortable: true },
     { accessorKey: "firstname", header: "First Name", sortable: true },
     { accessorKey: "lastname", header: "Last Name", sortable: true },
     { accessorKey: "employee_id", header: "Employee ID", sortable: false },
@@ -46,14 +46,14 @@ const Employees = () => {
     {
       accessorKey: "last_login",
       header: "Last Login",
-      sortable: false,
-      cell: ({ row }) => row.last_login ? new Date(row.last_login).toLocaleString() : "-",
+      sortable: true,
+      cell: ({ row }) => row.original.last_login ? new Date(row.original.last_login).toLocaleString() : "-",
     },
     {
       accessorKey: "created_at",
       header: "Created At",
       sortable: true,
-      cell: ({ row }) => row.created_at ? new Date(row.created_at).toLocaleString() : "-",
+      cell: ({ row }) => row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "-",
     },
   ];
 

@@ -41,6 +41,7 @@ import {
   Settings2,
   Trash,
   X,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -75,14 +76,6 @@ const GeneralTable = ({
   onView,
   searchOptions,
 }) => {
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [visibleColumns, setVisibleColumns] = useState(
-    columns
-      .filter((col) => col.hideable !== false)
-      .map((col) => col.accessorKey)
-  );
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
 
   const allColumns = [
     {
@@ -105,7 +98,7 @@ const GeneralTable = ({
     },
     ...columns.map((col) => ({
       ...col,
-      hideable: col.hideable !== false,
+      hideable: col.hideable ?? true,
     })),
     {
       accessorKey: "actions",
@@ -141,6 +134,18 @@ const GeneralTable = ({
       ),
     },
   ];
+
+  const defaultFilters = filters;
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [visibleColumns, setVisibleColumns] = useState(
+    allColumns
+      .map((col) => col.accessorKey)
+  );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  const totalHideableColumns = allColumns.filter(col => col.hideable === true).length;
+  const visibleHideableColumns = visibleColumns.length - allColumns.filter(col => col.hideable === false).length;
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -181,7 +186,6 @@ const GeneralTable = ({
   const handleResetColumns = () => {
     setVisibleColumns(
       allColumns
-        .filter((column) => column.hideable !== false)
         .map((column) => column.accessorKey)
     );
   };
@@ -242,11 +246,7 @@ const GeneralTable = ({
   };
 
   const handleFilterChange = (filter, value) => {
-    if (value === "all") {
-      setFilters((prev) => ({ ...prev, [filter]: "" }));
-    } else {
-      setFilters((prev) => ({ ...prev, [filter]: value }));
-    }
+    setFilters((prev) => ({ ...prev, [filter]: value }));
   };
 
   const renderPageButtons = () => {
@@ -274,8 +274,7 @@ const GeneralTable = ({
     return buttons;
   };
 
-  const showNoDataMessage =
-    !isLoading && !isFetching && (data.length === 0 || error);
+  const showNoDataMessage = !isLoading && !isFetching && (data.length === 0 || error);
 
   const renderLoadingState = () => (
     <TableRow>
@@ -299,7 +298,7 @@ const GeneralTable = ({
         {row.getVisibleCells().map((cell) => (
           <TableCell
             key={cell.id}
-            className={`text-nowrap align-middle ${cell.column.columnDef.accessorKey === "select" ? "px-2" : cell.column.columnDef.accessorKey === "actions" ? "pl-0 pr-3" : "px-[22px]"}`}
+            className={`text-nowrap align-middle ${cell.column.columnDef.accessorKey === "select" ? "px-2" : cell.column.columnDef.accessorKey === "actions" ? "pl-0 pr-3" : "px-[22px]"} ${!cell.getValue() ? "text-center" : ""}`}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
@@ -324,13 +323,16 @@ const GeneralTable = ({
     return <ChevronsUpDown className="ml-2 text-gray-400" size={16} />;
   };
 
+  const handleResetFilters = () => {
+    setFilters(defaultFilters);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-end">
         <CustomSearch
           onSearch={handleSearchChange}
           searchOptions={searchOptions}
-          apiCall={handleSearchChange}
         />
         <div className="flex gap-4 items-center">
           {customFilters &&
@@ -338,6 +340,7 @@ const GeneralTable = ({
               <div key={index} className="flex flex-nowrap items-center gap-2">
                 <span>{filter.label}</span>
                 <Select
+                  value={filters[filter.key]}
                   onValueChange={(value) => handleFilterChange(filter.key, value)}
                 >
                   <SelectTrigger className="h-9">
@@ -353,6 +356,17 @@ const GeneralTable = ({
                 </Select>
               </div>
             ))}
+          {defaultFilters !== filters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetFilters}
+              className="flex items-center gap-2"
+            >
+              <RefreshCcw size={16} />
+              Reset Filters
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -381,14 +395,20 @@ const GeneralTable = ({
                   </DropdownMenuItem>
                 )
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="flex items-center relative px-2"
-                onClick={handleResetColumns}
-              >
-                <RefreshCw size={16} className="absolute" />
-                <span className="pl-8">Reset</span>
-              </DropdownMenuItem>
+              {
+                visibleHideableColumns < totalHideableColumns && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="flex items-center relative px-2"
+                      onClick={handleResetColumns}
+                    >
+                      <RefreshCw size={16} className="absolute" />
+                      <span className="pl-8">Reset</span>
+                    </DropdownMenuItem>
+                  </>
+                )
+              }
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
