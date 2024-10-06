@@ -9,6 +9,7 @@ import {
   useGetAllUsersQuery,
 } from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
+import { useNavigate } from "react-router-dom";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -29,6 +30,8 @@ const Employees = () => {
   const { data: departmentNames } = useGetAllDepartmentNameQuery();
   const { data: roleNames } = useGetAllRoleNameQuery();
   const [deleteUser] = useDeleteUserMutation();
+
+  const navigate = useNavigate();
 
   const columns = [
     {
@@ -80,8 +83,7 @@ const Employees = () => {
   };
 
   const handleEdit = (id) => {
-    // Implement edit functionality
-    console.log("Edit user:", id);
+    navigate(`/employee/update/${id}`);
   };
 
   const handleView = (id) => {
@@ -137,7 +139,7 @@ const Employees = () => {
     <MainLayout
       title={"Employees"}
       buttonTitle={"Add New Employee"}
-      buttonLink={"/add-employee"}
+      buttonLink={"/employee/add"}
     >
       <GeneralTable
         data={data?.users || []}

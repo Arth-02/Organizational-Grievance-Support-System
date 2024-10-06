@@ -9,7 +9,7 @@ const Layout = () => {
     return (
       <div className="h-screen">
         <Header setIsSidebarOpen={setIsSidebarOpen} />
-        <div className="flex overflow-hidden h-[calc(100vh-50px)]">
+        <div className="flex overflow-hidden h-[calc(100vh-50px)] ">
             <Sidebar isOpen={isSidebarOpen} />
             {isSidebarOpen && (
                 <div 
@@ -17,8 +17,10 @@ const Layout = () => {
                 className="fixed inset-0 bg-black bg-opacity-50 z-10"
                 />
             )}
-            <main className="flex-1 overflow-y-auto p-4 bg-secondary/20 relative">
-                <Outlet />
+            <main className="flex-1 overflow-y-auto py-4 px-4 h-full bg-secondary/20">
+                <div className="p-4 bg-white shadow-lg rounded-md min-h-full relative">
+                  <Outlet />
+                </div>
             </main>
         </div>
       </div>

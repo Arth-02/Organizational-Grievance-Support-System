@@ -106,45 +106,33 @@ const GeneralTable = ({
       cell: ({ row }) => (
         <div className="flex gap-2 ml-2">
           <Tooltip>
-            <TooltipTrigger>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onView(row.original._id)}
-                className="p-2 h-8 w-8 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
-              >
-                <Eye size={15} />
-              </Button>
+            <TooltipTrigger
+              onClick={() => onView(row.original._id)}
+              className="p-2 h-8 w-8 rounded-md bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
+            >
+              <Eye size={15} />
             </TooltipTrigger>
             <TooltipContent>
               <p>View</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
-              <Button
-                variant="ghost"
-                onClick={() => onEdit(row.original._id)}
-                size="sm"
-                className="p-2 h-8 w-8 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
-              >
-                <Edit3 size={15} />
-              </Button>
+            <TooltipTrigger
+              onClick={() => onEdit(row.original._id)}
+              className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+            >
+              <Edit3 size={15} />
             </TooltipTrigger>
             <TooltipContent>
               <p>Edit</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger>
-              <Button
-                variant="ghost"
-                onClick={() => handleDeleteClick(row.original._id)}
-                size="sm"
-                className="p-2 h-8 w-8 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
-              >
-                <Trash size={15} />
-              </Button>
+            <TooltipTrigger
+              onClick={() => handleDeleteClick(row.original._id)}
+              className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+            >
+              <Trash size={15} />
             </TooltipTrigger>
             <TooltipContent>
               <p>Delete</p>

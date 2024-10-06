@@ -16,7 +16,7 @@ const Header = ({ setIsSidebarOpen }) => {
   // console.log(organization, role, department, user);
 
     return (
-      <header className="bg-white shadow-md p-4 flex justify-between items-center h-[50px]">
+      <header className="bg-white shadow p-4 flex justify-between items-center h-[50px]">
         <Button
           variant="ghost"
           className="lg:hidden"
