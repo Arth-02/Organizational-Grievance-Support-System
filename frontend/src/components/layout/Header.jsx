@@ -6,7 +6,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu } from "lucide-react";
-import { useSelector } from "react-redux";
 
 const Header = ({ setIsSidebarOpen }) => {
   
@@ -17,7 +16,7 @@ const Header = ({ setIsSidebarOpen }) => {
   // console.log(organization, role, department, user);
 
     return (
-      <header className="bg-white shadow-md p-4 flex justify-between items-center h-[64px]">
+      <header className="bg-white shadow-md p-4 flex justify-between items-center h-[50px]">
         <Button
           variant="ghost"
           className="lg:hidden"

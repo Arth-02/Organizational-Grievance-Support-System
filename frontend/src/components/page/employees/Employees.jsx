@@ -8,6 +8,7 @@ import {
   useGetAllRoleNameQuery,
   useGetAllUsersQuery,
 } from "@/services/api.service";
+import MainLayout from '@/components/layout/MainLayout';
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -103,7 +104,8 @@ const Employees = () => {
   ];
 
   return (
-    <GeneralTable
+    <MainLayout title={'Employees'}  buttonTitle={'Add New Employee'} buttonLink={'/add-employee'} >
+      <GeneralTable
       data={data?.users || []}
       columns={columns}
       filters={filters}
@@ -119,6 +121,7 @@ const Employees = () => {
       onView={handleView}
       searchOptions={searchOptions}
     />
+    </MainLayout>
   );
 };
 
