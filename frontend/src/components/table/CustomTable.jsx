@@ -291,7 +291,7 @@ const GeneralTable = ({
         {row.getVisibleCells().map((cell) => (
           <TableCell
             key={cell.id}
-            className="text-center text-nowrap align-middle"
+            className={`text-nowrap align-middle ${cell.column.columnDef.accessorKey === "select" ? "px-2" : cell.column.columnDef.accessorKey === "actions" ? "pl-0 pr-3" : "px-[22px]"}`}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
@@ -395,7 +395,7 @@ const GeneralTable = ({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="text-center text-nowrap align-middle"
+                    className="text-nowrap align-middle"
                   >
                     {header.column.columnDef.sortable ||
                     header.column.columnDef.hideable ? (
