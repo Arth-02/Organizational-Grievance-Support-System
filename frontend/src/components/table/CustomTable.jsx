@@ -76,7 +76,6 @@ const GeneralTable = ({
   onView,
   searchOptions,
 }) => {
-
   const allColumns = [
     {
       accessorKey: "select",
@@ -106,30 +105,51 @@ const GeneralTable = ({
       hideable: false,
       cell: ({ row }) => (
         <div className="flex gap-2 ml-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onView(row.original._id)}
-            className="p-2 h-8 w-8 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
-          >
-            <Eye size={15} />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => onEdit(row.original._id)}
-            size="sm"
-            className="p-2 h-8 w-8 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
-          >
-            <Edit3 size={15} />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => handleDeleteClick(row.original._id)}
-            size="sm"
-            className="p-2 h-8 w-8 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
-          >
-            <Trash size={15} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onView(row.original._id)}
+                className="p-2 h-8 w-8 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
+              >
+                <Eye size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                onClick={() => onEdit(row.original._id)}
+                size="sm"
+                className="p-2 h-8 w-8 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+              >
+                <Edit3 size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                onClick={() => handleDeleteClick(row.original._id)}
+                size="sm"
+                className="p-2 h-8 w-8 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+              >
+                <Trash size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
     },
@@ -138,14 +158,17 @@ const GeneralTable = ({
   const defaultFilters = filters;
   const [selectedRows, setSelectedRows] = useState([]);
   const [visibleColumns, setVisibleColumns] = useState(
-    allColumns
-      .map((col) => col.accessorKey)
+    allColumns.map((col) => col.accessorKey)
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  const totalHideableColumns = allColumns.filter(col => col.hideable === true).length;
-  const visibleHideableColumns = visibleColumns.length - allColumns.filter(col => col.hideable === false).length;
+  const totalHideableColumns = allColumns.filter(
+    (col) => col.hideable === true
+  ).length;
+  const visibleHideableColumns =
+    visibleColumns.length -
+    allColumns.filter((col) => col.hideable === false).length;
 
   const filteredColumns = allColumns.filter(
     (col) =>
@@ -184,10 +207,7 @@ const GeneralTable = ({
   };
 
   const handleResetColumns = () => {
-    setVisibleColumns(
-      allColumns
-        .map((column) => column.accessorKey)
-    );
+    setVisibleColumns(allColumns.map((column) => column.accessorKey));
   };
 
   const handleSortChange = (column, order) => {
@@ -274,7 +294,8 @@ const GeneralTable = ({
     return buttons;
   };
 
-  const showNoDataMessage = !isLoading && !isFetching && (data.length === 0 || error);
+  const showNoDataMessage =
+    !isLoading && !isFetching && (data.length === 0 || error);
 
   const renderLoadingState = () => (
     <TableRow>
@@ -298,7 +319,13 @@ const GeneralTable = ({
         {row.getVisibleCells().map((cell) => (
           <TableCell
             key={cell.id}
-            className={`text-nowrap align-middle ${cell.column.columnDef.accessorKey === "select" ? "px-2" : cell.column.columnDef.accessorKey === "actions" ? "pl-0 pr-3" : "px-[22px]"} ${!cell.getValue() ? "text-center" : ""}`}
+            className={`text-nowrap align-middle ${
+              cell.column.columnDef.accessorKey === "select"
+                ? "px-2"
+                : cell.column.columnDef.accessorKey === "actions"
+                ? "pl-0 pr-3"
+                : "px-[22px]"
+            } ${!cell.getValue() ? "text-center" : ""}`}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
@@ -341,7 +368,9 @@ const GeneralTable = ({
                 <span>{filter.label}</span>
                 <Select
                   value={filters[filter.key]}
-                  onValueChange={(value) => handleFilterChange(filter.key, value)}
+                  onValueChange={(value) =>
+                    handleFilterChange(filter.key, value)
+                  }
                 >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder={filter.placeholder || "All"} />
@@ -395,20 +424,18 @@ const GeneralTable = ({
                   </DropdownMenuItem>
                 )
               )}
-              {
-                visibleHideableColumns < totalHideableColumns && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="flex items-center relative px-2"
-                      onClick={handleResetColumns}
-                    >
-                      <RefreshCw size={16} className="absolute" />
-                      <span className="pl-8">Reset</span>
-                    </DropdownMenuItem>
-                  </>
-                )
-              }
+              {visibleHideableColumns < totalHideableColumns && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex items-center relative px-2"
+                    onClick={handleResetColumns}
+                  >
+                    <RefreshCw size={16} className="absolute" />
+                    <span className="pl-8">Reset</span>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

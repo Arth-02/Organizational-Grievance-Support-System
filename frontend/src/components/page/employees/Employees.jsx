@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { User, Mail, IdCard } from 'lucide-react';
-import GeneralTable from '@/components/table/CustomTable';
+import { useState } from "react";
+import { User, Mail, IdCard } from "lucide-react";
+import GeneralTable from "@/components/table/CustomTable";
 import {
   useDeleteAllUsersMutation,
   useDeleteUserMutation,
@@ -8,7 +8,7 @@ import {
   useGetAllRoleNameQuery,
   useGetAllUsersQuery,
 } from "@/services/api.service";
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -31,7 +31,12 @@ const Employees = () => {
   const [deleteUser] = useDeleteUserMutation();
 
   const columns = [
-    { accessorKey: "username", header: "Username", sortable: true, hideable: false },
+    {
+      accessorKey: "username",
+      header: "Username",
+      sortable: true,
+      hideable: false,
+    },
     { accessorKey: "email", header: "Email", sortable: true },
     { accessorKey: "firstname", header: "First Name", sortable: true },
     { accessorKey: "lastname", header: "Last Name", sortable: true },
@@ -48,13 +53,19 @@ const Employees = () => {
       accessorKey: "last_login",
       header: "Last Login",
       sortable: true,
-      cell: ({ row }) => row.original.last_login ? new Date(row.original.last_login).toLocaleString() : "-",
+      cell: ({ row }) =>
+        row.original.last_login
+          ? new Date(row.original.last_login).toLocaleString()
+          : "-",
     },
     {
       accessorKey: "created_at",
       header: "Created At",
       sortable: true,
-      cell: ({ row }) => row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "-",
+      cell: ({ row }) =>
+        row.original.created_at
+          ? new Date(row.original.created_at).toLocaleString()
+          : "-",
     },
   ];
 
@@ -70,18 +81,33 @@ const Employees = () => {
 
   const handleEdit = (id) => {
     // Implement edit functionality
-    console.log('Edit user:', id);
+    console.log("Edit user:", id);
   };
 
   const handleView = (id) => {
     // Implement view functionality
-    console.log('View user:', id);
+    console.log("View user:", id);
   };
 
   const searchOptions = [
-    { label: "Username", example: "Arth", value: "username", icon: <User size={16} /> },
-    { label: "Email", example: "arth@gmail.com", value: "email", icon: <Mail size={16} /> },
-    { label: "Employee ID", example: "123456", value: "employee_id", icon: <IdCard size={16} /> },
+    {
+      label: "Username",
+      example: "Arth",
+      value: "username",
+      icon: <User size={16} />,
+    },
+    {
+      label: "Email",
+      example: "arth@gmail.com",
+      value: "email",
+      icon: <Mail size={16} />,
+    },
+    {
+      label: "Employee ID",
+      example: "123456",
+      value: "employee_id",
+      icon: <IdCard size={16} />,
+    },
   ];
 
   const customFilters = [
@@ -90,7 +116,10 @@ const Employees = () => {
       key: "department",
       options: [
         { label: "All", value: "all" },
-        ...(departmentNames?.map(dept => ({ label: dept.name, value: dept._id })) || []),
+        ...(departmentNames?.map((dept) => ({
+          label: dept.name,
+          value: dept._id,
+        })) || []),
       ],
     },
     {
@@ -98,29 +127,34 @@ const Employees = () => {
       key: "role",
       options: [
         { label: "All", value: "all" },
-        ...(roleNames?.map(role => ({ label: role.name, value: role._id })) || []),
+        ...(roleNames?.map((role) => ({ label: role.name, value: role._id })) ||
+          []),
       ],
     },
   ];
 
   return (
-    <MainLayout title={'Employees'}  buttonTitle={'Add New Employee'} buttonLink={'/add-employee'} >
+    <MainLayout
+      title={"Employees"}
+      buttonTitle={"Add New Employee"}
+      buttonLink={"/add-employee"}
+    >
       <GeneralTable
-      data={data?.users || []}
-      columns={columns}
-      filters={filters}
-      setFilters={setFilters}
-      customFilters={customFilters}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      error={error}
-      pagination={data?.pagination}
-      onDelete={handleDelete}
-      onDeleteAll={handleDeleteAll}
-      onEdit={handleEdit}
-      onView={handleView}
-      searchOptions={searchOptions}
-    />
+        data={data?.users || []}
+        columns={columns}
+        filters={filters}
+        setFilters={setFilters}
+        customFilters={customFilters}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        error={error}
+        pagination={data?.pagination}
+        onDelete={handleDelete}
+        onDeleteAll={handleDeleteAll}
+        onEdit={handleEdit}
+        onView={handleView}
+        searchOptions={searchOptions}
+      />
     </MainLayout>
   );
 };
