@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -29,91 +28,127 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"; // Assume this is available for dropdown functionality
-import { useGetAllUsersQuery } from "@/services/api.service";
-import { ArrowDown, ArrowUp, Check, ChevronsUpDown, EyeOff, Settings2 } from "lucide-react";
-import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
+} from "@/components/ui/dropdown-menu";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ChevronsUpDown,
+  Edit3,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Settings2,
+  Trash,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import CustomSearch from "@/components/ui/CustomSearch";
+import Modal from "@/components/ui/Model";
 
-const UserTable = () => {
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10,
-    username: "",
-    is_active: "",
-    employee_id: "",
-    role: "",
-    department: "",
-    sort_by: "username", // Default sorting column
-    order: "asc", // Default sort order
-    search: "",
-  });
+const GeneralTable = ({
+  data,
+  columns,
+  filters,
+  setFilters,
+  customFilters,
+  isLoading,
+  isFetching,
+  error,
+  pagination,
+  onDelete,
+  onDeleteAll,
+  onEdit,
+  searchOptions,
+}) => {
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [visibleColumns, setVisibleColumns] = useState(
+    columns
+      .filter((col) => col.hideable !== false)
+      .map((col) => col.accessorKey)
+  );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-  const [visibleColumns, setVisibleColumns] = useState([
-    "username",
-    "email",
-    "firstname",
-    "lastname",
-    "employee_id",
-    "role",
-    "department",
-    "is_active",
-    "last_login",
-  ]);
-
-  const [selectedRows, setSelectedRows] = useState([]); // New state for selected rows
-
-  const { data, isLoading } = useGetAllUsersQuery(filters);
-
-  // Optional Sorting based on column
   const allColumns = [
     {
-      accessorKey: "select", // New checkbox column
+      accessorKey: "select",
       header: () => (
         <Checkbox
-          checked={
-            selectedRows.length === data?.users.length && data?.users.length > 0
-          } // Check if all rows are selected
-          onCheckedChange={() => handleSelectAll()}
-          className="mt-1"
+          checked={selectedRows.length === data.length && data.length > 0}
+          onCheckedChange={handleSelectAll}
+          className="mt-1 ml-1 mr-2"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
-          checked={selectedRows.includes(row.original._id)} // Check if the current row is selected
+          checked={selectedRows.includes(row.original._id)}
           onCheckedChange={() => handleRowSelect(row.original._id)}
-          className="mt-1"
+          className="mt-1 ml-1 mr-2"
         />
       ),
+      hideable: false,
     },
-    { accessorKey: "username", header: "Username", sortable: true },
-    { accessorKey: "email", header: "Email", sortable: true },
-    { accessorKey: "firstname", header: "First Name", sortable: true },
-    { accessorKey: "lastname", header: "Last Name", sortable: true },
-    { accessorKey: "employee_id", header: "Employee ID", sortable: false },
-    { accessorKey: "role", header: "Role", sortable: true },
-    { accessorKey: "department", header: "Department", sortable: true },
+    ...columns.map((col) => ({
+      ...col,
+      hideable: col.hideable !== false,
+    })),
     {
-      accessorKey: "is_active",
-      header: "Status",
-      sortable: false, // Disable sorting
-      cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive"),
-    },
-    {
-      accessorKey: "last_login",
-      header: "Last Login",
-      sortable: false, // Disable sorting
-      cell: ({ row }) => new Date(row.original.last_login).toLocaleString(),
+      accessorKey: "actions",
+      header: "Actions",
+      hideable: false,
+      cell: ({ row }) => (
+        <div className="flex gap-2 ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 h-8 w-8 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
+          >
+            <Eye size={15} />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => onEdit(row.original._id)}
+            size="sm"
+            className="p-2 h-8 w-8 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+          >
+            <Edit3 size={15} />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => handleDeleteClick(row.original._id)}
+            size="sm"
+            className="p-2 h-8 w-8 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+          >
+            <Trash size={15} />
+          </Button>
+        </div>
+      ),
     },
   ];
 
   const filteredColumns = allColumns.filter(
     (col) =>
-      visibleColumns.includes(col.accessorKey) || col.accessorKey === "select"
+      visibleColumns.includes(col.accessorKey) ||
+      col.accessorKey === "select" ||
+      col.accessorKey === "actions"
   );
 
   const table = useReactTable({
-    data: data?.users || [],
+    data,
     columns: filteredColumns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -122,23 +157,30 @@ const UserTable = () => {
     manualPagination: true,
     manualFiltering: true,
     manualSorting: true,
-    pageCount: data?.pagination?.totalPages || -1,
+    pageCount: pagination?.totalPages || -1,
   });
-
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
 
   const handlePageChange = (newPage) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleColumnVisibilityChange = (column) => {
+    const col = allColumns.find((col) => col.accessorKey === column);
+    if (col && col.hideable === false) return;
+
     if (visibleColumns.length === 1 && visibleColumns.includes(column)) return;
     setVisibleColumns((prev) =>
       prev.includes(column)
         ? prev.filter((col) => col !== column)
         : [...prev, column]
+    );
+  };
+
+  const handleResetColumns = () => {
+    setVisibleColumns(
+      allColumns
+        .filter((column) => column.hideable !== false)
+        .map((column) => column.accessorKey)
     );
   };
 
@@ -152,137 +194,266 @@ const UserTable = () => {
     }
   };
 
-  // Handle row selection
   const handleRowSelect = (id) => {
-    console.log("Selected row: ", id);
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
     );
   };
 
-  // Handle selecting/deselecting all rows
   const handleSelectAll = () => {
-    if (selectedRows.length === data?.users.length) {
-      setSelectedRows([]); // Deselect all
+    if (selectedRows.length === data.length) {
+      setSelectedRows([]);
     } else {
-      setSelectedRows(data?.users.map((user) => user._id)); // Select all
+      setSelectedRows(data.map((item) => item._id));
     }
   };
 
-  // Handle deleting selected rows
-  const handleDelete = () => {
+  const handleLimitChange = (newLimit) => {
+    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 }));
+  };
+
+  const handleSearchChange = (searchField, searchValue) => {
+    setFilters((prev) => ({ ...prev, [searchField]: searchValue }));
+  };
+
+  const handleDeleteAll = () => {
+    setDeleteDialogOpen(true);
     if (selectedRows.length > 0) {
-      // Dispatch an action or call an API to delete the selected rows
-      // Example: dispatch(deleteUsers(selectedRows));
-      console.log("Delete rows: ", selectedRows);
-      setSelectedRows([]); // Clear the selection after deletion
+      onDeleteAll(selectedRows);
     }
+    setSelectedRows([]);
   };
-  const isSelected = (column) => visibleColumns.includes(column);
 
-    const getSortIcon = (key) => {
-      if (filters.sort_by === key) {
-        if (filters.order === "asc") {
-          return <ArrowUp className="ml-2 text-gray-400" size={16} />;
-        } else {
-          return <ArrowDown className="ml-2 text-gray-400" size={16} />;
-        }
-      };
+  const handleDeleteClick = (id) => {
+    setItemToDelete(id);
+    setDeleteDialogOpen(true);
+  };
 
-    return <ChevronsUpDown className="ml-2 text-gray-400" size={16} />
-  }
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      onDelete(itemToDelete);
+    } else {
+      handleDeleteAll();
+    }
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
+
+  const renderPageButtons = () => {
+    const buttons = [];
+
+    for (let i = 1; i <= pagination.totalPages; i++) {
+      buttons.push(
+        <PaginationItem key={i}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlePageChange(i)}
+            className={`h-8 w-8 ${
+              pagination.currentPage === i
+                ? "font-bold bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground"
+                : ""
+            }`}
+          >
+            {i}
+          </Button>
+        </PaginationItem>
+      );
+    }
+
+    return buttons;
+  };
+
+  const showNoDataMessage =
+    !isLoading && !isFetching && (data.length === 0 || error);
+
+  const renderLoadingState = () => (
+    <TableRow>
+      <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
+        Loading...
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderNoDataMessage = () => (
+    <TableRow>
+      <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
+        {error ? `${error.message || "Failed to fetch data"}` : "No data found"}
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderTableRows = () =>
+    table.getRowModel().rows.map((row) => (
+      <TableRow key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <TableCell
+            key={cell.id}
+            className="text-center text-nowrap align-middle"
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+
+  const renderTableContent = () => {
+    if (isLoading || isFetching) return renderLoadingState();
+    if (showNoDataMessage) return renderNoDataMessage();
+    return renderTableRows();
+  };
+
+  const getSortIcon = (key) => {
+    if (filters.sort_by === key) {
+      return filters.order === "asc" ? (
+        <ArrowUp className="ml-2 text-gray-400" size={16} />
+      ) : (
+        <ArrowDown className="ml-2 text-gray-400" size={16} />
+      );
+    }
+    return <ChevronsUpDown className="ml-2 text-gray-400" size={16} />;
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 items-end">
-        <Input
-          placeholder="Search"
-          value={filters.search}
-          onChange={(e) => handleFilterChange("search", e.target.value)}
-          className="max-w-xs"
+      <div className="flex justify-between items-end">
+        <CustomSearch
+          onSearch={handleSearchChange}
+          searchOptions={searchOptions}
+          apiCall={handleSearchChange}
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="text-base">
-              <Settings2 size={18} className="mr-3" />
-              View
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="">
-            {allColumns.map((col) =>
-              col.accessorKey === "select" ? null : (
-                <DropdownMenuItem
-                  key={col.accessorKey}
-                  className="flex items-center relative px-2"
-                  onClick={() => handleColumnVisibilityChange(col.accessorKey)}
+        <div className="flex gap-4 items-center">
+          {customFilters &&
+            customFilters.map((filter, index) => (
+              <div key={index} className="flex flex-nowrap items-center gap-2">
+                <span>{filter.label}</span>
+                <Select
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, [filter.key]: value }))
+                  }
                 >
-                  {isSelected(col.accessorKey) && (
-                    <Check size={16} className=" absolute" />
-                  )}
-                  <span className="pl-8">{col.header}</span>
-                </DropdownMenuItem>
-              )
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <button
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          disabled={selectedRows.length === 0}
-          onClick={handleDelete}
-        >
-          Delete Selected
-        </button>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder={filter.placeholder || "All"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filter.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="data-[state=open]:bg-muted"
+              >
+                <Settings2 size={18} className="mr-2" />
+                View
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {allColumns.map((col) =>
+                col.accessorKey === "select" || !col.hideable ? null : (
+                  <DropdownMenuItem
+                    key={col.accessorKey}
+                    className="flex items-center relative px-2"
+                    onClick={() =>
+                      handleColumnVisibilityChange(col.accessorKey)
+                    }
+                  >
+                    {visibleColumns.includes(col.accessorKey) && (
+                      <Check size={16} className="absolute" />
+                    )}
+                    <span className="pl-8">{col.header}</span>
+                  </DropdownMenuItem>
+                )
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="flex items-center relative px-2"
+                onClick={handleResetColumns}
+              >
+                <RefreshCw size={16} className="absolute" />
+                <span className="pl-8">Reset</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-
-      <div className="rounded-md border">
+      <div className="rounded-md">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.column.columnDef.sortable ? (
+                  <TableHead
+                    key={header.id}
+                    className="text-center text-nowrap align-middle"
+                  >
+                    {header.column.columnDef.sortable ||
+                    header.column.columnDef.hideable ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant='ghost' >
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="data-[state=open]:bg-muted/40"
+                          >
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                            {getSortIcon(header.column.columnDef.accessorKey)}
+                            {header.column.columnDef.sortable &&
+                              getSortIcon(header.column.columnDef.accessorKey)}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <>
+                          {header.column.columnDef.sortable && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleSortChange(
+                                    header.column.columnDef,
+                                    "asc"
+                                  )
+                                }
+                              >
+                                <ArrowUp className="mr-3" size={16} />
+                                Asc
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleSortChange(
+                                    header.column.columnDef,
+                                    "desc"
+                                  )
+                                }
+                              >
+                                <ArrowDown className="mr-3" size={16} />
+                                Desc
+                              </DropdownMenuItem>
+                              {header.column.columnDef.hideable && (
+                                <DropdownMenuSeparator />
+                              )}
+                            </>
+                          )}
+                          {header.column.columnDef.hideable && (
                             <DropdownMenuItem
                               onClick={() =>
-                                handleSortChange(header.column.columnDef, "asc")
-                              }
-                            >
-                              <ArrowUp className="mr-3" size={16} />
-                              Asc
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleSortChange(
-                                  header.column.columnDef,
-                                  "desc"
+                                handleColumnVisibilityChange(
+                                  header.column.columnDef.accessorKey
                                 )
-                              }
-                            >
-                              <ArrowDown className="mr-3" size={16} />
-                              Desc
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() =>
-                               handleColumnVisibilityChange(header.column.columnDef.accessorKey)
                               }
                             >
                               <EyeOff className="mr-3" size={16} />
                               Hide
                             </DropdownMenuItem>
-                          </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
@@ -296,45 +467,113 @@ const UserTable = () => {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
+          <TableBody>{renderTableContent()}</TableBody>
         </Table>
       </div>
-
-      {data?.pagination && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => handlePageChange(filters.page - 1)}
-                disabled={!data.pagination.hasPrevPage}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              Page {data.pagination.currentPage} of {data.pagination.totalPages}
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => handlePageChange(filters.page + 1)}
-                disabled={!data.pagination.hasNextPage}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {pagination && (
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">
+            Showing {table.getRowModel().rows.length} of{" "}
+            {pagination.totalItems || 0} results
+          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center">
+              <span className="mr-2">Rows per page</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="data-[state=open]:bg-muted h-8 px-2 pl-3"
+                  >
+                    {filters.limit}{" "}
+                    <ChevronsUpDown size={16} className="ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {[1, 10, 20, 30, 40, 50].map((limit) => (
+                    <DropdownMenuItem
+                      key={limit}
+                      onClick={() => handleLimitChange(limit)}
+                    >
+                      {limit}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPrevPage}
+                  />
+                </PaginationItem>
+                {renderPageButtons()}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNextPage}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </div>
       )}
-
-      {isLoading && <div>Loading...</div>}
+      {selectedRows.length > 0 && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 border border-secondary flex gap-2 py-2 px-3 bg-white shadow-customlight rounded-md items-center">
+          <div className="border border-dashed rounded-lg border-black/30 px-1 py-1 flex gap-2 justify-between items-center">
+            <span className="mb-[2px] ml-2">
+              {selectedRows.length} selected
+            </span>
+            <Tooltip>
+              <TooltipTrigger
+                className="h-6 w-6 p-1 hover:bg-secondary rounded-md"
+                onClick={() => setSelectedRows([])}
+              >
+                <X size={14} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Clear Selection</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="w-[1px] h-[27px] bg-black/20" />
+          <>
+            {selectedRows.length === 1 && (
+              <Tooltip>
+                <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
+                  <Edit3 size={18} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Row</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
+                <Trash size={18} onClick={() => setDeleteDialogOpen(true)} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete Selected</p>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        </div>
+      )}
+      <Modal
+        open={deleteDialogOpen}
+        title="Are you sure?"
+        description="This action cannot be undone. This will permanently delete the selected items."
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        confirmText="Delete"
+        confirmVariant="outline-destructive"
+      ></Modal>
     </div>
   );
 };
 
-export default UserTable;
+export default GeneralTable;
