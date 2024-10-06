@@ -241,6 +241,14 @@ const GeneralTable = ({
     setItemToDelete(null);
   };
 
+  const handleFilterChange = (filter, value) => {
+    if (value === "all") {
+      setFilters((prev) => ({ ...prev, [filter]: "" }));
+    } else {
+      setFilters((prev) => ({ ...prev, [filter]: value }));
+    }
+  };
+
   const renderPageButtons = () => {
     const buttons = [];
 
@@ -330,9 +338,7 @@ const GeneralTable = ({
               <div key={index} className="flex flex-nowrap items-center gap-2">
                 <span>{filter.label}</span>
                 <Select
-                  onValueChange={(value) =>
-                    setFilters((prev) => ({ ...prev, [filter.key]: value }))
-                  }
+                  onValueChange={(value) => handleFilterChange(filter.key, value)}
                 >
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder={filter.placeholder || "All"} />
