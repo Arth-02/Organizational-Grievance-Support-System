@@ -3,6 +3,7 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useController } from "react-hook-form"
 
 const Select = SelectPrimitive.Root
 
@@ -106,6 +107,44 @@ const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
+const CustomSelect = React.forwardRef(({ label, options, control, name, rules, ...props }, ref) => {
+  const {
+    field: { onChange, value },
+    fieldState: { error }
+  } = useController({
+    name,
+    control,
+    rules,
+  })
+
+  return (
+    <div className="space-y-1">
+      <label htmlFor={props.id} className="block text-sm font-medium">
+        {label}
+      </label>
+      <Select onValueChange={onChange} value={value} {...props}>
+        <SelectTrigger 
+          ref={ref}
+          className={`w-full bg-secondary/15 ${error ? 'border-red-500' : 'border-gray-300'}`}
+        >
+          <SelectValue placeholder={props.placeholder || "Select an option"} />
+        </SelectTrigger>
+        <SelectContent>
+          {options?.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {error && (
+        <p className="mt-1 text-xs text-red-500">{error.message}</p>
+      )}
+    </div>
+  )
+})
+CustomSelect.displayName = "CustomSelect"
+
 export {
   Select,
   SelectGroup,
@@ -117,4 +156,5 @@ export {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
+  CustomSelect,
 }

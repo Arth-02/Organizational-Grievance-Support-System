@@ -50,7 +50,7 @@ const Employees = () => {
       accessorKey: "is_active",
       header: "Status",
       sortable: false,
-      cell: ({ row }) => (row.is_active ? "Active" : "Inactive"),
+      cell: ({ row }) => (row.original.is_active ? "Active" : "Inactive"),
     },
     {
       accessorKey: "last_login",

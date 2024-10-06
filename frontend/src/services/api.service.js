@@ -30,13 +30,19 @@ export const apiService = createApi({
       }),
     }),
     getUserDetails: builder.query({
-      query: (body) => ({
+      query: (id) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `users/details/${body.userId}`,
+        url: `users/details/${id}`,
         method: "GET",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
     }),
     getAllUsers: builder.query({
       query: (filters) => {
@@ -295,7 +301,7 @@ export const apiService = createApi({
     createUser: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "users/create",
         method: "POST",
@@ -310,13 +316,15 @@ export const apiService = createApi({
       invalidatesTags: ["Users"],
     }),
     updateUser: builder.mutation({
-      query: (body) => ({
+      query: (data) => (
+        console.log("id", data),
+        {
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `users/update${body.userId}`,
+        url: `users/update/${data.id}`,
         method: "PATCH",
-        body,
+        body: data,
       }),
       transformResponse: (response) => {
         return response.data;
