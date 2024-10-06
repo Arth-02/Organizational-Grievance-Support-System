@@ -72,6 +72,7 @@ const GeneralTable = ({
   onDelete,
   onDeleteAll,
   onEdit,
+  onView,
   searchOptions,
 }) => {
   const [selectedRows, setSelectedRows] = useState([]);
@@ -115,6 +116,7 @@ const GeneralTable = ({
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => onView(row.original._id)}
             className="p-2 h-8 w-8 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
           >
             <Eye size={15} />

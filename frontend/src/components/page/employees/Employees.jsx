@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { User, Mail, IdCard, Edit3, Trash, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { User, Mail, IdCard } from 'lucide-react';
 import GeneralTable from '@/components/table/CustomTable';
 import {
   useDeleteAllUsersMutation,
@@ -117,35 +116,8 @@ const Employees = () => {
       onDelete={handleDelete}
       onDeleteAll={handleDeleteAll}
       onEdit={handleEdit}
+      onView={handleView}
       searchOptions={searchOptions}
-      actions={({ row }) => (
-        <>
-          <Button
-            variant="ghost"
-            onClick={() => handleEdit(row._id)}
-            size="sm"
-            className="p-2 bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
-          >
-            <Edit3 size={15} />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => handleDelete(row._id)}
-            size="sm"
-            className="p-2 bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
-          >
-            <Trash size={15} />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => handleView(row._id)}
-            size="sm"
-            className="p-2 bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
-          >
-            <Eye size={15} />
-          </Button>
-        </>
-      )}
     />
   );
 };
