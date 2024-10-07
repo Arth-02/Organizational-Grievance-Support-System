@@ -22,7 +22,8 @@ const bcrypt = require("bcryptjs");
 const {
   loginSchema,
   createUserSchema,
-  updateUserSchema,
+  updateSelfUserSchema,
+  updateFullUserSchema,
   superAdminSchema,
 } = require("../validators/user.validator");
 
@@ -238,11 +239,20 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const id = req.params.id || req.user.id;
+    let schema,id
+    if(req.params.id){
+      schema = updateFullUserSchema
+      id = req.params.id
+    }else if(req.user.id){
+      schema = updateSelfUserSchema
+      id = req.user.id
+    }else{
+      return errorResponse(res, 400, "User id is required");
+    }
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid department ID");
     }
-    const { error, value } = updateUserSchema.validate(req.body, {
+    const { error, value } = schema.validate(req.body, {
       abortEarly: false,
     });
     if (error) {

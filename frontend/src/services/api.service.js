@@ -176,7 +176,8 @@ export const apiService = createApi({
       },
       transformErrorResponse: (response) => {
         return response.data;
-      }
+      },
+      providesTags: ["Departments"],
     }),
     updateDepartment: builder.mutation({
       query: (body) => ({
@@ -191,11 +192,18 @@ export const apiService = createApi({
     deleteDepartment: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: `departments/delete/${body.departmentId}`,
         method: "DELETE",
       }),
+      transformResponse: (response) => {
+        return response.data;
+      },
+      transformErrorResponse: (response) => {
+        return response.data;
+      },
+      invalidatesTags: ["Departments"],
     }),
     createRole: builder.mutation({
       query: (body) => ({

@@ -22,11 +22,24 @@ const createUserSchema = Joi.object({
   special_permissions: Joi.array().items(Joi.string()).default([]),
 });
 
-const updateUserSchema = Joi.object({
+const updateSelfUserSchema = Joi.object({
   firstname: Joi.string().trim(),
   lastname: Joi.string().trim(),
   phone_number: Joi.string().trim().allow(""),
   username: Joi.string().trim().alphanum().min(3).max(30),
+  password: Joi.string().trim().min(6),
+});
+
+const updateFullUserSchema = Joi.object({
+  firstname: Joi.string().trim(),
+  lastname: Joi.string().trim(),
+  phone_number: Joi.string().trim().allow(""),
+  username: Joi.string().trim().alphanum().min(3).max(30),
+  role: Joi.string().trim(),
+  department: Joi.string().trim(),
+  employee_id: Joi.string().trim(),
+  is_active: Joi.boolean(),
+  special_permissions: Joi.array().items(Joi.string()),
 });
 
 const superAdminSchema = Joi.object({
@@ -47,6 +60,7 @@ const superAdminSchema = Joi.object({
 module.exports = {
   loginSchema,
   createUserSchema,
-  updateUserSchema,
+  updateSelfUserSchema,
+  updateFullUserSchema,
   superAdminSchema
 };
