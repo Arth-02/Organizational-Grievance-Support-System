@@ -7,7 +7,7 @@ const AddUpdatePageLayout = ({title, children}) => {
         <ChevronLeft size={24} className="w-8 h-8 cursor-pointer p-1 rounded-md hover:bg-primary/10 text-primary transition-all duration-300" onClick={() => window.history.back()} />
         <h1 className="text-xl font-semibold text-primary">{title}</h1>
       </div>
-      <div>
+      <div className="px-6">
         {children}
       </div>
     </div>

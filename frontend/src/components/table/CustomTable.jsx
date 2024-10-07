@@ -165,9 +165,17 @@ const GeneralTable = ({
       col.accessorKey === "actions"
   );
 
+  const defaultColumn = {
+    cell: ({ getValue }) => {
+      const value = getValue();
+      return value !== null && value !== undefined && value !== '' ? value : '-';
+    },
+  };
+
   const table = useReactTable({
     data,
     columns: filteredColumns,
+    defaultColumn,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),

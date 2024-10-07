@@ -172,7 +172,9 @@ const AddUpdateEmployee = () => {
   const onSubmit = async (data) => {
     try {
       if (id) {
-        await updateUser({ id, ...data }).unwrap();
+        delete data.id;
+        delete data.email;
+        await updateUser({id, data}).unwrap();
         toast.success("Employee updated successfully");
       } else {
         delete data.confirmpassword;
@@ -244,49 +246,51 @@ const AddUpdateEmployee = () => {
             </div>
           )}
         </div>
-
-        <div className="relative">
-          <CustomInput
-            label="Email"
-            {...register("email", {
-              onChange: (e) => setEmail(e.target.value),
-            })}
-            error={errors.email}
-          />
-          {email && (
-            <div className="absolute right-2 top-8">
-              {isEmailAvailable === undefined || checkingEmail ? (
-                <Loader2 size={20} className="animate-spin text-primary" />
-              ) : isEmailAvailable ? (
-                <CustomTooltip content="Email is available">
-                  <BadgeCheck className="text-green-500" size={20} />
-                </CustomTooltip>
-              ) : (
-                <CustomTooltip
-                  content={errors.email?.message || "Email is not available"}
-                >
-                  <BadgeAlert className="text-red-500" size={20} />
-                </CustomTooltip>
+        {!id && (
+          <>
+            <div className="relative">
+              <CustomInput
+                label="Email"
+                {...register("email", {
+                  onChange: (e) => setEmail(e.target.value),
+                })}
+                error={errors.email}
+              />
+              {email && (
+                <div className="absolute right-2 top-8">
+                  {isEmailAvailable === undefined || checkingEmail ? (
+                    <Loader2 size={20} className="animate-spin text-primary" />
+                  ) : isEmailAvailable ? (
+                    <CustomTooltip content="Email is available">
+                      <BadgeCheck className="text-green-500" size={20} />
+                    </CustomTooltip>
+                  ) : (
+                    <CustomTooltip
+                      content={
+                        errors.email?.message || "Email is not available"
+                      }
+                    >
+                      <BadgeAlert className="text-red-500" size={20} />
+                    </CustomTooltip>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-
-        {!id && (
-          <div className="grid grid-cols-2 gap-4">
-            <CustomInput
-              label="Password"
-              type="password"
-              {...register("password")}
-              error={errors.password}
-            />
-            <CustomInput
-              label="Confirm Password"
-              type="password"
-              {...register("confirmpassword")}
-              error={errors.confirmpassword}
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <CustomInput
+                label="Password"
+                type="password"
+                {...register("password")}
+                error={errors.password}
+              />
+              <CustomInput
+                label="Confirm Password"
+                type="password"
+                {...register("confirmpassword")}
+                error={errors.confirmpassword}
+              />
+            </div>
+          </>
         )}
 
         <div className="grid grid-cols-2 gap-4">

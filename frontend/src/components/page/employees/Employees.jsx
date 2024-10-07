@@ -10,6 +10,7 @@ import {
 } from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
+import ManagePermissions from "./ManagePermissions";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -44,6 +45,19 @@ const Employees = () => {
     { accessorKey: "firstname", header: "First Name", sortable: true },
     { accessorKey: "lastname", header: "Last Name", sortable: true },
     { accessorKey: "employee_id", header: "Employee ID", sortable: false },
+    { accessorKey: "phone_number", header: "Phone", sortable: false },
+    { 
+      accessorKey: "role_permissions", 
+      header: "Permissions", 
+      sortable: false,
+      cell: ({ row }) => <ManagePermissions permissions={row.original.role_permissions} isEditable={true} />,
+    },
+    {
+      accessorKey: "special_permissions",
+      header: "Special Permissions",
+      sortable: false,
+      cell: ({ row }) => ( <ManagePermissions permissions={row.original.special_permissions} isEditable={true} /> ),
+    },
     { accessorKey: "role", header: "Role", sortable: true },
     { accessorKey: "department", header: "Department", sortable: true },
     {

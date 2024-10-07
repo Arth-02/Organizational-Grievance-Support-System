@@ -46,12 +46,20 @@ export const apiService = createApi({
     }),
     getAllUsers: builder.query({
       query: (filters) => {
-        const cleanedFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-          if (value !== '' && value !== null && value !== undefined && value !== 'all') {
-            acc[key] = value;
-          }
-          return acc;
-        }, {});
+        const cleanedFilters = Object.entries(filters).reduce(
+          (acc, [key, value]) => {
+            if (
+              value !== "" &&
+              value !== null &&
+              value !== undefined &&
+              value !== "all"
+            ) {
+              acc[key] = value;
+            }
+            return acc;
+          },
+          {}
+        );
         const params = new URLSearchParams(cleanedFilters).toString();
         return {
           headers: {
@@ -324,13 +332,11 @@ export const apiService = createApi({
       invalidatesTags: ["Users"],
     }),
     updateUser: builder.mutation({
-      query: (data) => (
-        console.log("id", data),
-        {
+      query: ({ id, data }) => ({
         headers: {
           Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `users/update/${data.id}`,
+        url: `users/update/${id}`,
         method: "PATCH",
         body: data,
       }),
