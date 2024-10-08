@@ -8,7 +8,10 @@ const {
   getAllRoles,
   getUsersCountByRoleId,
 } = require("../controllers/role.controller");
-const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware");
+const {
+  checkPermission,
+  isLoggedIn,
+} = require("../middlewares/auth.middleware");
 const router = require("express").Router();
 
 router.get("/reset-permissions", resetPermissions);

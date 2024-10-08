@@ -6,15 +6,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadFiles = async (file, organization_id,logo=false) => {
+const uploadFiles = async (file, organization_id, logo = false) => {
   const b64 = Buffer.from(file.buffer).toString("base64");
   let dataURI = "data:" + file.mimetype + ";base64," + b64;
   const options = {
     folder: organization_id,
     resource_type: "auto",
   };
-  if(logo){
-    options["public_id"]="logo";
+  if (logo) {
+    options["public_id"] = "logo";
   }
   const result = await cloudinary.uploader.upload(dataURI, options);
   return result;

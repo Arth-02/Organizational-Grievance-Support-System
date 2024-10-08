@@ -18,7 +18,11 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     }
 
     const id = decoded.user.id;
-    const user = await User.findOne({_id:id,is_active:true}).populate({path:"role",select:"name permissions"}).select("_id role organization_id department employee_id special_permissions");
+    const user = await User.findOne({ _id: id, is_active: true })
+      .populate({ path: "role", select: "name permissions" })
+      .select(
+        "_id role organization_id department employee_id special_permissions"
+      );
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -26,10 +30,17 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
     req.user = user;
 
     // Check if the decoded token role is in the allowedRoles array
-    if (( req.user && allowedRoles.includes(req.user.role.name)) || req.user.role.name === DEV ) {
+    if (
+      (req.user && allowedRoles.includes(req.user.role.name)) ||
+      req.user.role.name === DEV
+    ) {
       next();
     } else {
-      return errorResponse( res, 403, "Forbidden: Access denied for this resource" );
+      return errorResponse(
+        res,
+        403,
+        "Forbidden: Access denied for this resource"
+      );
     }
   } catch (err) {
     console.error(err);
@@ -52,7 +63,11 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
     }
 
     const id = decoded.user.id;
-    const user = await User.findOne({_id:id,is_active:true}).populate({path:"role",select:"name permissions"}).select("_id role organization_id department employee_id special_permissions");
+    const user = await User.findOne({ _id: id, is_active: true })
+      .populate({ path: "role", select: "name permissions" })
+      .select(
+        "_id role organization_id department employee_id special_permissions"
+      );
 
     if (!user) {
       return errorResponse(res, 404, "User not found");
@@ -71,7 +86,11 @@ const checkPermission = (allowedPermissions) => async (req, res, next) => {
     if (req.user.role.name === DEV || hasUserPermission) {
       next();
     } else {
-      return errorResponse( res, 403, "Forbidden: Access denied for this resource" );
+      return errorResponse(
+        res,
+        403,
+        "Forbidden: Access denied for this resource"
+      );
     }
   } catch (err) {
     console.error(err);
@@ -107,6 +126,5 @@ const isLoggedIn = async (req, res, next) => {
     return catchResponse(res);
   }
 };
-
 
 module.exports = { checkRole, checkPermission, isLoggedIn };

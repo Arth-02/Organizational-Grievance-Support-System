@@ -130,24 +130,27 @@ const updateGrievance = async (req, res) => {
     // } else {
     //   return errorResponse(res, 403, "Permission denied");
     // }
-    
+
     if (permission.includes("UPDATE_GRIEVANCE")) {
       schema = updateFullGrievanceSchema;
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
-    } else{
-      if(req.body.reported_by.toString() === _id.toString()){
+    } else {
+      if (req.body.reported_by.toString() === _id.toString()) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
-      if(permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status){
+      if (permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status) {
         schema = schema.concat(updateStatusGrievanceSchema);
       }
-      if(permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") && req.body.assigned_to){
+      if (
+        permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
+        req.body.assigned_to
+      ) {
         schema = schema.concat(updateAssignedGrievanceSchema);
       }
     }
-    if(!schema){
+    if (!schema) {
       return errorResponse(res, 403, "Permission denied");
     }
     const { error, value } = schema.validate(req.body);
@@ -204,7 +207,7 @@ const updateGrievanceAttachment = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
     }
-    if(grievance.reported_by.toString() !== _id.toString()) {
+    if (grievance.reported_by.toString() !== _id.toString()) {
       await session.abortTransaction();
       return errorResponse(res, 403, "Permission denied");
     }
@@ -288,7 +291,7 @@ const getGrievanceById = async (req, res) => {
 
 // delete grievance by id
 const deleteGrievanceById = async (req, res) => {
-  try{
+  try {
     const { id } = req.params;
     const { organization_id } = req.user;
     if (!id) {

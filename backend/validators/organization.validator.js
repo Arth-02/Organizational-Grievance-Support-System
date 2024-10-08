@@ -29,5 +29,5 @@ const updateOrganizationSchema = Joi.object({
 
 module.exports = {
   organizationSchema,
-  updateOrganizationSchema
+  updateOrganizationSchema,
 };

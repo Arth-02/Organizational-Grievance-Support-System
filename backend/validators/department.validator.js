@@ -18,5 +18,5 @@ const deleteDepartmentSchema = Joi.object({
 module.exports = {
   departmentSchema,
   updateDepartmentSchema,
-  deleteDepartmentSchema
+  deleteDepartmentSchema,
 };

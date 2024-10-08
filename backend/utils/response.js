@@ -4,7 +4,7 @@ const successResponse = (res, data, message, status_code = 200) => {
 
 const errorResponse = (res, status_code, message, errors) => {
   console.log("Error:", message);
-  return res.status(status_code).json({message: message, success: 0, errors });
+  return res.status(status_code).json({ message: message, success: 0, errors });
 };
 
 const catchResponse = (res) => {

@@ -5,7 +5,7 @@ const loginSchema = Joi.object({
   username: Joi.string().trim(),
   password: Joi.string().trim().required(),
   rememberMe: Joi.boolean().default(false),
-}).xor('email', 'username');
+}).xor("email", "username");
 
 const createUserSchema = Joi.object({
   username: Joi.string().trim().alphanum().min(3).max(30).required(),
@@ -62,5 +62,5 @@ module.exports = {
   createUserSchema,
   updateSelfUserSchema,
   updateFullUserSchema,
-  superAdminSchema
+  superAdminSchema,
 };

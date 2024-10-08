@@ -17,5 +17,5 @@ const deleteRoleSchema = Joi.object({
 module.exports = {
   createRoleSchema,
   updateRoleSchema,
-  deleteRoleSchema
+  deleteRoleSchema,
 };
