@@ -13,6 +13,13 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
 
+  // Automatically select the only option if there is just one
+  useEffect(() => {
+    if (searchOptions?.length === 1) {
+      setSelectedOption(searchOptions[0]);
+    }
+  }, [searchOptions]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce((option, term) => {
@@ -27,7 +34,7 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
   };
 
   const handleClearSearch = () => {
-    onSearch(selectedOption.value, "");
+    onSearch(selectedOption?.value, "");
     setSelectedOption(null);
     setSearchTerm("");
   };
@@ -63,11 +70,13 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
             autoFocus
             className={`border-none bg-transparent focus:outline-none min-w-48 px-1 py-0`}
           />
-          <X
-            size={20}
-            className="w-9 h-7 cursor-pointer p-1 hover:bg-secondary/30 rounded-md transition-all duration-300"
-            onClick={handleClearSearch}
-          />
+          {searchOptions?.length > 1 && (
+            <X
+              size={20}
+              className="w-9 h-7 cursor-pointer p-1 hover:bg-secondary/30 rounded-md transition-all duration-300"
+              onClick={handleClearSearch}
+            />
+          )}
         </div>
       ) : (
         <DropdownMenu>
@@ -83,7 +92,7 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
             {searchOptions?.map((option) => (
               <DropdownMenuItem
                 key={option.value}
-                className={'cursor-pointer'}
+                className={"cursor-pointer"}
                 onSelect={() => handleOptionSelect(option)}
               >
                 <div className="flex items-center hover:bg-secondary/15 px-1 py-1 rounded-md">

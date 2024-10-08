@@ -1,6 +1,6 @@
 const Role = require("../models/role.model");
 const User = require("../models/user.model");
-const { DEFAULT_PERMISSIONS } = require("../utils/constant");
+const { DEFAULT_PERMISSIONS, PERMISSIONS } = require("../utils/constant");
 const {
   errorResponse,
   successResponse,
@@ -173,6 +173,14 @@ const getAllRoles = async (req, res) => {
 
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
+    }
+    console.log("roles");
+    for (let i = 0; i < roles.length; i++) {
+      roles[i].permissions = roles[i].permissions
+        .map((permissionSlug) =>
+          PERMISSIONS.find((p) => p.slug === permissionSlug)
+        )
+        .filter(Boolean);
     }
     const totalRoles = await Role.countDocuments(query);
     const totalPages = Math.ceil(totalRoles / limitNumber);

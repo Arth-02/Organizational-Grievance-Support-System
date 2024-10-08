@@ -217,17 +217,29 @@ const getUser = async (req, res) => {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid user id");
     }
-    const query = { _id: id };
+    const query = { _id: id, is_deleted: false };
     if (organization_id) {
       query.organization_id = organization_id;
     }
-    const user = await User.findOne(query).select(
-      "-createdAt -updatedAt -last_login -is_active -is_deleted"
-    );
+    let user;
+    if (!req.params.id) {
+      user = await User.findOne(query)
+        .populate("role")
+        .populate("department")
+        .select("-createdAt -updatedAt -last_login -is_active -is_deleted");
+      user.role.permissions = user.role.permissions
+        .map((permissionSlug) =>
+          PERMISSIONS.find((p) => p.slug === permissionSlug)
+        )
+        .filter(Boolean);
+    } else {
+      user = await User.findOne(query).select(
+        "-createdAt -updatedAt -last_login -is_active -is_deleted"
+      );
+    }
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
-    console.log("User:", user);
 
     return successResponse(res, user, "Profile retrieved successfully");
   } catch (err) {
@@ -744,7 +756,6 @@ const getAllUsers = async (req, res) => {
       return errorResponse(res, 404, "Users not found");
     }
     for (let i = 0; i < users.length; i++) {
-      const user = users[i];
       users[i].role_permissions = users[i].role_permissions
         .map((permissionSlug) =>
           PERMISSIONS.find((p) => p.slug === permissionSlug)

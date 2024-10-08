@@ -168,7 +168,9 @@ const GeneralTable = ({
   const defaultColumn = {
     cell: ({ getValue }) => {
       const value = getValue();
-      return value !== null && value !== undefined && value !== '' ? value : '-';
+      return value !== null && value !== undefined && value !== ""
+        ? value
+        : "-";
     },
   };
 
@@ -262,7 +264,11 @@ const GeneralTable = ({
   };
 
   const handleFilterChange = (filter, value) => {
-    setFilters((prev) => ({ ...prev, [filter]: value }));
+    if (value === "all") {
+      setFilters((prev) => ({ ...prev, [filter]: "" }));
+    } else {
+      setFilters((prev) => ({ ...prev, [filter]: value }));
+    }
   };
 
   const renderPageButtons = () => {

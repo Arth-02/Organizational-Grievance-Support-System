@@ -128,6 +128,15 @@ const Employees = () => {
 
   const customFilters = [
     {
+      label: "Status",
+      key: "is_active",
+      options: [
+        { label: "All", value: "all" },
+        { label: "Active", value: "true" },
+        { label: "Inactive", value: "false" },
+      ],
+    },
+    {
       label: "Department",
       key: "department",
       options: [

@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GeneralTable from "@/components/table/CustomTable"; // Assuming GeneralTable is reusable
-import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation } from "@/services/api.service";
+import {
+  useGetAllDepartmentsQuery,
+  useDeleteDepartmentMutation,
+  useGetAllDepartmentNameQuery,
+} from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 
 const Departments = () => {
@@ -14,8 +18,10 @@ const Departments = () => {
     order: "desc",
   });
 
-  const { data, isLoading, isFetching, error } = useGetAllDepartmentsQuery(filters);
+  const { data, isLoading, isFetching, error } =
+    useGetAllDepartmentsQuery(filters);
   const [deleteDepartment] = useDeleteDepartmentMutation();
+  const { data: departmentNames } = useGetAllDepartmentNameQuery();
 
   const navigate = useNavigate();
 
@@ -50,6 +56,37 @@ const Departments = () => {
     console.log("View department:", id);
   };
 
+  const searchOptions = [
+    {
+      label: "Name",
+      example: "Admin",
+      value: "name",
+    },
+  ];
+
+  const customFilters = [
+    {
+      label: "Status",
+      key: "is_active",
+      options: [
+        { label: "All", value: "all" },
+        { label: "Active", value: "true" },
+        { label: "Inactive", value: "false" },
+      ],
+    },
+    {
+      label: "Department",
+      key: "name",
+      options: [
+        { label: "All", value: "all" },
+        ...(departmentNames?.map((dept) => ({
+          label: dept.name,
+          value: dept.name,
+        })) || []),
+      ],
+    },
+  ];
+
   return (
     <MainLayout
       title={"Departments"}
@@ -68,6 +105,8 @@ const Departments = () => {
         onDelete={handleDelete}
         onEdit={handleEdit}
         onView={handleView}
+        searchOptions={searchOptions}
+        customFilters={customFilters}
       />
     </MainLayout>
   );
