@@ -48,7 +48,7 @@ const GrievanceSchema = new mongoose.Schema(
       default: true,
     },
     employee_id: {
-      type:String,
+      type: String,
       required: true,
     },
     reported_by: {

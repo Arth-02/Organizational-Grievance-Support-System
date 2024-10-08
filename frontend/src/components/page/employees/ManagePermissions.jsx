@@ -26,7 +26,7 @@ const ManagePermissions = ({ permissions, isEditable }) => {
           <div
             className={`max-w-64 overflow-hidden text-ellipsis text-nowrap group-hover:pr-2 transition-all duration-200`}
           >
-            {permissions}
+            {permissions.map((permission) => permission.name).join(", ")}
           </div>
           {isEditable && (
             <Tooltip>

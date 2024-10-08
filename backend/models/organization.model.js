@@ -29,7 +29,7 @@ const OrganizationSchema = new mongoose.Schema(
       trim: true,
     },
     logo: {
-      url:String,
+      url: String,
       public_id: String,
     },
     description: {

@@ -13,6 +13,7 @@ const {
   DEFAULT_ADMIN_PERMISSIONS,
   SUPER_ADMIN,
   ADMIN,
+  PERMISSIONS,
 } = require("../utils/constant");
 const Role = require("../models/role.model");
 const Department = require("../models/department.model");
@@ -239,14 +240,14 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    let schema,id
-    if(req.params.id){
-      schema = updateFullUserSchema
-      id = req.params.id
-    }else if(req.user.id){
-      schema = updateSelfUserSchema
-      id = req.user.id
-    }else{
+    let schema, id;
+    if (req.params.id) {
+      schema = updateFullUserSchema;
+      id = req.params.id;
+    } else if (req.user.id) {
+      schema = updateSelfUserSchema;
+      id = req.user.id;
+    } else {
       return errorResponse(res, 400, "User id is required");
     }
     if (!isValidObjectId(id)) {
@@ -738,13 +739,27 @@ const getAllUsers = async (req, res) => {
       User.aggregate(pipeline),
       User.countDocuments(query),
     ]);
-    const totalPages = Math.ceil(totalUsers / limitNumber);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
 
     if (!users.length) {
       return errorResponse(res, 404, "Users not found");
     }
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      users[i].role_permissions = users[i].role_permissions
+        .map((permissionSlug) =>
+          PERMISSIONS.find((p) => p.slug === permissionSlug)
+        )
+        .filter(Boolean);
+      users[i].special_permissions = users[i].special_permissions
+        .map((permissionSlug) =>
+          PERMISSIONS.find((p) => p.slug === permissionSlug)
+        )
+        .filter(Boolean);
+    }
+    const totalPages = Math.ceil(totalUsers / limitNumber);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
     return successResponse(
       res,
       {
@@ -766,6 +781,20 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// get all permissions
+const getAllPermissions = async (req, res) => {
+  try {
+    return successResponse(
+      res,
+      PERMISSIONS,
+      "Permissions retrieved successfully"
+    );
+  } catch (err) {
+    console.error("Get Permissions Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -779,4 +808,5 @@ module.exports = {
   checkEmail,
   checkEmployeeID,
   getAllUsers,
+  getAllPermissions,
 };

@@ -4,6 +4,6 @@ const { DEV } = require("../utils/constant");
 
 const router = require("express").Router();
 
-router.post("/verify-organization", checkRole([DEV]) , approveOrganization);
+router.post("/verify-organization", checkRole([DEV]), approveOrganization);
 
 module.exports = router;

@@ -80,7 +80,7 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="text-nowrap min-w-64">
-            {searchOptions.map((option) => (
+            {searchOptions?.map((option) => (
               <DropdownMenuItem
                 key={option.value}
                 className={'cursor-pointer'}

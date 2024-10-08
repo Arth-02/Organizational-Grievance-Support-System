@@ -58,7 +58,7 @@ const createDepartment = async (req, res) => {
     console.log(error);
     return catchResponse(res);
   }
-}
+};
 
 // Update a department
 const updateDepartment = async (req, res) => {
@@ -101,7 +101,7 @@ const updateDepartment = async (req, res) => {
   } catch (error) {
     return catchResponse(res);
   }
-}
+};
 
 // Get all departments in pagination
 const getAllDepartment = async (req, res) => {
@@ -162,7 +162,7 @@ const getAllDepartment = async (req, res) => {
   } catch (error) {
     return catchResponse(res);
   }
-}
+};
 
 // get all departments name
 const getAllDepartmentName = async (req, res) => {
@@ -213,7 +213,7 @@ const getDepartmentById = async (req, res) => {
   } catch (error) {
     return catchResponse(res);
   }
-}
+};
 
 // Delete a department
 const deleteDepartment = async (req, res) => {
@@ -292,6 +292,31 @@ const deleteDepartment = async (req, res) => {
   }
 };
 
+// get users count by department ID
+const getUsersCountByDepartmentId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { organization_id } = req.user;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid department ID");
+    }
+    const query = { department: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    console.log(query);
+    const usersCount = await User.countDocuments(query);
+    return successResponse(
+      res,
+      usersCount,
+      "Users count retrieved successfully"
+    );
+  } catch (err) {
+    console.error(err);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   createDepartment,
   getAllDepartment,
@@ -299,4 +324,5 @@ module.exports = {
   getDepartmentById,
   updateDepartment,
   deleteDepartment,
+  getUsersCountByDepartmentId,
 };

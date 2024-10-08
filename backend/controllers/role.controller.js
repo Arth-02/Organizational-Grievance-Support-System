@@ -276,6 +276,30 @@ const deleteRole = async (req, res) => {
   }
 };
 
+// get count of users by role id
+const getUsersCountByRoleId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { organization_id } = req.user;
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid role ID");
+    }
+    const query = { role: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const usersCount = await User.countDocuments(query);
+    return successResponse(
+      res,
+      usersCount,
+      "Users count retrieved successfully"
+    );
+  } catch (err) {
+    console.error(err);
+    return catchResponse(res);
+  }
+};
+
 // Export the function
 module.exports = {
   resetPermissions,
@@ -285,4 +309,5 @@ module.exports = {
   getRoleById,
   getAllRoleName,
   getAllRoles,
+  getUsersCountByRoleId,
 };
