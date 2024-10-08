@@ -174,7 +174,6 @@ const getAllRoles = async (req, res) => {
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
     }
-    console.log("roles");
     for (let i = 0; i < roles.length; i++) {
       roles[i].permissions = roles[i].permissions
         .map((permissionSlug) =>
