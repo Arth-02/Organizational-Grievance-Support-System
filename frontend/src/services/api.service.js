@@ -13,12 +13,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     getProfile: builder.query({
       query: (body) => ({
@@ -37,12 +32,7 @@ export const apiService = createApi({
         url: `users/details/${id}`,
         method: "GET",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     getAllUsers: builder.query({
       query: (filters) => {
@@ -69,12 +59,7 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Users"],
     }),
     createOrganization: builder.mutation({
@@ -83,12 +68,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     otpGenerate: builder.mutation({
       query: (body) => ({
@@ -112,12 +92,7 @@ export const apiService = createApi({
         url: `organizations/details/${body.organization_id}`,
         method: "GET",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     createSuperAdmin: builder.mutation({
       query: (body) => ({
@@ -129,27 +104,24 @@ export const apiService = createApi({
     createDepartment: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "departments/create",
         method: "POST",
         body,
       }),
+      
+      invalidatesTags: ["Departments"],
     }),
     getDepartmentById: builder.query({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `departments/details/${body.departmentId}`,
+        url: `departments/details/${body}`,
         method: "GET",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Departments"],
     }),
     getAllDepartmentName: builder.query({
@@ -160,12 +132,6 @@ export const apiService = createApi({
         url: "departments/names",
         method: "GET",
       }),
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
-      transformResponse: (response) => {
-        return response.data;
-      },
       providesTags: ["Departments"],
     }),
     getAllDepartments: builder.query({
@@ -179,71 +145,53 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Departments"],
     }),
     updateDepartment: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `departments/update/${body.departmentId}`,
+        url: `departments/update/${body.id}`,
         method: "PATCH",
-        body,
+        body: body.data,
       }),
+      
+      invalidatesTags: ["Departments"],
     }),
     deleteDepartment: builder.mutation({
       query: (body) => ({
         headers: {
           Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `departments/delete/${body.departmentId}`,
+        url: `departments/delete/${body}`,
         method: "DELETE",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Departments"],
     }),
     createRole: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "roles/create",
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Roles"],
     }),
     getRoleById: builder.query({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `roles/details/${body.roleId}`,
+        url: `roles/details/${body}`,
         method: "GET",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Roles"],
     }),
     getAllRoleName: builder.query({
@@ -254,12 +202,7 @@ export const apiService = createApi({
         url: "roles/names",
         method: "GET",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Roles"],
     }),
     getAllRoles: builder.query({
@@ -273,45 +216,30 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       providesTags: ["Roles"],
     }),
     updateRole: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `roles/update/${body.roleId}`,
+        url: `roles/update/${body.id}`,
         method: "PATCH",
-        body,
+        body: body.data,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Roles"],
     }),
     deleteRole: builder.mutation({
       query: (body) => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `roles/delete/${body.roleId}`,
+        url: `roles/delete/${body}`,
         method: "DELETE",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Roles"],
     }),
     createUser: builder.mutation({
@@ -323,12 +251,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Users"],
     }),
     updateUser: builder.mutation({
@@ -340,12 +263,7 @@ export const apiService = createApi({
         method: "PATCH",
         body: data,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Users"],
     }),
     updateUserSelf: builder.mutation({
@@ -357,12 +275,7 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Users"],
     }),
     deleteUser: builder.mutation({
@@ -373,12 +286,7 @@ export const apiService = createApi({
         url: `users/delete/${id}`,
         method: "DELETE",
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Users"],
     }),
     deleteAllUsers: builder.mutation({
@@ -390,12 +298,7 @@ export const apiService = createApi({
         method: "DELETE",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
       invalidatesTags: ["Users"],
     }),
     checkUsername: builder.mutation({
@@ -407,12 +310,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     checkEmail: builder.mutation({
       query: (body) => ({
@@ -423,12 +321,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
     }),
     checkEmployeeID: builder.mutation({
       query: (body) => ({
@@ -439,12 +332,17 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      transformResponse: (response) => {
-        return response.data;
-      },
-      transformErrorResponse: (response) => {
-        return response.data;
-      },
+      
+    }),
+    getAllPermissions: builder.query({
+      query: () => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: "users/permissions",
+        method: "GET",
+      }),
+      
     }),
   }),
 });
@@ -479,4 +377,5 @@ export const {
   useCheckUsernameMutation,
   useCheckEmailMutation,
   useCheckEmployeeIDMutation,
+  useGetAllPermissionsQuery,
 } = apiService;

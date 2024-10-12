@@ -49,7 +49,7 @@ const Departments = () => {
   };
 
   const handleEdit = (id) => {
-    navigate(`/department/update/${id}`);
+    navigate(`/departments/update/${id}`);
   };
 
   const handleView = (id) => {
@@ -79,7 +79,7 @@ const Departments = () => {
       key: "name",
       options: [
         { label: "All", value: "all" },
-        ...(departmentNames?.map((dept) => ({
+        ...(departmentNames?.data?.map((dept) => ({
           label: dept.name,
           value: dept.name,
         })) || []),
@@ -91,17 +91,17 @@ const Departments = () => {
     <MainLayout
       title={"Departments"}
       buttonTitle={"Add New Department"}
-      buttonLink={"/department/add"}
+      buttonLink={"/departments/add"}
     >
       <GeneralTable
-        data={data?.departments || []}
+        data={data?.data?.departments || []}
         columns={columns}
         filters={filters}
         setFilters={setFilters}
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        pagination={data?.pagination}
+        pagination={data?.data?.pagination}
         onDelete={handleDelete}
         onEdit={handleEdit}
         onView={handleView}

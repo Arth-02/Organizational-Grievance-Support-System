@@ -3,6 +3,7 @@ const Joi = require("joi");
 const departmentSchema = Joi.object({
   name: Joi.string().required().trim(),
   description: Joi.string().required().trim(),
+  is_active: Joi.boolean().default(true),
 });
 
 const updateDepartmentSchema = Joi.object({

@@ -105,7 +105,7 @@ const GeneralTable = ({
       hideable: false,
       cell: ({ row }) => (
         <div className="flex gap-2 ml-2">
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger
               onClick={() => onView(row.original._id)}
               className="p-2 h-8 w-8 rounded-md bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
@@ -115,7 +115,7 @@ const GeneralTable = ({
             <TooltipContent>
               <p>View</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip>
             <TooltipTrigger
               onClick={() => onEdit(row.original._id)}

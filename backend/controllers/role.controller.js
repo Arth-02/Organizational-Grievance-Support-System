@@ -169,7 +169,8 @@ const getAllRoles = async (req, res) => {
       .collation({ locale: "en", strength: 2 }) // Case-insensitive collation
       .sort({ [sort_by]: order === "desc" ? -1 : 1 })
       .skip(skip)
-      .limit(limitNumber);
+      .limit(limitNumber)
+      .lean();
 
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");

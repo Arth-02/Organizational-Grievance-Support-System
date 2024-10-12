@@ -8,6 +8,8 @@ import {
   useGetAllRoleNameQuery,
   // useDeleteAllRolesMutation,
 } from "@/services/api.service";
+import { useNavigate } from "react-router-dom";
+import ManagePermissions from "../employees/ManagePermissions";
 
 const Roles = () => {
   const [filters, setFilters] = useState({
@@ -19,6 +21,8 @@ const Roles = () => {
     sort_by: "created_at",
     order: "desc",
   });
+
+  const navigate = useNavigate();
 
   const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
@@ -35,6 +39,7 @@ const Roles = () => {
       accessorKey: "permissions",
       header: "Permissions",
       sortable: false,
+      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions} isEditable={true} /> ),
     },
     {
       accessorKey: "is_active",
@@ -64,7 +69,7 @@ const Roles = () => {
   // };
 
   const handleEdit = (id) => {
-    console.log("Edit role:", id); // Add your navigation logic
+    navigate(`/roles/update/${id}`);// Add your navigation logic
   };
 
   const handleView = (id) => {
@@ -94,7 +99,7 @@ const Roles = () => {
       key: "name",
       options: [
         { label: "All", value: "all" },
-        ...(roleNames?.map((role) => ({ label: role.name, value: role.name })) ||
+        ...(roleNames?.data?.map((role) => ({ label: role.name, value: role.name })) ||
           []),
       ],
     },
@@ -104,10 +109,10 @@ const Roles = () => {
     <MainLayout
       title={"Roles"}
       buttonTitle={"Add New Role"}
-      buttonLink={"/role/add"}
+      buttonLink={"/roles/add"}
     >
       <GeneralTable
-        data={data?.roles || []}
+        data={data?.data?.roles || []}
         columns={columns}
         filters={filters}
         setFilters={setFilters}
@@ -115,7 +120,7 @@ const Roles = () => {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        pagination={data?.pagination}
+        pagination={data?.data?.pagination}
         onDelete={handleDelete}
         // onDeleteAll={handleDeleteAll}
         onEdit={handleEdit}

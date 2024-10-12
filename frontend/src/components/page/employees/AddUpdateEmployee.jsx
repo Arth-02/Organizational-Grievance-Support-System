@@ -100,15 +100,15 @@ const AddUpdateEmployee = () => {
 
   React.useEffect(() => {
     if (user) {
-      reset(user);
-      setUsername(user.username);
-      setEmail(user.email);
+      reset(user.data);
+      setUsername(user.data.username);
+      setEmail(user.data.email);
     }
   }, [user, reset]);
 
   const checkIfUsernameExists = useCallback(
     async (username) => {
-      if (!username || (id && user?.username === username)) return;
+      if (!username || (id && user?.data?.username === username)) return;
       if (username.length < 3) {
         setIsUsernameAvailable(false);
         setError("username", {
@@ -119,8 +119,8 @@ const AddUpdateEmployee = () => {
       }
       try {
         const response = await checkUsername({ username }).unwrap();
-        setIsUsernameAvailable(!response.exists);
-        if (response.exists) {
+        setIsUsernameAvailable(!response.data.exists);
+        if (response.data.exists) {
           setError("username", {
             type: "manual",
             message: "Username is already taken",
@@ -142,11 +142,11 @@ const AddUpdateEmployee = () => {
 
   const checkIfEmailExists = useCallback(
     async (email) => {
-      if (!email || (id && user?.email === email)) return;
+      if (!email || (id && user?.data?.email === email)) return;
       try {
         const response = await checkEmail({ email }).unwrap();
-        setIsEmailAvailable(!response.exists);
-        if (response.exists) {
+        setIsEmailAvailable(!response.data.exists);
+        if (response.data.exists) {
           setError("email", {
             type: "manual",
             message: "Email is already in use",
@@ -174,27 +174,27 @@ const AddUpdateEmployee = () => {
       if (id) {
         delete data.id;
         delete data.email;
-        await updateUser({id, data}).unwrap();
-        toast.success("Employee updated successfully");
+        const response = await updateUser({id, data}).unwrap();
+        toast.success(response.message);
       } else {
         delete data.confirmpassword;
-        await createUser(data).unwrap();
-        toast.success("Employee added successfully");
+        const response = await createUser(data).unwrap();
+        toast.success(response.message);
       }
       navigate("/employees");
     } catch (error) {
-      toast.error(error.data.message);
+      console.log(error);
+      toast.error("Something went wrong");
     }
   };
 
   useEffect(() => {
-    console.log("User:", user);
     if (user) {
-      Object.keys(user).forEach((key) => {
+      Object.keys(user.data).forEach((key) => {
         setValue(key, user[key]);
       });
-      setUsername(user.username);
-      setEmail(user.email);
+      setUsername(user.data.username);
+      setEmail(user.data.email);
     }
   }, [user, setValue]);
 
@@ -299,7 +299,7 @@ const AddUpdateEmployee = () => {
             name="role"
             rules={{ required: "Role is required" }}
             control={control}
-            options={roles?.map((role) => ({
+            options={roles?.data?.map((role) => ({
               label: role.name,
               value: role._id,
             }))}
@@ -311,7 +311,7 @@ const AddUpdateEmployee = () => {
             name="department"
             rules={{ required: "Department is required" }}
             control={control}
-            options={departments?.map((dept) => ({
+            options={departments?.data?.map((dept) => ({
               label: dept.name,
               value: dept._id,
             }))}

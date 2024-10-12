@@ -97,7 +97,7 @@ const Employees = () => {
   };
 
   const handleEdit = (id) => {
-    navigate(`/employee/update/${id}`);
+    navigate(`/employees/update/${id}`);
   };
 
   const handleView = (id) => {
@@ -141,7 +141,7 @@ const Employees = () => {
       key: "department",
       options: [
         { label: "All", value: "all" },
-        ...(departmentNames?.map((dept) => ({
+        ...(departmentNames?.data?.map((dept) => ({
           label: dept.name,
           value: dept._id,
         })) || []),
@@ -152,7 +152,7 @@ const Employees = () => {
       key: "role",
       options: [
         { label: "All", value: "all" },
-        ...(roleNames?.map((role) => ({ label: role.name, value: role._id })) ||
+        ...(roleNames?.data?.map((role) => ({ label: role.name, value: role._id })) ||
           []),
       ],
     },
@@ -162,10 +162,10 @@ const Employees = () => {
     <MainLayout
       title={"Employees"}
       buttonTitle={"Add New Employee"}
-      buttonLink={"/employee/add"}
+      buttonLink={"/employees/add"}
     >
       <GeneralTable
-        data={data?.users || []}
+        data={data?.data?.users || []}
         columns={columns}
         filters={filters}
         setFilters={setFilters}
@@ -173,7 +173,7 @@ const Employees = () => {
         isLoading={isLoading}
         isFetching={isFetching}
         error={error}
-        pagination={data?.pagination}
+        pagination={data?.data?.pagination}
         onDelete={handleDelete}
         onDeleteAll={handleDeleteAll}
         onEdit={handleEdit}

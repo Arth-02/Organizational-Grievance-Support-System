@@ -226,7 +226,8 @@ const getUser = async (req, res) => {
       user = await User.findOne(query)
         .populate("role")
         .populate("department")
-        .select("-createdAt -updatedAt -last_login -is_active -is_deleted");
+        .select("-createdAt -updatedAt -last_login -is_active -is_deleted")
+        .lean();
       user.role.permissions = user.role.permissions
         .map((permissionSlug) =>
           PERMISSIONS.find((p) => p.slug === permissionSlug)
