@@ -19,9 +19,7 @@ import {
   Select,
   SelectTrigger,
   SelectContent,
-  SelectItem,
   SelectValue,
-  CustomSelect,
 } from "@/components/ui/select";
 
 // Define schema for form validation
@@ -39,9 +37,9 @@ const AddUpdateRole = () => {
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
   const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  const { data: permissions, isLoading: isPermissionsLoading } =
+  const { data: permissions } =
     useGetAllPermissionsQuery();
-  const { data: role, isLoading: isRoleLoading } = useGetRoleByIdQuery(id, {
+  const { data: role } = useGetRoleByIdQuery(id, {
     skip: !id,
   });
 
