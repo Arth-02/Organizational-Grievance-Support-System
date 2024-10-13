@@ -60,6 +60,7 @@ const PermissionsModal = ({
         )
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allPermissions]);
 
   const handleRemovePermission = (permission) => {
@@ -122,7 +123,6 @@ const PermissionsModal = ({
                       key="none"
                       value="none"
                       onSelect={handleAllRemovePermission}
-                      className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
                     >
                       Remove All
                     </CommandItem>
@@ -132,21 +132,18 @@ const PermissionsModal = ({
                         key="all"
                         value="all"
                         onSelect={handleAllSelectPermission}
-                        className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
                       >
                         Select All
                       </CommandItem>
                       <Separator className="my-1 bg-secondary" />
                     </>
                   )}
-
                   {optionPermissions?.length > 0 &&
                     optionPermissions.map((permission) => (
                       <CommandItem
                         key={permission.slug}
                         value={permission.slug}
                         onSelect={handleAddPermission}
-                        className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
                       >
                         {permission.name}
                       </CommandItem>
@@ -168,10 +165,11 @@ const PermissionsModal = ({
               </Label>
               <Button
                 variant="ghost"
-                size="icon"
+                size="xs"
+                className="p-[2px] h-6 w-6"
                 onClick={() => handleRemovePermission(permission)}
               >
-                <X className="h-4 w-4" />
+                <X className="p-[2px]" size={24} />
               </Button>
             </div>
           ))}
