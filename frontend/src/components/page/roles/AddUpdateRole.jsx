@@ -75,8 +75,6 @@ const AddUpdateRole = () => {
       if (role.name === data.name) {
         delete data.name;
       }
-      console.log("role", role);
-      console.log("data", data);
       if (id) {
         delete data.id;
         const response = await updateRole({ id, data }).unwrap();
@@ -115,11 +113,18 @@ const AddUpdateRole = () => {
     );
   };
 
+  const handleToggleAll = () => {
+    if (selectedPermissions.length === permissionOptions?.length) {
+      setSelectedPermissions([]);
+    } else {
+      setSelectedPermissions(permissionOptions?.map((item) => item.value));
+    }
+  };
+
   // Display all selected permissions in dropdown
   const selectedLabels = permissionOptions
     ?.filter((option) => selectedPermissions.includes(option.value))
     .map((option) => option.label) || ["Select permissions"];
-
 
   return (
     <AddUpdatePageLayout title={id ? "Update Role" : "Add Role"}>
@@ -148,6 +153,23 @@ const AddUpdateRole = () => {
               </div>
             </SelectTrigger>
             <SelectContent>
+              <div className="flex items-center space-x-2">
+                <Controller
+                  control={control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value.length === permissionOptions?.length}
+                      onCheckedChange={() => handleToggleAll()}
+                    />
+                  )}
+                />
+                {selectedPermissions.length === permissionOptions?.length ? (
+                  <label htmlFor="unselect_all">Unselect All</label>
+                ) : (
+                  <label htmlFor="select_all">Select All</label>
+                )}
+              </div>
               {permissionOptions?.map((item) => (
                 <div className="flex items-center space-x-2" key={item.value}>
                   <Controller
