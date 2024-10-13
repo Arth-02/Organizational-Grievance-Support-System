@@ -34,6 +34,9 @@ const userSlice = createSlice({
 
         saveToLocalStorage("token", state.token);
         saveToLocalStorage("roleId", state.role._id);
+        if (state.role.name !== "DEV") {
+          saveToLocalStorage("organizationId", state.organization._id);
+        }
         saveToLocalStorage("organizationId", state.organization._id);
         saveToLocalStorage("departmentId", state.department._id);
       }
