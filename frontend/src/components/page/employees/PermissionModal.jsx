@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import Modal from "@/components/ui/Model";
 import { useGetAllPermissionsQuery } from "@/services/api.service";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronsUpDown } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -20,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 const PermissionsModal = ({
   isOpen,
@@ -33,26 +32,56 @@ const PermissionsModal = ({
     isError,
   } = useGetAllPermissionsQuery();
 
-  const [selectedPermissions, setSelectedPermissions] = useState(initialPermissions);
+  const [selectedPermissions, setSelectedPermissions] =
+    useState(initialPermissions);
+  const [optionPermissions, setOptionPermissions] = useState([]);
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
 
   const handleAddPermission = (selectedValue) => {
-    const selectedPermission = allPermissions.data.find(p => p.slug === selectedValue);
-    if (selectedPermission && !selectedPermissions.some(p => p.slug === selectedPermission.slug)) {
+    const selectedPermission = allPermissions.data.find(
+      (p) => p.slug === selectedValue
+    );
+    if (
+      selectedPermission &&
+      !selectedPermissions.some((p) => p.slug === selectedPermission.slug)
+    ) {
       setSelectedPermissions([...selectedPermissions, selectedPermission]);
+      setOptionPermissions(
+        optionPermissions.filter((p) => p.slug !== selectedPermission.slug)
+      );
     }
-    setValue("");
     setOpen(false);
   };
+  useEffect(() => {
+    if (allPermissions?.data) {
+      setOptionPermissions(
+        allPermissions.data.filter(
+          (p) => !selectedPermissions.some((sp) => sp.slug === p.slug)
+        )
+      );
+    }
+  }, [allPermissions]);
 
   const handleRemovePermission = (permission) => {
-    setSelectedPermissions(selectedPermissions.filter((p) => p.slug !== permission.slug));
+    setSelectedPermissions(
+      selectedPermissions.filter((p) => p.slug !== permission.slug)
+    );
+    setOptionPermissions([...optionPermissions, permission]);
   };
 
   const handleSave = () => {
     onSave(selectedPermissions);
     onClose();
+  };
+
+  const handleAllSelectPermission = () => {
+    setSelectedPermissions(allPermissions.data);
+    setOptionPermissions([]);
+  };
+
+  const handleAllRemovePermission = () => {
+    setSelectedPermissions([]);
+    setOptionPermissions(allPermissions.data);
   };
 
   if (isError) {
@@ -68,7 +97,7 @@ const PermissionsModal = ({
       confirmText="Save Changes"
       onConfirm={handleSave}
     >
-      <div className="space-y-4">
+      <div className="space-y-4 overflow-y-auto max-h-[400px] !pr-4">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -85,37 +114,55 @@ const PermissionsModal = ({
             <Command>
               <CommandInput placeholder="Search permissions..." />
               <CommandList>
-              <CommandEmpty>No permission found.</CommandEmpty>
-              <CommandGroup>
-                {allPermissions?.data?.length > 0 && allPermissions.data.map((permission) => (
-                  <CommandItem
-                    key={permission.slug}
-                    value={permission.slug}
-                    onSelect={handleAddPermission}
-                    className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === permission.slug ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {permission.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+                <CommandEmpty>No permission found.</CommandEmpty>
+                <CommandGroup>
+                  {selectedPermissions?.length ===
+                  allPermissions?.data?.length ? (
+                    <CommandItem
+                      key="none"
+                      value="none"
+                      onSelect={handleAllRemovePermission}
+                      className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                    >
+                      Remove All
+                    </CommandItem>
+                  ) : (
+                    <>
+                      <CommandItem
+                        key="all"
+                        value="all"
+                        onSelect={handleAllSelectPermission}
+                        className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Select All
+                      </CommandItem>
+                      <Separator className="my-1 bg-secondary" />
+                    </>
+                  )}
+
+                  {optionPermissions?.length > 0 &&
+                    optionPermissions.map((permission) => (
+                      <CommandItem
+                        key={permission.slug}
+                        value={permission.slug}
+                        onSelect={handleAddPermission}
+                        className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                      >
+                        {permission.name}
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-4">
           {isLoading && <div>Loading permissions...</div>}
           {selectedPermissions?.map((permission, index) => (
             <div
               key={index}
               className="flex items-center space-x-2 bg-secondary/20 p-2 rounded-md"
             >
-              <Checkbox id={`permission-${index}`} />
               <Label htmlFor={`permission-${index}`} className="flex-grow">
                 {permission.name}
               </Label>
