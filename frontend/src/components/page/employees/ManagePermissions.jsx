@@ -14,9 +14,9 @@ const ManagePermissions = ({ permissions, isEditable }) => {
     setIsModalOpen(true);
   };
 
-    const handleSavePermissions = (newPermissions) => {
+  const handleSavePermissions = (newPermissions) => {
     console.log(newPermissions);
-    };
+  };
 
   return (
     <div>
@@ -42,12 +42,14 @@ const ManagePermissions = ({ permissions, isEditable }) => {
           )}
         </div>
       )}
-      <PermissionsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        initialPermissions={permissions}
-        onSave={handleSavePermissions}
-      />
+      {isModalOpen && (
+        <PermissionsModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          initialPermissions={permissions}
+          onSave={handleSavePermissions}
+        />
+      )}
     </div>
   );
 };
