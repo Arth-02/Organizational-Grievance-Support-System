@@ -5,19 +5,20 @@ import { Outlet } from "react-router-dom";
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
   
     return (
       <div className="h-screen">
         <Header setIsSidebarOpen={setIsSidebarOpen} />
         <div className="flex overflow-hidden h-[calc(100vh-50px)] ">
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isSidebarOpen={isSidebarOpen} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             {isSidebarOpen && (
                 <div 
                 onClick={() => setIsSidebarOpen(false)}
                 className="fixed inset-0 bg-black bg-opacity-50 z-10"
                 />
             )}
-            <main className="flex-1 overflow-y-auto py-4 px-4 h-full bg-secondary/20">
+            <main className="flex-1 overflow-y-auto py-4 px-6 h-full bg-secondary/20">
                 <div className="p-4 bg-white shadow-lg rounded-md min-h-full relative">
                   <Outlet />
                 </div>
