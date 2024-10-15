@@ -56,6 +56,7 @@ const Employees = () => {
         <ManagePermissions
           permissions={row.original.role_permissions}
           removePermissions={row.original.special_permissions}
+          edit="employee"
         />
       ),
     },
@@ -193,6 +194,7 @@ const Employees = () => {
     >
       <GeneralTable
         data={data?.data?.users || []}
+        tableTitle={"Employees"}
         columns={columns}
         filters={filters}
         setFilters={setFilters}

@@ -18,8 +18,7 @@ const userSlice = createSlice({
     setUserDetails: (state, action) => {
       state.user = action.payload.data;
       const rolePermissions = state.user.role.permissions.map((p) => p.slug);
-      const specialPermissions = state.user.special_permissions.map((p) => p.slug);
-      state.permissions = [...new Set([...rolePermissions, ...specialPermissions])];
+      state.permissions = [...new Set([...rolePermissions, ...state.user.special_permissions])];
     },
     logout: (state) => {
       state.user = null;

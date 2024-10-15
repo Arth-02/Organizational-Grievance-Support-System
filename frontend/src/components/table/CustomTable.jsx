@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -61,9 +61,11 @@ import Modal from "@/components/ui/Model";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useSelector } from "react-redux";
 
 const GeneralTable = ({
   data,
+  tableTitle,
   columns,
   filters,
   setFilters,
@@ -77,7 +79,24 @@ const GeneralTable = ({
   onEdit,
   searchOptions,
 }) => {
-  const allColumns = [
+  const [updateData, setUpdateData] = useState(false);
+  const [deleteData, setDeleteData] = useState(false);
+  const userPermissions = useSelector((state) => state.user.permissions);
+
+  useEffect(() => {
+    if (tableTitle === "Departments") {
+      setUpdateData(userPermissions.includes("UPDATE_DEPARTMENT"));
+      setDeleteData(userPermissions.includes("DELETE_DEPARTMENT"));
+    } else if (tableTitle === "Roles") {
+      setUpdateData(userPermissions.includes("UPDATE_ROLE"));
+      setDeleteData(userPermissions.includes("DELETE_ROLE"));
+    } else if (tableTitle === "Employees") {
+      setUpdateData(userPermissions.includes("UPDATE_USER"));
+      setDeleteData(userPermissions.includes("DELETE_USER"));
+    }
+  }, [userPermissions]);
+
+  let allColumns = [
     {
       accessorKey: "select",
       header: () => (
@@ -100,37 +119,76 @@ const GeneralTable = ({
       ...col,
       hideable: col.hideable ?? true,
     })),
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      hideable: false,
-      cell: ({ row }) => (
-        <div className="flex gap-2 ml-2">
-          <Tooltip>
-            <TooltipTrigger
-              onClick={() => onEdit(row.original._id)}
-              className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
-            >
-              <Edit3 size={15} />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Edit</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              onClick={() => handleDeleteClick(row.original._id)}
-              className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
-            >
-              <Trash size={15} />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Delete</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      ),
-    },
+    ...(updateData || deleteData
+      ? [
+          {
+            accessorKey: "actions",
+            header: "Actions",
+            hideable: false,
+            cell: ({ row }) => (
+              <div className="flex gap-2 ml-2">
+                {updateData && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={() => onEdit(row.original._id)}
+                      className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+                    >
+                      <Edit3 size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {deleteData && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={() => handleDeleteClick(row.original._id)}
+                      className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+                    >
+                      <Trash size={15} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    // {
+    //   accessorKey: "actions",
+    //   header: "Actions",
+    //   hideable: false,
+    //   cell: ({ row }) => (
+    //     <div className="flex gap-2 ml-2">
+    //       <Tooltip>
+    //         <TooltipTrigger
+    //           onClick={() => onEdit(row.original._id)}
+    //           className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+    //         >
+    //           <Edit3 size={15} />
+    //         </TooltipTrigger>
+    //         <TooltipContent>
+    //           <p>Edit</p>
+    //         </TooltipContent>
+    //       </Tooltip>
+    //       <Tooltip>
+    //         <TooltipTrigger
+    //           onClick={() => handleDeleteClick(row.original._id)}
+    //           className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+    //         >
+    //           <Trash size={15} />
+    //         </TooltipTrigger>
+    //         <TooltipContent>
+    //           <p>Delete</p>
+    //         </TooltipContent>
+    //       </Tooltip>
+    //     </div>
+    //   ),
+    // },
   ];
 
   const defaultFilters = filters;

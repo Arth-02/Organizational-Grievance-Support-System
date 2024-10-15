@@ -37,7 +37,7 @@ const Roles = () => {
       accessorKey: "permissions",
       header: "Permissions",
       sortable: false,
-      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions}  id={row.original._id} isEditable={true} /> ),
+      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions}  id={row.original._id} isEditable={true} edit="role" /> ),
     },
     {
       accessorKey: "is_active",
@@ -112,6 +112,7 @@ const Roles = () => {
     >
       <GeneralTable
         data={data?.data?.roles || []}
+        tableTitle={"Roles"}
         columns={columns}
         filters={filters}
         setFilters={setFilters}

@@ -82,6 +82,7 @@ const Departments = () => {
     >
       <GeneralTable
         data={data?.data?.departments || []}
+        tableTitle={"Departments"}
         columns={columns}
         filters={filters}
         setFilters={setFilters}

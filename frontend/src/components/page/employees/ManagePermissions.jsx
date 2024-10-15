@@ -9,6 +9,7 @@ import PermissionsModal from "./PermissionModal";
 import { useUpdateRoleMutation, useUpdateUserMutation } from "@/services/api.service";
 import toast from "react-hot-toast";
 import ViewPermissionsModal from "./ViewPermissionsModal";
+import { useSelector } from "react-redux";
 
 const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false, id="none", edit="none" }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +19,9 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
   const handleEditPermissions = () => {
     setIsModalOpen(true);
   };
+  const userPermissions = useSelector((state) => state.user.permissions);
+
+
 
   const handleSavePermissions = async (newPermissions) => {
     newPermissions = newPermissions.map((permission) => permission.slug);
@@ -48,7 +52,7 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
           >
             {permissions.map((permission) => permission.name).join(", ")}
           </div>
-          {isEditable? (
+          {((isEditable && edit==="employee" && userPermissions.includes("UPDATE_USER"))||(isEditable && edit==="role" && userPermissions.includes("UPDATE_ROLE")))? (
             <Tooltip>
               <TooltipTrigger>
                 <Edit2
