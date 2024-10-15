@@ -1,3 +1,5 @@
+import { useSelector } from "react-redux";
+
 // function to save into local storage
 export const saveToLocalStorage = (key, value) => {
     try {
@@ -39,3 +41,5 @@ export const clearLocalStorage = () => {
         console.log(error);
     }
 };
+
+

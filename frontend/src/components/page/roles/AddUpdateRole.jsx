@@ -37,8 +37,7 @@ const AddUpdateRole = () => {
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
   const [selectedPermissions, setSelectedPermissions] = useState([]);
 
-  const { data: permissions } =
-    useGetAllPermissionsQuery();
+  const { data: permissions } = useGetAllPermissionsQuery();
   const { data: role } = useGetRoleByIdQuery(id, {
     skip: !id,
   });

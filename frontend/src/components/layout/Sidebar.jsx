@@ -10,21 +10,7 @@ import {
   LogIn,
   Users,
 } from "lucide-react";
-
-const menuItems = [
-  { icon: <Home />, label: "Dashboard", path: "/dashboard" },
-  { icon: <Users />, label: "Employees", path: "/employees" },
-  { icon: <Building />, label: "Departments", path: "/departments" },
-  {
-    icon: <Lock />,
-    label: "Authentication",
-    children: [
-      { label: "Login", path: "/login", icon: <LogIn /> },
-      { label: "Register", path: "/register", icon: <LogIn /> },
-    ],
-  },
-  { icon: <Briefcase />, label: "Roles", path: "/roles" },
-];
+import { useSelector } from "react-redux";
 
 const MenuItem = ({ item, isActive, isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -118,6 +104,28 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
 
 const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
+  const userPermissions = useSelector((state) => state.user.permissions);
+
+  const menuItems = [
+    { icon: <Home />, label: "Dashboard", path: "/dashboard" },
+    ...(userPermissions.includes('VIEW_USER') 
+    ? [{ icon: <Users />, label: "Employees", path: "/employees" }] 
+    : []),
+    ...(userPermissions.includes('VIEW_ROLE') 
+    ? [{ icon: <Briefcase />, label: "Roles", path: "/roles" }] 
+    : []),
+    ...(userPermissions.includes('VIEW_DEPARTMENT') 
+    ? [{ icon: <Building />, label: "Departments", path: "/departments" }] 
+    : []),
+    {
+      icon: <Lock />,
+      label: "Authentication",
+      children: [
+        { label: "Login", path: "/login", icon: <LogIn /> },
+        { label: "Register", path: "/register", icon: <LogIn /> },
+      ],
+    },
+  ];
 
   return (
     <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white top-0 left-0 ${

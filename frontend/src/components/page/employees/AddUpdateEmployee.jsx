@@ -1,11 +1,17 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useParams, useNavigate } from "react-router-dom";
 import { CustomInput } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CustomSelect } from "@/components/ui/select";
+import {
+  CustomSelect,
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, BadgeCheck, BadgeAlert } from "lucide-react";
 import { CustomTooltip } from "@/components/ui/tooltip";
@@ -18,6 +24,8 @@ import {
   useCheckUsernameMutation,
   useCheckEmailMutation,
   useGetUserDetailsQuery,
+  useGetAllPermissionsQuery,
+  useGetRoleByIdQuery,
 } from "@/services/api.service";
 import { useToaster } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
@@ -37,6 +45,7 @@ const schema = z
     department: z.string().nonempty("Department is required"),
     employee_id: z.string().nonempty("Employee ID is required"),
     phone_number: z.string().optional(),
+    special_permissions: z.array(z.string()).optional(),
     is_active: z.boolean(),
   })
   .refine(
@@ -58,6 +67,7 @@ const AddUpdateEmployee = () => {
   const { toast } = useToaster();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [roleId, setRoleId] = useState("");
   const { data: user, isLoading: isUserLoading } = useGetUserDetailsQuery(id, {
     skip: !id,
   });
@@ -66,11 +76,34 @@ const AddUpdateEmployee = () => {
   const [checkUsername, { isLoading: checkingUsername }] =
     useCheckUsernameMutation();
   const [checkEmail, { isLoading: checkingEmail }] = useCheckEmailMutation();
+  const { data: permissions } = useGetAllPermissionsQuery();
+  const {
+    data: roleData,
+    refetch,
+    isFetching,
+    isSuccess,
+  } = useGetRoleByIdQuery(roleId, {
+    skip: !roleId,
+  });
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(undefined);
   const [isEmailAvailable, setIsEmailAvailable] = useState(undefined);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+
+  const handleFetchRole = (newId) => {
+    setRoleId(newId);
+    setPermissionOptions(
+      permissions?.data?.map((permission) => ({
+        value: permission.slug,
+        label: permission.name,
+      }))
+    );
+    if (newId && !isFetching && isSuccess) {
+      refetch();
+    }
+  };
 
   const {
     register,
@@ -94,17 +127,57 @@ const AddUpdateEmployee = () => {
       department: "",
       employee_id: "",
       phone_number: "",
+      special_permissions: [],
       is_active: true,
     },
   });
 
-  React.useEffect(() => {
+  const [permissionOptions, setPermissionOptions] = useState([]);
+
+  useEffect(() => {
+    setPermissionOptions(
+      permissions?.data?.map((permission) => ({
+        value: permission.slug,
+        label: permission.name,
+      }))
+    );
+  }, [permissions]);
+
+  // const permissionOptions = useMemo(() => {
+  //   return permissions?.data?.map((permission) => ({
+  //     value: permission.slug,
+  //     label: permission.name,
+  //   }));
+  // }, [permissions]);
+
+  useEffect(() => {
     if (user) {
       reset(user.data);
       setUsername(user.data.username);
       setEmail(user.data.email);
     }
   }, [user, reset]);
+
+  useEffect(() => {
+    if (roleData?.data) {
+      setPermissionOptions(
+        permissionOptions.filter(
+          (permission) =>
+            !roleData.data.permissions.some(
+              (rolePermission) => rolePermission === permission.value
+            )
+        )
+      );
+      setSelectedPermissions(
+        selectedPermissions.filter(
+          (permission) =>
+            !roleData.data.permissions.some(
+              (rolePermission) => rolePermission === permission
+            )
+        )
+      );
+    }
+  }, [roleData, permissionOptions, selectedPermissions]);
 
   const checkIfUsernameExists = useCallback(
     async (username) => {
@@ -174,7 +247,7 @@ const AddUpdateEmployee = () => {
       if (id) {
         delete data.id;
         delete data.email;
-        const response = await updateUser({id, data}).unwrap();
+        const response = await updateUser({ id, data }).unwrap();
         toast.success(response.message);
       } else {
         delete data.confirmpassword;
@@ -191,16 +264,45 @@ const AddUpdateEmployee = () => {
   useEffect(() => {
     if (user) {
       Object.keys(user.data).forEach((key) => {
-        setValue(key, user[key]);
+        console.log(key, user.data[key]);
+        setValue(key, user.data[key]);
       });
+      if (user.data.special_permissions) {
+        setSelectedPermissions(user.data.special_permissions);
+      }
       setUsername(user.data.username);
       setEmail(user.data.email);
     }
   }, [user, setValue]);
 
+  useEffect(() => {
+    setValue("special_permissions", selectedPermissions);
+  }, [selectedPermissions, setValue]);
+
   if (isUserLoading) {
     return <div>Loading...</div>;
   }
+
+  const handleToggle = (value) => {
+    console.log(value);
+    setSelectedPermissions((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
+  };
+
+  const handleToggleAll = () => {
+    if (selectedPermissions.length === permissionOptions?.length) {
+      setSelectedPermissions([]);
+    } else {
+      setSelectedPermissions(permissionOptions?.map((item) => item.value));
+    }
+  };
+
+  const selectedLabels = permissionOptions
+    ?.filter((option) => selectedPermissions.includes(option.value))
+    .map((option) => option.label) || ["Select permissions"];
 
   return (
     <AddUpdatePageLayout title={id ? "Update Employee" : "Add Employee"}>
@@ -218,7 +320,7 @@ const AddUpdateEmployee = () => {
           />
         </div>
 
-        <div className="relative">
+        <div className="grid grid-cols-2 gap-4">
           <CustomInput
             label="Username"
             {...register("username", {
@@ -297,7 +399,10 @@ const AddUpdateEmployee = () => {
           <CustomSelect
             label="Role"
             name="role"
-            rules={{ required: "Role is required" }}
+            rules={{
+              required: "Role is required",
+              onChange: (e) => handleFetchRole(e.target.value),
+            }}
             control={control}
             options={roles?.data?.map((role) => ({
               label: role.name,
@@ -318,6 +423,60 @@ const AddUpdateEmployee = () => {
             placeholder="Select a department"
             error={errors.department}
           />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Select>
+            <SelectTrigger className="w-full h-auto">
+              <div className="flex flex-wrap gap-2">
+                {selectedLabels.length > 0 ? (
+                  selectedLabels.map((label) => (
+                    <div
+                      key={label}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 py-1 rounded flex items-center space-x-1"
+                    >
+                      <span>{label}</span>
+                    </div>
+                  ))
+                ) : (
+                  <SelectValue placeholder="Select special permissions" />
+                )}
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <div className="flex items-center space-x-2">
+                <Controller
+                  control={control}
+                  name="special_permissions"
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value.length === permissionOptions?.length}
+                      onCheckedChange={() => handleToggleAll()}
+                    />
+                  )}
+                />
+                {selectedPermissions.length === permissionOptions?.length ? (
+                  <label htmlFor="unselect_all">Unselect All</label>
+                ) : (
+                  <label htmlFor="select_all">Select All</label>
+                )}
+              </div>
+              {permissionOptions?.map((item) => (
+                <div className="flex items-center space-x-2" key={item.value}>
+                  <Controller
+                    control={control}
+                    name="special_permissions"
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value.includes(item.value)}
+                        onCheckedChange={() => handleToggle(item.value)}
+                      />
+                    )}
+                  />
+                  <label htmlFor={item.value}>{item.label}</label>
+                </div>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
