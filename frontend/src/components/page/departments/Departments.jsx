@@ -4,7 +4,6 @@ import GeneralTable from "@/components/table/CustomTable"; // Assuming GeneralTa
 import {
   useGetAllDepartmentsQuery,
   useDeleteDepartmentMutation,
-  useGetAllDepartmentNameQuery,
 } from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 
@@ -21,7 +20,6 @@ const Departments = () => {
   const { data, isLoading, isFetching, error } =
     useGetAllDepartmentsQuery(filters);
   const [deleteDepartment] = useDeleteDepartmentMutation();
-  const { data: departmentNames } = useGetAllDepartmentNameQuery();
 
   const navigate = useNavigate();
 
@@ -73,18 +71,7 @@ const Departments = () => {
         { label: "Active", value: "true" },
         { label: "Inactive", value: "false" },
       ],
-    },
-    {
-      label: "Department",
-      key: "name",
-      options: [
-        { label: "All", value: "all" },
-        ...(departmentNames?.data?.map((dept) => ({
-          label: dept.name,
-          value: dept.name,
-        })) || []),
-      ],
-    },
+    }
   ];
 
   return (

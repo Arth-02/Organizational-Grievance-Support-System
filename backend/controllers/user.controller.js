@@ -264,7 +264,7 @@ const updateUser = async (req, res) => {
       return errorResponse(res, 400, "User id is required");
     }
     if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid department ID");
+      return errorResponse(res, 400, "Invalid User ID");
     }
     const { error, value } = schema.validate(req.body, {
       abortEarly: false,
@@ -630,6 +630,7 @@ const getAllUsers = async (req, res) => {
       email,
       department,
       permissions,
+      permissionlogic="or",
       sort_by = "created_at",
       order = "desc",
     } = req.query;
@@ -721,13 +722,37 @@ const getAllUsers = async (req, res) => {
     }
 
     if (permissions) {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $setIsSubset: [permissions.split(","), "$merged_permissions"],
-          },
-        },
-      });
+      const permissionArray = permissions.split(",");
+      
+      if (permissionlogic === "or") {
+        pipeline.push({
+          $match: {
+            $expr: {
+              $gt: [
+                { $size: { $setIntersection: [permissionArray, "$merged_permissions"] } },
+                0
+              ]
+            }
+          }
+        });
+      } else if (permissionlogic === "and") {
+        pipeline.push({
+          $match: {
+            $expr: {
+              $setIsSubset: [permissionArray, "$merged_permissions"]
+            }
+          }
+        });
+      } else {
+        console.warn(`Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`);
+        pipeline.push({
+          $match: {
+            $expr: {
+              $setIsSubset: [permissionArray, "$merged_permissions"]
+            }
+          }
+        });
+      }
     }
 
     pipeline.push({

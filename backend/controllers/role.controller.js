@@ -190,7 +190,7 @@ const getAllRoles = async (req, res) => {
     const pagination = {
       currentPage: pageNumber,
       totalPages: totalPages,
-      totalDepartments: totalRoles,
+      totalRoles: totalRoles,
       limit: limitNumber,
       hasNextPage: hasNextPage,
       hasPrevPage: hasPrevPage,

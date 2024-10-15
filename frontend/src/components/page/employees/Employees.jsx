@@ -5,6 +5,7 @@ import {
   useDeleteAllUsersMutation,
   useDeleteUserMutation,
   useGetAllDepartmentNameQuery,
+  useGetAllPermissionsQuery,
   useGetAllRoleNameQuery,
   useGetAllUsersQuery,
 } from "@/services/api.service";
@@ -30,6 +31,7 @@ const Employees = () => {
   const [deleteAllUsers] = useDeleteAllUsersMutation();
   const { data: departmentNames } = useGetAllDepartmentNameQuery();
   const { data: roleNames } = useGetAllRoleNameQuery();
+  const { data: allPermissions } = useGetAllPermissionsQuery();
   const [deleteUser] = useDeleteUserMutation();
 
   const navigate = useNavigate();
@@ -46,17 +48,30 @@ const Employees = () => {
     { accessorKey: "lastname", header: "Last Name", sortable: true },
     { accessorKey: "employee_id", header: "Employee ID", sortable: false },
     { accessorKey: "phone_number", header: "Phone", sortable: false },
-    { 
-      accessorKey: "role_permissions", 
-      header: "Permissions", 
+    {
+      accessorKey: "role_permissions",
+      header: "Permissions",
       sortable: false,
-      cell: ({ row }) => <ManagePermissions permissions={row.original.role_permissions} isEditable={true} />,
+      cell: ({ row }) => (
+        <ManagePermissions
+          permissions={row.original.role_permissions}
+          removePermissions={row.original.special_permissions}
+        />
+      ),
     },
     {
       accessorKey: "special_permissions",
       header: "Special Permissions",
       sortable: false,
-      cell: ({ row }) => ( <ManagePermissions permissions={row.original.special_permissions} isEditable={true} /> ),
+      cell: ({ row }) => (
+        <ManagePermissions
+          permissions={row.original.special_permissions}
+          removePermissions={row.original.role_permissions}
+          id={row.original._id}
+          isEditable={true}
+          edit="employee"
+        />
+      ),
     },
     { accessorKey: "role", header: "Role", sortable: true },
     { accessorKey: "department", header: "Department", sortable: true },
@@ -152,8 +167,20 @@ const Employees = () => {
       key: "role",
       options: [
         { label: "All", value: "all" },
-        ...(roleNames?.data?.map((role) => ({ label: role.name, value: role._id })) ||
-          []),
+        ...(roleNames?.data?.map((role) => ({
+          label: role.name,
+          value: role._id,
+        })) || []),
+      ],
+    },
+    {
+      label: "Permissions",
+      key: "permissions",
+      options: [
+        ...(allPermissions?.data?.map((permission) => ({
+          label: permission.name,
+          value: permission.slug,
+        })) || []),
       ],
     },
   ];

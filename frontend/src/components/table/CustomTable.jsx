@@ -35,7 +35,6 @@ import {
   Check,
   ChevronsUpDown,
   Edit3,
-  Eye,
   EyeOff,
   RefreshCw,
   Settings2,
@@ -59,6 +58,9 @@ import {
 } from "@/components/ui/select";
 import CustomSearch from "@/components/ui/CustomSearch";
 import Modal from "@/components/ui/Model";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const GeneralTable = ({
   data,
@@ -73,7 +75,6 @@ const GeneralTable = ({
   onDelete,
   onDeleteAll,
   onEdit,
-  onView,
   searchOptions,
 }) => {
   const allColumns = [
@@ -105,17 +106,6 @@ const GeneralTable = ({
       hideable: false,
       cell: ({ row }) => (
         <div className="flex gap-2 ml-2">
-          {/* <Tooltip>
-            <TooltipTrigger
-              onClick={() => onView(row.original._id)}
-              className="p-2 h-8 w-8 rounded-md bg-blue-100/50 text-blue-500 hover:bg-blue-100/80 hover:text-blue-700"
-            >
-              <Eye size={15} />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>View</p>
-            </TooltipContent>
-          </Tooltip> */}
           <Tooltip>
             <TooltipTrigger
               onClick={() => onEdit(row.original._id)}
@@ -368,25 +358,130 @@ const GeneralTable = ({
             customFilters.map((filter, index) => (
               <div key={index} className="flex flex-nowrap items-center gap-2">
                 <span>{filter.label}</span>
-                <Select
-                  value={filters[filter.key]}
-                  onValueChange={(value) =>
-                    handleFilterChange(filter.key, value)
-                  }
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder={filter.placeholder || "All"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filter.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {filter.label === "Permissions" ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {filters[filter.key]?.length > 0
+                          ? `Selected (${filters[filter.key].length})`
+                          : "Select permissions"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto h-[400px] overflow-y-auto p-2">
+                      <div className="flex flex-col space-y-2">
+                        {/* OR and AND Option */}
+                        <div className="grid grid-cols-2 gap-4 mb-2">
+                          <RadioGroup
+                            defaultValue="or"
+                            onValueChange={(value) =>
+                              handleFilterChange("permissionlogic", value)
+                            }
+                            className="contents"
+                          >
+                            <div className="flex items-center justify-center bg-secondary rounded-md p-2">
+                              <RadioGroupItem
+                                value="or"
+                                id="option-or"
+                                className="mr-2"
+                              />
+                              <Label htmlFor="option-or">OR</Label>
+                            </div>
+                            <div className="flex items-center justify-center bg-secondary rounded-md p-2">
+                              <RadioGroupItem
+                                value="and"
+                                id="option-and"
+                                className="mr-2"
+                              />
+                              <Label htmlFor="option-and">AND</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+
+                        {/* Select All Option */}
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="select-all"
+                            checked={
+                              filters[filter.key]?.length ===
+                              filter.options.length
+                            }
+                            onCheckedChange={(isChecked) => {
+                              const updatedPermissions = isChecked
+                                ? filter.options.map((option) => option.value)
+                                : [];
+                              handleFilterChange(
+                                filter.key,
+                                updatedPermissions
+                              );
+                            }}
+                          />
+                          {filters[filter.key]?.length ===
+                          filter.options.length ? (
+                            <label htmlFor="select-all">Unselect All</label>
+                          ) : (
+                            <label htmlFor="select-all">Select All</label>
+                          )}
+                        </div>
+                        {filter.options.map((option) => (
+                          <div
+                            key={option.value}
+                            className="flex items-center gap-2"
+                          >
+                            <Checkbox
+                              id={`permission-${option.value}`}
+                              checked={
+                                filters[filter.key]?.includes(option.value) ||
+                                false
+                              }
+                              onCheckedChange={(isChecked) => {
+                                const selectedPermissions =
+                                  filters[filter.key] || [];
+                                const updatedPermissions = isChecked
+                                  ? [...selectedPermissions, option.value]
+                                  : selectedPermissions.filter(
+                                      (perm) => perm !== option.value
+                                    );
+                                handleFilterChange(
+                                  filter.key,
+                                  updatedPermissions
+                                );
+                              }}
+                            />
+                            <label htmlFor={`permission-${option.value}`}>
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Select
+                    value={filters[filter.key]}
+                    onValueChange={(value) =>
+                      handleFilterChange(filter.key, value)
+                    }
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder={filter.placeholder || "All"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filter.options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             ))}
+
           {defaultFilters !== filters && (
             <Button
               variant="outline"
@@ -398,6 +493,7 @@ const GeneralTable = ({
               Reset Filters
             </Button>
           )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

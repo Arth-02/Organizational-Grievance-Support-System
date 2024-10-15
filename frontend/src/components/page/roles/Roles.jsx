@@ -5,8 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import {
   useGetAllRolesQuery,
   useDeleteRoleMutation,
-  useGetAllRoleNameQuery,
-  // useDeleteAllRolesMutation,
+  useGetAllPermissionsQuery,
 } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
 import ManagePermissions from "../employees/ManagePermissions";
@@ -26,8 +25,7 @@ const Roles = () => {
 
   const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
-  const { data: roleNames } = useGetAllRoleNameQuery();
-  // const [deleteAllRoles] = useDeleteAllRolesMutation();
+  const { data: allPermissions } = useGetAllPermissionsQuery();
 
   const columns = [
     {
@@ -39,7 +37,7 @@ const Roles = () => {
       accessorKey: "permissions",
       header: "Permissions",
       sortable: false,
-      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions} isEditable={true} /> ),
+      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions}  id={row.original._id} isEditable={true} /> ),
     },
     {
       accessorKey: "is_active",
@@ -95,12 +93,13 @@ const Roles = () => {
       ],
     },
     {
-      label: "Role",
-      key: "name",
+      label: "Permissions",
+      key: "permissions",
       options: [
-        { label: "All", value: "all" },
-        ...(roleNames?.data?.map((role) => ({ label: role.name, value: role.name })) ||
-          []),
+        ...(allPermissions?.data?.map((permission) => ({
+          label: permission.name,
+          value: permission.slug,
+        })) || []),
       ],
     },
   ];

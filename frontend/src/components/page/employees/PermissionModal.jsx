@@ -24,6 +24,7 @@ const PermissionsModal = ({
   isOpen,
   onClose,
   initialPermissions = [],
+  removePermissions = [],
   onSave,
 }) => {
   const {
@@ -54,9 +55,10 @@ const PermissionsModal = ({
   };
   useEffect(() => {
     if (allPermissions?.data) {
+      const filterPermissions = [...new Set([...selectedPermissions, ...removePermissions])];
       setOptionPermissions(
         allPermissions.data.filter(
-          (p) => !selectedPermissions.some((sp) => sp.slug === p.slug)
+          (p) => !filterPermissions.some((sp) => sp.slug === p.slug)
         )
       );
     }

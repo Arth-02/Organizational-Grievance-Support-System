@@ -21,9 +21,9 @@ export const apiService = createApi({
       },
     }),
     getProfile: builder.query({
-      query: (body) => ({
+      query: () => ({
         headers: {
-          Authorization: `Bearer ${body.token}`,
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
         url: "users/profile",
         method: "GET",
