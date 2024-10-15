@@ -12,6 +12,7 @@ import {
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import ManagePermissions from "./ManagePermissions";
+import { useSelector } from "react-redux";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
@@ -33,6 +34,10 @@ const Employees = () => {
   const { data: roleNames } = useGetAllRoleNameQuery();
   const { data: allPermissions } = useGetAllPermissionsQuery();
   const [deleteUser] = useDeleteUserMutation();
+
+  const userPermissions = useSelector(
+    (state) => state.user.permissions
+  ).includes("CREATE_USER");
 
   const navigate = useNavigate();
 
@@ -188,9 +193,9 @@ const Employees = () => {
 
   return (
     <MainLayout
-      title={"Employees"}
-      buttonTitle={"Add New Employee"}
-      buttonLink={"/employees/add"}
+      title="Employees"
+      buttonTitle={userPermissions ? "Add New Employee" : undefined}
+      buttonLink={userPermissions ? "/employees/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.users || []}

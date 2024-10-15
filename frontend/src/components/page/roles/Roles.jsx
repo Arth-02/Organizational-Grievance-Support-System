@@ -9,6 +9,7 @@ import {
 } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
 import ManagePermissions from "../employees/ManagePermissions";
+import { useSelector } from "react-redux";
 
 const Roles = () => {
   const [filters, setFilters] = useState({
@@ -22,6 +23,10 @@ const Roles = () => {
   });
 
   const navigate = useNavigate();
+
+  const userPermissions = useSelector(
+    (state) => state.user.permissions
+  ).includes("CREATE_ROLE");
 
   const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
@@ -37,7 +42,14 @@ const Roles = () => {
       accessorKey: "permissions",
       header: "Permissions",
       sortable: false,
-      cell: ({ row }) => ( <ManagePermissions permissions={row.original.permissions}  id={row.original._id} isEditable={true} edit="role" /> ),
+      cell: ({ row }) => (
+        <ManagePermissions
+          permissions={row.original.permissions}
+          id={row.original._id}
+          isEditable={true}
+          edit="role"
+        />
+      ),
     },
     {
       accessorKey: "is_active",
@@ -67,7 +79,7 @@ const Roles = () => {
   // };
 
   const handleEdit = (id) => {
-    navigate(`/roles/update/${id}`);// Add your navigation logic
+    navigate(`/roles/update/${id}`); // Add your navigation logic
   };
 
   const handleView = (id) => {
@@ -79,7 +91,7 @@ const Roles = () => {
       label: "Name",
       example: "Admin",
       value: "name",
-    }
+    },
   ];
 
   const customFilters = [
@@ -107,8 +119,8 @@ const Roles = () => {
   return (
     <MainLayout
       title={"Roles"}
-      buttonTitle={"Add New Role"}
-      buttonLink={"/roles/add"}
+      buttonTitle={userPermissions ? "Add Role" : undefined}
+      buttonLink={userPermissions ? "/roles/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.roles || []}

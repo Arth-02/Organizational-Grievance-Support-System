@@ -3,15 +3,24 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Edit2,Eye } from "lucide-react";
+import { Edit2, Eye, SquarePlus } from "lucide-react";
 import { useState } from "react";
 import PermissionsModal from "./PermissionModal";
-import { useUpdateRoleMutation, useUpdateUserMutation } from "@/services/api.service";
+import {
+  useUpdateRoleMutation,
+  useUpdateUserMutation,
+} from "@/services/api.service";
 import toast from "react-hot-toast";
 import ViewPermissionsModal from "./ViewPermissionsModal";
 import { useSelector } from "react-redux";
 
-const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false, id="none", edit="none" }) => {
+const ManagePermissions = ({
+  permissions,
+  removePermissions = [],
+  isEditable = false,
+  id = "none",
+  edit = "none",
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
@@ -20,8 +29,6 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
     setIsModalOpen(true);
   };
   const userPermissions = useSelector((state) => state.user.permissions);
-
-
 
   const handleSavePermissions = async (newPermissions) => {
     newPermissions = newPermissions.map((permission) => permission.slug);
@@ -44,7 +51,33 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
 
   return (
     <div>
-      {permissions.length === 0 && <div className="text-center">-</div>}
+      
+      {permissions.length === 0 && (
+        ((isEditable &&
+          edit === "employee" &&
+          userPermissions.includes("UPDATE_USER")) ||
+        (isEditable &&
+          edit === "role" &&
+          userPermissions.includes("UPDATE_ROLE"))) ?(
+            <Tooltip>
+              <TooltipTrigger>
+                <SquarePlus
+                  onClick={handleEditPermissions}
+                  size={30}
+                  className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
+                    isUpdatingRole || isUpdatingUser
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  disabled={isUpdatingRole || isUpdatingUser} // Disable button while updating
+                />
+              </TooltipTrigger>
+              <TooltipContent>Add Permissions</TooltipContent>
+            </Tooltip>
+          ):(
+            <div className="text-center">-</div>
+          )
+      )}
       {permissions.length > 0 && (
         <div className="relative group flex items-center">
           <div
@@ -52,30 +85,39 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
           >
             {permissions.map((permission) => permission.name).join(", ")}
           </div>
-          {((isEditable && edit==="employee" && userPermissions.includes("UPDATE_USER"))||(isEditable && edit==="role" && userPermissions.includes("UPDATE_ROLE")))? (
+          {(isEditable &&
+            edit === "employee" &&
+            userPermissions.includes("UPDATE_USER")) ||
+          (isEditable &&
+            edit === "role" &&
+            userPermissions.includes("UPDATE_ROLE")) ? (
             <Tooltip>
               <TooltipTrigger>
                 <Edit2
                   onClick={handleEditPermissions}
                   size={30}
                   className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
-                    isUpdatingRole|| isUpdatingUser ? "opacity-50 cursor-not-allowed" : ""
+                    isUpdatingRole || isUpdatingUser
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
-                  disabled={isUpdatingRole|| isUpdatingUser} // Disable button while updating
+                  disabled={isUpdatingRole || isUpdatingUser} // Disable button while updating
                 />
               </TooltipTrigger>
               <TooltipContent>Edit Permissions</TooltipContent>
             </Tooltip>
-          ):(
+          ) : (
             <Tooltip>
               <TooltipTrigger>
                 <Eye
                   onClick={() => setIsViewModalOpen(true)}
                   size={30}
                   className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
-                    isUpdatingRole|| isUpdatingUser ? "opacity-50 cursor-not-allowed" : ""
+                    isUpdatingRole || isUpdatingUser
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
-                  disabled={isUpdatingRole|| isUpdatingUser} // Disable button while updating
+                  disabled={isUpdatingRole || isUpdatingUser} // Disable button while updating
                 />
               </TooltipTrigger>
               <TooltipContent>View Permissions</TooltipContent>
@@ -90,7 +132,7 @@ const ManagePermissions = ({ permissions, removePermissions=[], isEditable=false
           initialPermissions={permissions}
           removePermissions={removePermissions}
           onSave={handleSavePermissions}
-          isLoading={isUpdatingRole|| isUpdatingUser} // Pass loading state to modal
+          isLoading={isUpdatingRole || isUpdatingUser} // Pass loading state to modal
         />
       )}
       {isViewModalOpen && (

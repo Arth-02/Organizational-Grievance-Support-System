@@ -6,6 +6,7 @@ import {
   useDeleteDepartmentMutation,
 } from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
+import { useSelector } from "react-redux";
 
 const Departments = () => {
   const [filters, setFilters] = useState({
@@ -22,6 +23,10 @@ const Departments = () => {
   const [deleteDepartment] = useDeleteDepartmentMutation();
 
   const navigate = useNavigate();
+
+  const userPermissions = useSelector(
+    (state) => state.user.permissions
+  ).includes("CREATE_DEPARTMENT");
 
   const columns = [
     { accessorKey: "name", header: "Name", sortable: true },
@@ -71,14 +76,14 @@ const Departments = () => {
         { label: "Active", value: "true" },
         { label: "Inactive", value: "false" },
       ],
-    }
+    },
   ];
 
   return (
     <MainLayout
       title={"Departments"}
-      buttonTitle={"Add New Department"}
-      buttonLink={"/departments/add"}
+      buttonTitle={userPermissions ? "Add Department" : undefined}
+      buttonLink={userPermissions ? "/departments/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.departments || []}
