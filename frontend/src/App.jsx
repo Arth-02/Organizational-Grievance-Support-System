@@ -119,9 +119,8 @@ function App() {
                 </PermissionGuard>
               }
             />
-
-            <Route path="/unauthorized" element={<Unauthorized />} />
           </Route>
+          <Route path="*" element={<Unauthorized />} />
         </Routes>
       </BrowserRouter>
     </>

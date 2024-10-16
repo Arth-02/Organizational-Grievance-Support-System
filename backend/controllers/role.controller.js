@@ -145,6 +145,7 @@ const getAllRoles = async (req, res) => {
       name,
       permissions,
       sort_by = "created_at",
+      permissionlogic="or",
       order = "desc",
     } = req.query;
     const pageNumber = parseInt(page, 10);
@@ -161,12 +162,49 @@ const getAllRoles = async (req, res) => {
     if (name) {
       query.name = { $regex: name, $options: "i" };
     }
+    const pipeline = [{ $match: query }];
+    
     if (permissions) {
-      query.permissions = { $all: permissions.split(",") };
+      const permissionArray = permissions.split(",");
+      console.log(permissionArray);
+      
+      if (permissionlogic === "or") {
+        pipeline.push({
+          $match: {
+            $expr: {
+              $gt: [
+                { $size: { $setIntersection: [permissionArray, "$role.permissions"] } },
+                0
+              ]
+            }
+          }
+        });
+      } else if (permissionlogic === "and") {
+        pipeline.push({
+          $match: {
+            $expr: {
+              $setIsSubset: [permissionArray, "$role.permissions"]
+            }
+          }
+        });
+      } else {
+        console.warn(`Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`);
+        pipeline.push({
+          $match: {
+            $expr: {
+              $setIsSubset: [permissionArray, "$role.permissions"]
+            }
+          }
+        });
+      }
     }
+    // const [roles, totalRoles] = await Promise.all([
+    //   Role.aggregate(pipeline),
+    //   Role.countDocuments(query),
+    // ]);
 
     const roles = await Role.find(query)
-      .collation({ locale: "en", strength: 2 }) // Case-insensitive collation
+      .collation({ locale: "en", strength: 2 })
       .sort({ [sort_by]: order === "desc" ? -1 : 1 })
       .skip(skip)
       .limit(limitNumber)

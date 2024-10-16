@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+// import { Navigate } from "react-router-dom";
+import Unauthorized from "./Unauthorized";
 
 const PermissionGuard = ({ requiredPermissions, children }) => {
   const userPermissions = useSelector((state) => state.user.permissions);
@@ -8,7 +9,7 @@ const PermissionGuard = ({ requiredPermissions, children }) => {
   );
 
   if (!hasPermission) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Unauthorized />;
   }
   return <>{children}</>;
 };
