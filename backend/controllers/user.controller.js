@@ -46,8 +46,8 @@ const login = async (req, res) => {
       is_active: true,
     })
       .select("+password")
-      .populate({ path: "role", select: "name" })
-      .populate({ path: "department", select: "name" })
+      .populate("role")
+      .populate("department")
       .populate({ path: "organization_id", select: "name logo" });
     if (!user) {
       return errorResponse(res, 404, "User not found");
@@ -83,6 +83,7 @@ const login = async (req, res) => {
       role: user.role,
       organization_id: user.organization_id,
       department: user.department,
+      special_permissions: user.special_permissions,
       token,
     };
 

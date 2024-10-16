@@ -27,8 +27,9 @@ import {
   useGetAllPermissionsQuery,
   useGetRoleByIdQuery,
 } from "@/services/api.service";
-import { useToaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
+import { result } from "lodash";
 
 const schema = z
   .object({
@@ -64,7 +65,6 @@ const schema = z
 const AddUpdateEmployee = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToaster();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [roleId, setRoleId] = useState("");
@@ -143,18 +143,12 @@ const AddUpdateEmployee = () => {
     );
   }, [permissions]);
 
-  // const permissionOptions = useMemo(() => {
-  //   return permissions?.data?.map((permission) => ({
-  //     value: permission.slug,
-  //     label: permission.name,
-  //   }));
-  // }, [permissions]);
-
   useEffect(() => {
     if (user) {
       reset(user.data);
       setUsername(user.data.username);
       setEmail(user.data.email);
+      setRoleId(user.data.role);
     }
   }, [user, reset]);
 
@@ -177,7 +171,7 @@ const AddUpdateEmployee = () => {
         )
       );
     }
-  }, [roleData, permissionOptions, selectedPermissions]);
+  }, [roleData]);
 
   const checkIfUsernameExists = useCallback(
     async (username) => {
@@ -243,6 +237,7 @@ const AddUpdateEmployee = () => {
   useDebounce(username, 700, checkIfUsernameExists);
 
   const onSubmit = async (data) => {
+    console.log(data);
     try {
       if (id) {
         delete data.id;
@@ -264,7 +259,6 @@ const AddUpdateEmployee = () => {
   useEffect(() => {
     if (user) {
       Object.keys(user.data).forEach((key) => {
-        console.log(key, user.data[key]);
         setValue(key, user.data[key]);
       });
       if (user.data.special_permissions) {
@@ -272,6 +266,7 @@ const AddUpdateEmployee = () => {
       }
       setUsername(user.data.username);
       setEmail(user.data.email);
+      setRoleId(user.data.role);
     }
   }, [user, setValue]);
 
@@ -284,7 +279,6 @@ const AddUpdateEmployee = () => {
   }
 
   const handleToggle = (value) => {
-    console.log(value);
     setSelectedPermissions((prev) =>
       prev.includes(value)
         ? prev.filter((item) => item !== value)
@@ -425,58 +419,68 @@ const AddUpdateEmployee = () => {
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Select>
-            <SelectTrigger className="w-full h-auto">
-              <div className="flex flex-wrap gap-2">
-                {selectedLabels.length > 0 ? (
-                  selectedLabels.map((label) => (
-                    <div
-                      key={label}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 py-1 rounded flex items-center space-x-1"
-                    >
-                      <span>{label}</span>
-                    </div>
-                  ))
-                ) : (
-                  <SelectValue placeholder="Select special permissions" />
-                )}
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <div className="flex items-center space-x-2">
-                <Controller
-                  control={control}
-                  name="special_permissions"
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value.length === permissionOptions?.length}
-                      onCheckedChange={() => handleToggleAll()}
-                    />
+          <div className="">
+            <label
+              htmlFor="special-permissions"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Special Permissions
+            </label>
+            <Select id="special-permissions">
+              <SelectTrigger className="w-full h-auto">
+                <div className="flex flex-wrap gap-2">
+                  {selectedLabels.length > 0 ? (
+                    selectedLabels.map((label) => (
+                      <div
+                        key={label}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 py-1 rounded flex items-center space-x-1"
+                      >
+                        <span>{label}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <SelectValue placeholder="Select special permissions" />
                   )}
-                />
-                {selectedPermissions.length === permissionOptions?.length ? (
-                  <label htmlFor="unselect_all">Unselect All</label>
-                ) : (
-                  <label htmlFor="select_all">Select All</label>
-                )}
-              </div>
-              {permissionOptions?.map((item) => (
-                <div className="flex items-center space-x-2" key={item.value}>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <div className="flex items-center space-x-2">
                   <Controller
                     control={control}
                     name="special_permissions"
                     render={({ field }) => (
                       <Checkbox
-                        checked={field.value.includes(item.value)}
-                        onCheckedChange={() => handleToggle(item.value)}
+                        checked={
+                          field.value.length === permissionOptions?.length
+                        }
+                        onCheckedChange={() => handleToggleAll()}
                       />
                     )}
                   />
-                  <label htmlFor={item.value}>{item.label}</label>
+                  {selectedPermissions.length === permissionOptions?.length ? (
+                    <label htmlFor="unselect_all">Unselect All</label>
+                  ) : (
+                    <label htmlFor="select_all">Select All</label>
+                  )}
                 </div>
-              ))}
-            </SelectContent>
-          </Select>
+                {permissionOptions?.map((item) => (
+                  <div className="flex items-center space-x-2" key={item.value}>
+                    <Controller
+                      control={control}
+                      name="special_permissions"
+                      render={({ field }) => (
+                        <Checkbox
+                          checked={field.value.includes(item.value)}
+                          onCheckedChange={() => handleToggle(item.value)}
+                        />
+                      )}
+                    />
+                    <label htmlFor={item.value}>{item.label}</label>
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

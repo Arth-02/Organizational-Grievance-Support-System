@@ -134,6 +134,13 @@ const AddUpdateRole = () => {
 
         {/* Dropdown for Permissions */}
         <div className="">
+        <div className="">
+            <label
+              htmlFor="permissions"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Permissions
+            </label>
           <Select>
             <SelectTrigger className="w-full h-auto">
               <div className="flex flex-wrap gap-2">
@@ -186,6 +193,7 @@ const AddUpdateRole = () => {
               ))}
             </SelectContent>
           </Select>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">

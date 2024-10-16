@@ -4,13 +4,13 @@ import { getFromLocalStorage, saveToLocalStorage } from "@/utils";
 
 const initialState = {
   user: null,
-  token: getFromLocalStorage('token') || null,
-  organization: getFromLocalStorage('organizationId') || null,
-  role: getFromLocalStorage('roleId') || null,
-  department: getFromLocalStorage('departmentId') || null,
+  token: getFromLocalStorage("token") || null,
+  organization: getFromLocalStorage("organizationId") || null,
+  role: getFromLocalStorage("roleId") || null,
+  department: getFromLocalStorage("departmentId") || null,
   permissions: [],
 };
-  
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -18,7 +18,9 @@ const userSlice = createSlice({
     setUserDetails: (state, action) => {
       state.user = action.payload.data;
       const rolePermissions = state.user.role.permissions.map((p) => p.slug);
-      state.permissions = [...new Set([...rolePermissions, ...state.user.special_permissions])];
+      state.permissions = [
+        ...new Set([...rolePermissions, ...state.user.special_permissions]),
+      ];
     },
     logout: (state) => {
       state.user = null;
@@ -26,12 +28,12 @@ const userSlice = createSlice({
       state.organization = null;
       state.role = null;
       state.department = null;
-      
+
       // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('organizationId');
-      localStorage.removeItem('roleId');
-      localStorage.removeItem('departmentId');
+      localStorage.removeItem("token");
+      localStorage.removeItem("organizationId");
+      localStorage.removeItem("roleId");
+      localStorage.removeItem("departmentId");
     },
   },
   extraReducers: (builder) => {
@@ -39,16 +41,14 @@ const userSlice = createSlice({
       .addMatcher(
         apiService.endpoints.userLogin.matchFulfilled,
         (state, action) => {
-          state.user = {
-            email: action.payload.email,
-            id: action.payload.id,
-            username: action.payload.username,
-          };
+          state.user = action.payload;
           state.token = action.payload.token;
-          state.organization = action.payload.organization_id;
           state.role = action.payload.role;
           state.department = action.payload.department;
-
+          if (state.role.name !== "DEV") {
+            state.organization = action.payload.organization_id;
+          }
+          state.permissions = [...new Set([...state.user.role.permissions, ...state.user.special_permissions])];
           // Save values to localStorage
           saveToLocalStorage("token", state.token);
           saveToLocalStorage("roleId", state.role._id);
@@ -56,6 +56,7 @@ const userSlice = createSlice({
           if (state.role.name !== "DEV") {
             saveToLocalStorage("organizationId", state.organization._id);
           }
+          console.log("All done")
         }
       )
       .addMatcher(

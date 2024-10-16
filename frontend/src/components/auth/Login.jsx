@@ -35,9 +35,11 @@ const Login = () => {
         : { username, password };
 
       const response = await login(loginData).unwrap();
+      console.log(response);
       if (response) {
         toast.success("Login successful!");
         if (response.role.name) {
+
           navigate("/");
         } else {
           toast.error("You are not authorized to access the page!");

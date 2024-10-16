@@ -117,14 +117,6 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
     ...(userPermissions.includes('VIEW_DEPARTMENT') 
     ? [{ icon: <Building />, label: "Departments", path: "/departments" }] 
     : []),
-    {
-      icon: <Lock />,
-      label: "Authentication",
-      children: [
-        { label: "Login", path: "/login", icon: <LogIn /> },
-        { label: "Register", path: "/register", icon: <LogIn /> },
-      ],
-    },
   ];
 
   return (

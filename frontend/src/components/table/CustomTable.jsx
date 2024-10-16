@@ -158,37 +158,6 @@ const GeneralTable = ({
           },
         ]
       : []),
-    // {
-    //   accessorKey: "actions",
-    //   header: "Actions",
-    //   hideable: false,
-    //   cell: ({ row }) => (
-    //     <div className="flex gap-2 ml-2">
-    //       <Tooltip>
-    //         <TooltipTrigger
-    //           onClick={() => onEdit(row.original._id)}
-    //           className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
-    //         >
-    //           <Edit3 size={15} />
-    //         </TooltipTrigger>
-    //         <TooltipContent>
-    //           <p>Edit</p>
-    //         </TooltipContent>
-    //       </Tooltip>
-    //       <Tooltip>
-    //         <TooltipTrigger
-    //           onClick={() => handleDeleteClick(row.original._id)}
-    //           className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
-    //         >
-    //           <Trash size={15} />
-    //         </TooltipTrigger>
-    //         <TooltipContent>
-    //           <p>Delete</p>
-    //         </TooltipContent>
-    //       </Tooltip>
-    //     </div>
-    //   ),
-    // },
   ];
 
   const defaultFilters = filters;
@@ -756,7 +725,7 @@ const GeneralTable = ({
             {selectedRows.length === 1 && (
               <Tooltip>
                 <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
-                  <Edit3 size={18} />
+                  <Edit3 size={18}  onClick={()=>onEdit(selectedRows[0])}/>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Edit Row</p>
