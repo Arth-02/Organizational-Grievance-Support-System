@@ -62,6 +62,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useSelector } from "react-redux";
+import { Separator } from "../ui/separator";
 
 const GeneralTable = ({
   data,
@@ -373,6 +374,30 @@ const GeneralTable = ({
     setFilters(defaultFilters);
   };
 
+  const shallowEqual = (obj1, obj2) => {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+  
+    // If the number of keys is different, objects are not equal
+    if (keys1.length !== keys2.length) {
+      console.log("length");
+      return false;
+    }
+  
+    // Check if all values are the same
+    for (let key of keys1) {
+      if (obj1[key] !== obj2[key]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const isFilterSame = shallowEqual(defaultFilters, filters);
+
+  console.log(defaultFilters, filters)
+  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-end">
@@ -399,10 +424,10 @@ const GeneralTable = ({
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto h-[400px] overflow-y-auto p-2">
+                    <PopoverContent className="w-auto h-[400px] overflow-y-auto p-0">
                       <div className="flex flex-col space-y-2">
                         {/* OR and AND Option */}
-                        <div className="grid grid-cols-2 gap-4 mb-2">
+                        <div className="grid grid-cols-2 gap-4 sticky top-0 p-2 pb-3 bg-white">
                           <RadioGroup
                             defaultValue="or"
                             onValueChange={(value) =>
@@ -410,7 +435,7 @@ const GeneralTable = ({
                             }
                             className="contents"
                           >
-                            <div className="flex items-center justify-center bg-secondary rounded-md p-2">
+                            <div className="flex items-center justify-center bg-secondary/40 rounded-md p-2">
                               <RadioGroupItem
                                 value="or"
                                 id="option-or"
@@ -418,7 +443,7 @@ const GeneralTable = ({
                               />
                               <Label htmlFor="option-or">OR</Label>
                             </div>
-                            <div className="flex items-center justify-center bg-secondary rounded-md p-2">
+                            <div className="flex items-center justify-center bg-secondary/40 rounded-md p-2">
                               <RadioGroupItem
                                 value="and"
                                 id="option-and"
@@ -430,7 +455,7 @@ const GeneralTable = ({
                         </div>
 
                         {/* Select All Option */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-2">
                           <Checkbox
                             id="select-all"
                             checked={
@@ -454,10 +479,11 @@ const GeneralTable = ({
                             <label htmlFor="select-all">Select All</label>
                           )}
                         </div>
+                        <Separator className="my-1 bg-secondary w-[95%] mx-auto" />
                         {filter.options.map((option) => (
                           <div
                             key={option.value}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 px-2 last:!mb-2"
                           >
                             <Checkbox
                               id={`permission-${option.value}`}
@@ -509,7 +535,8 @@ const GeneralTable = ({
               </div>
             ))}
 
-          {defaultFilters !== filters && (
+          {console.log(isFilterSame)}
+          {!isFilterSame && (
             <Button
               variant="outline"
               size="sm"

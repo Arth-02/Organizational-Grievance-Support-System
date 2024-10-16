@@ -26,6 +26,7 @@ const Employees = () => {
     department: "all",
     sort_by: "created_at",
     order: "desc",
+    permissionlogic: "or",
   });
 
   const { data, isLoading, isFetching, error } = useGetAllUsersQuery(filters);
