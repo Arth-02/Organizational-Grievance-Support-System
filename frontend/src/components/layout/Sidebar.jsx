@@ -6,8 +6,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Home,
-  Lock,
-  LogIn,
   Users,
 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -106,18 +104,16 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const userPermissions = useSelector((state) => state.user.permissions);
 
+  const createMenuItem = (icon, label, path, permission) => 
+    userPermissions.includes(permission) ? [{ icon, label, path }] : [];
+  
   const menuItems = [
-    { icon: <Home />, label: "Dashboard", path: "/dashboard" },
-    ...(userPermissions.includes('VIEW_USER') 
-    ? [{ icon: <Users />, label: "Employees", path: "/employees" }] 
-    : []),
-    ...(userPermissions.includes('VIEW_ROLE') 
-    ? [{ icon: <Briefcase />, label: "Roles", path: "/roles" }] 
-    : []),
-    ...(userPermissions.includes('VIEW_DEPARTMENT') 
-    ? [{ icon: <Building />, label: "Departments", path: "/departments" }] 
-    : []),
+    { icon: <Home />, label: "Dashboard", path: "/" },
+    ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
+    ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
+    ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
   ];
+  
 
   return (
     <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white top-0 left-0 ${

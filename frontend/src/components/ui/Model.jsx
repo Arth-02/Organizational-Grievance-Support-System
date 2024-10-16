@@ -19,6 +19,7 @@ const Modal = ({
   onConfirm,
   confirmText,
   confirmVariant,
+  shoudlShowCancel = true,
 }) => {
   if (!React.isValidElement(children)) {
     return null; // or return a fallback UI
@@ -28,18 +29,24 @@ const Modal = ({
       {open && <div className="bg-black/80 fixed inset-0 z-50 !mt-0" />}
       <DialogContent className={`${className} !px-0`}>
         <DialogHeader className="px-6">
-          <DialogTitle className="text-lg font-semibold leading-none tracking-tight">{title}</DialogTitle>
+          <DialogTitle className="text-lg font-semibold leading-none tracking-tight">
+            {title}
+          </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        {React.cloneElement(children, { className: `${children.props.className || ''} pr-0 pl-6`.trim() })}
+        {React.cloneElement(children, {
+          className: `${children.props.className || ""} pr-0 pl-6`.trim(),
+        })}
         <DialogFooter className="px-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
+          {shoudlShowCancel && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+          )}
           <Button variant={confirmVariant} size="sm" onClick={onConfirm}>
             {confirmText}
           </Button>

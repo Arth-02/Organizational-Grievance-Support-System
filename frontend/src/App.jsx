@@ -45,7 +45,7 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/dashboard" element={<Counter />} />
+            <Route path="/" element={<Counter />} />
             <Route
               path="/employees"
               element={

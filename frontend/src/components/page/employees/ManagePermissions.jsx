@@ -58,19 +58,21 @@ const ManagePermissions = ({
           userPermissions.includes("UPDATE_USER")) ||
         (isEditable &&
           edit === "role" &&
-          userPermissions.includes("UPDATE_ROLE"))) ?(
+          userPermissions.includes("UPDATE_ROLE"))) ? (
             <Tooltip>
               <TooltipTrigger>
+                <div className="w-60 flex items-center justify-center">
                 <SquarePlus
                   onClick={handleEditPermissions}
                   size={30}
-                  className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
+                  className={`cursor-pointer p-[6px] items-center rounded-md text-black/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
                     isUpdatingRole || isUpdatingUser
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}
                   disabled={isUpdatingRole || isUpdatingUser} // Disable button while updating
                 />
+                </div>
               </TooltipTrigger>
               <TooltipContent>Add Permissions</TooltipContent>
             </Tooltip>
@@ -78,10 +80,11 @@ const ManagePermissions = ({
             <div className="text-center">-</div>
           )
       )}
+
       {permissions.length > 0 && (
         <div className="relative group flex items-center">
           <div
-            className={`max-w-64 overflow-hidden text-ellipsis text-nowrap group-hover:pr-2 transition-all duration-200`}
+            className={`w-60 overflow-hidden text-ellipsis text-nowrap pr-1 transition-all duration-200`}
           >
             {permissions.map((permission) => permission.name).join(", ")}
           </div>
@@ -96,7 +99,7 @@ const ManagePermissions = ({
                 <Edit2
                   onClick={handleEditPermissions}
                   size={30}
-                  className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
+                  className={`cursor-pointer p-[6px] rounded-md text-black/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
                     isUpdatingRole || isUpdatingUser
                       ? "opacity-50 cursor-not-allowed"
                       : ""
@@ -112,7 +115,7 @@ const ManagePermissions = ({
                 <Eye
                   onClick={() => setIsViewModalOpen(true)}
                   size={30}
-                  className={`cursor-pointer p-[6px] rounded-md hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
+                  className={`cursor-pointer p-[6px] rounded-md text-black/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
                     isUpdatingRole || isUpdatingUser
                       ? "opacity-50 cursor-not-allowed"
                       : ""
