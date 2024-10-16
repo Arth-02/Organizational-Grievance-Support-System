@@ -2,7 +2,7 @@ import { Button } from "./components/ui/button";
 
 const Unauthorized = () => {
     return (
-      <div className="flex flex-col items-center justify-center min-h-full bg-gray-100">
+      <div className="flex flex-col items-center justify-center h-full bg-gray-100">
         <h1 className="text-4xl font-bold text-primary mb-4">Unauthorized</h1>
         <p className="text-lg text-gray-700">
           You do not have permission to access this page.
