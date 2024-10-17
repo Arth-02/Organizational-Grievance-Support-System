@@ -145,7 +145,7 @@ const getAllRoles = async (req, res) => {
       name,
       permissions,
       sort_by = "created_at",
-      permissionlogic="or",
+      permissionlogic = "or",
       order = "desc",
     } = req.query;
     const pageNumber = parseInt(page, 10);
@@ -162,57 +162,77 @@ const getAllRoles = async (req, res) => {
     if (name) {
       query.name = { $regex: name, $options: "i" };
     }
+
     const pipeline = [{ $match: query }];
-    
+
     if (permissions) {
       const permissionArray = permissions.split(",");
-      console.log(permissionArray);
-      
       if (permissionlogic === "or") {
         pipeline.push({
           $match: {
             $expr: {
               $gt: [
-                { $size: { $setIntersection: [permissionArray, "$role.permissions"] } },
-                0
-              ]
-            }
-          }
+                { $size: { $setIntersection: [permissionArray, "$permissions"] } },
+                0,
+              ],
+            },
+          },
         });
       } else if (permissionlogic === "and") {
         pipeline.push({
           $match: {
             $expr: {
-              $setIsSubset: [permissionArray, "$role.permissions"]
-            }
-          }
+              $setIsSubset: [permissionArray, "$permissions"],
+            },
+          },
         });
       } else {
         console.warn(`Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`);
         pipeline.push({
           $match: {
             $expr: {
-              $setIsSubset: [permissionArray, "$role.permissions"]
-            }
-          }
+              $setIsSubset: [permissionArray, "$permissions"],
+            },
+          },
         });
       }
     }
-    // const [roles, totalRoles] = await Promise.all([
-    //   Role.aggregate(pipeline),
-    //   Role.countDocuments(query),
-    // ]);
 
-    const roles = await Role.find(query)
-      .collation({ locale: "en", strength: 2 })
-      .sort({ [sort_by]: order === "desc" ? -1 : 1 })
-      .skip(skip)
-      .limit(limitNumber)
-      .lean();
+    pipeline.push(
+      { $sort: { [sort_by]: order === "desc" ? -1 : 1 } },
+      { $skip: skip },
+      { $limit: limitNumber }
+    );
+
+    pipeline.push({
+      $facet: {
+        roles: [
+          {
+            $project: {
+              name: 1,
+              permissions: 1,
+              is_active: 1,
+              organization_id: 1,
+              created_at: 1,
+            },
+          },
+        ],
+        totalRoles: [{ $count: "count" }],
+      },
+    });
+
+    const [result] = await Role.aggregate(pipeline);
+
+    const roles = result.roles || [];
+    const totalRoles = result.totalRoles.length ? result.totalRoles[0].count : 0;
+    const totalPages = Math.ceil(totalRoles / limitNumber);
+    const hasNextPage = pageNumber < totalPages;
+    const hasPrevPage = pageNumber > 1;
 
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
     }
+
     for (let i = 0; i < roles.length; i++) {
       roles[i].permissions = roles[i].permissions
         .map((permissionSlug) =>
@@ -220,26 +240,19 @@ const getAllRoles = async (req, res) => {
         )
         .filter(Boolean);
     }
-    const totalRoles = await Role.countDocuments(query);
-    const totalPages = Math.ceil(totalRoles / limitNumber);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
 
     const pagination = {
       currentPage: pageNumber,
-      totalPages: totalPages,
-      totalRoles: totalRoles,
+      totalPages,
+      totalRoles,
       limit: limitNumber,
-      hasNextPage: hasNextPage,
-      hasPrevPage: hasPrevPage,
+      hasNextPage,
+      hasPrevPage,
     };
 
     return successResponse(
       res,
-      {
-        roles,
-        pagination,
-      },
+      { roles, pagination },
       "Roles retrieved successfully"
     );
   } catch (err) {
@@ -247,6 +260,7 @@ const getAllRoles = async (req, res) => {
     return catchResponse(res);
   }
 };
+
 
 // delete role
 const deleteRole = async (req, res) => {

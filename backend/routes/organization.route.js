@@ -8,7 +8,7 @@ const { isLoggedIn } = require("../middlewares/auth.middleware");
 const router = require("express").Router();
 
 router.post("/create", upload.array("logo", 1), createOrganization);
-router.post("/update", updateOrganization);
+router.post("/update", isLoggedIn, updateOrganization);
 router.get("/details/:id", isLoggedIn, getOrganizationById);
 
 module.exports = router;
