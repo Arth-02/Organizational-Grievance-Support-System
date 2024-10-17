@@ -10,12 +10,12 @@ import { useSelector } from "react-redux";
 
 const Departments = () => {
   const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10,
-    name: "",
-    is_active: "",
-    sort_by: "created_at",
-    order: "desc",
+    // page: 1,
+    // limit: 10,
+    // name: "",
+    // is_active: "",
+    // sort_by: "created_at",
+    // order: "desc",
   });
 
   const { data, isLoading, isFetching, error } =

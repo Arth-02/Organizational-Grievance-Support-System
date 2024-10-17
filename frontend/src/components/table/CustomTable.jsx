@@ -61,8 +61,11 @@ import Modal from "@/components/ui/Model";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Separator } from "../ui/separator";
+import { resetUserFilter, setUserFilter } from "@/features/userSlice";
+import { resetRoleFilter, setRoleFilter } from "@/features/roleSlice";
+import { resetDepartmentFilter, setDepartmentFilter } from "@/features/departmentSlice";
 
 const GeneralTable = ({
   data,
@@ -160,8 +163,43 @@ const GeneralTable = ({
         ]
       : []),
   ];
+  const dispatch = useDispatch();
+  const userFilter = useSelector((state) => state.user.filter);
+  const roleFilter = useSelector((state) => state.role.filter);
+  const departmentFilter = useSelector((state) => state.department.filter);
 
-  const defaultFilters = filters;
+  useEffect(() => {
+    if (tableTitle === "Employees" && userFilter) {
+      setFilters(userFilter);
+    }
+    if (tableTitle === "Roles" && roleFilter) {
+      setFilters(roleFilter);
+    }
+    if (tableTitle === "Departments" && departmentFilter) {
+      setFilters(departmentFilter);
+    }
+  }, [userFilter, tableTitle]);
+
+  useEffect(() => {
+    if (
+      tableTitle === "Employees" &&
+      filters &&
+      Object.keys(filters).length > 0
+    ) {
+      dispatch(setUserFilter(filters));
+    }
+    if (tableTitle === "Roles" && filters && Object.keys(filters).length > 0) {
+      dispatch(setRoleFilter(filters));
+    }
+    if (
+      tableTitle === "Departments" &&
+      filters &&
+      Object.keys(filters).length > 0
+    ) {
+      dispatch(setDepartmentFilter(filters));
+    }
+  }, [filters, tableTitle, dispatch]);
+
   const [selectedRows, setSelectedRows] = useState([]);
   const [visibleColumns, setVisibleColumns] = useState(
     allColumns.map((col) => col.accessorKey)
@@ -371,32 +409,17 @@ const GeneralTable = ({
   };
 
   const handleResetFilters = () => {
-    setFilters(defaultFilters);
+    setFilters({});
+    if (tableTitle === "Employees") {
+      dispatch(resetUserFilter());
+    }
+    if (tableTitle === "Roles") {
+      dispatch(resetRoleFilter());
+    }
+    if (tableTitle === "Departments") {
+      dispatch(resetDepartmentFilter());
+    }
   };
-
-  const shallowEqual = (obj1, obj2) => {
-    const keys1 = Object.keys(obj1);
-    const keys2 = Object.keys(obj2);
-  
-    // If the number of keys is different, objects are not equal
-    if (keys1.length !== keys2.length) {
-      console.log("length");
-      return false;
-    }
-  
-    // Check if all values are the same
-    for (let key of keys1) {
-      if (obj1[key] !== obj2[key]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  const isFilterSame = shallowEqual(defaultFilters, filters);
-
-  console.log(defaultFilters, filters)
-  
 
   return (
     <div className="space-y-4">
@@ -535,8 +558,7 @@ const GeneralTable = ({
               </div>
             ))}
 
-          {console.log(isFilterSame)}
-          {!isFilterSame && (
+          {Object.keys(filters).length > 0 && (
             <Button
               variant="outline"
               size="sm"
@@ -752,7 +774,7 @@ const GeneralTable = ({
             {selectedRows.length === 1 && (
               <Tooltip>
                 <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background hover:bg-accent hover:text-accent-foreground">
-                  <Edit3 size={18}  onClick={()=>onEdit(selectedRows[0])}/>
+                  <Edit3 size={18} onClick={() => onEdit(selectedRows[0])} />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Edit Row</p>

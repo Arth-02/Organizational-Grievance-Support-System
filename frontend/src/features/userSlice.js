@@ -4,6 +4,7 @@ import { getFromLocalStorage, saveToLocalStorage } from "@/utils";
 
 const initialState = {
   user: null,
+  filter: null,
   token: getFromLocalStorage("token") || null,
   organization: null,
   role: null,
@@ -15,6 +16,12 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    setUserFilter: (state, action) => {
+      state.filter = action.payload;
+    },
+    resetUserFilter: (state) => {
+      state.filter = null;
+    },
     setUserDetails: (state, action) => {
       state.user = action.payload.data;
       state.token = action.payload.data.token;
@@ -70,6 +77,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserDetails, logout } = userSlice.actions;
+export const { setUserDetails, logout,setUserFilter,resetUserFilter } = userSlice.actions;
 
 export default userSlice.reducer;

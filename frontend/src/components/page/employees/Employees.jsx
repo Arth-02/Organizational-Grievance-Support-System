@@ -16,18 +16,19 @@ import { useSelector } from "react-redux";
 
 const Employees = () => {
   const [filters, setFilters] = useState({
-    page: 1,
-    limit: 10,
-    username: "",
-    email: "",
-    is_active: "",
-    employee_id: "",
-    role: "all",
-    department: "all",
-    sort_by: "created_at",
-    order: "desc",
-    permissionlogic: "or",
+    // page: 1,
+    // limit: 10,
+    // username: "",
+    // email: "",
+    // is_active: "",
+    // employee_id: "",
+    // role: "all",
+    // department: "all",
+    // sort_by: "created_at",
+    // order: "desc",
+    // permissionlogic: "or",
   });
+  
 
   const { data, isLoading, isFetching, error } = useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();
