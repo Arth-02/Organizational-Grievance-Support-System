@@ -14,6 +14,7 @@ const {
   SUPER_ADMIN,
   ADMIN,
   PERMISSIONS,
+  VIEW_PERMISSION,
 } = require("../utils/constant");
 const Role = require("../models/role.model");
 const Department = require("../models/department.model");
@@ -620,6 +621,7 @@ const checkEmployeeID = async (req, res) => {
 // get all users
 const getAllUsers = async (req, res) => {
   try {
+    console.log(req.user);
     const { organization_id, _id } = req.user;
     const {
       page = 1,
@@ -631,10 +633,17 @@ const getAllUsers = async (req, res) => {
       email,
       department,
       permissions,
-      permissionlogic="or",
+      permissionlogic = "or",
       sort_by = "created_at",
       order = "desc",
     } = req.query;
+
+    const userPermissions = [
+      ...req.user.role.permissions,
+      ...req.user.special_permissions,
+    ];
+    const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
+    console.log("canViewPermissions", canViewPermissions);
 
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -703,15 +712,17 @@ const getAllUsers = async (req, res) => {
           path: "$department",
           preserveNullAndEmptyArrays: true,
         },
-      },
-      {
+      }
+    );
+    if (permissions && canViewPermissions) {
+      pipeline.push({
         $addFields: {
           merged_permissions: {
             $concatArrays: ["$role.permissions", "$special_permissions"],
           },
         },
-      }
-    );
+      });
+    }
 
     if (isSortedFieldPresent) {
       pipeline.push(
@@ -722,36 +733,42 @@ const getAllUsers = async (req, res) => {
       );
     }
 
-    if (permissions) {
+    if (permissions && canViewPermissions) {
       const permissionArray = permissions.split(",");
-      
+
       if (permissionlogic === "or") {
         pipeline.push({
           $match: {
             $expr: {
               $gt: [
-                { $size: { $setIntersection: [permissionArray, "$merged_permissions"] } },
-                0
-              ]
-            }
-          }
+                {
+                  $size: {
+                    $setIntersection: [permissionArray, "$merged_permissions"],
+                  },
+                },
+                0,
+              ],
+            },
+          },
         });
       } else if (permissionlogic === "and") {
         pipeline.push({
           $match: {
             $expr: {
-              $setIsSubset: [permissionArray, "$merged_permissions"]
-            }
-          }
+              $setIsSubset: [permissionArray, "$merged_permissions"],
+            },
+          },
         });
       } else {
-        console.warn(`Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`);
+        console.warn(
+          `Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`
+        );
         pipeline.push({
           $match: {
             $expr: {
-              $setIsSubset: [permissionArray, "$merged_permissions"]
-            }
-          }
+              $setIsSubset: [permissionArray, "$merged_permissions"],
+            },
+          },
         });
       }
     }
@@ -759,7 +776,10 @@ const getAllUsers = async (req, res) => {
     pipeline.push({
       $project: {
         role: "$role.name",
-        role_permissions: "$role.permissions",
+        ...(canViewPermissions && {
+          role_permissions: "$role.permissions",
+          special_permissions: 1,
+        }),
         department: "$department.name",
         username: 1,
         email: 1,
@@ -768,7 +788,6 @@ const getAllUsers = async (req, res) => {
         employee_id: 1,
         phone_number: 1,
         is_active: 1,
-        special_permissions: 1,
         last_login: 1,
         created_at: 1,
       },
@@ -782,17 +801,19 @@ const getAllUsers = async (req, res) => {
     if (!users.length) {
       return errorResponse(res, 404, "Users not found");
     }
-    for (let i = 0; i < users.length; i++) {
-      users[i].role_permissions = users[i].role_permissions
-        .map((permissionSlug) =>
-          PERMISSIONS.find((p) => p.slug === permissionSlug)
-        )
-        .filter(Boolean);
-      users[i].special_permissions = users[i].special_permissions
-        .map((permissionSlug) =>
-          PERMISSIONS.find((p) => p.slug === permissionSlug)
-        )
-        .filter(Boolean);
+    if (canViewPermissions) {
+      for (let i = 0; i < users.length; i++) {
+        users[i].role_permissions = users[i].role_permissions
+          .map((permissionSlug) =>
+            PERMISSIONS.find((p) => p.slug === permissionSlug)
+          )
+          .filter(Boolean);
+        users[i].special_permissions = users[i].special_permissions
+          .map((permissionSlug) =>
+            PERMISSIONS.find((p) => p.slug === permissionSlug)
+          )
+          .filter(Boolean);
+      }
     }
     const totalPages = Math.ceil(totalUsers / limitNumber);
     const hasNextPage = page < totalPages;

@@ -4,6 +4,7 @@ const {
   getGrievanceById,
   updateGrievanceAttachment,
   deleteGrievanceById,
+  getAllGrievances,
 } = require("../controllers/grievance.controller");
 const upload = require("../helpers/multer");
 const {
@@ -39,5 +40,7 @@ router.delete(
   checkPermission(["DELETE_GRIEVANCE"]),
   deleteGrievanceById
 );
+
+router.get("/all", isLoggedIn, getAllGrievances);
 
 module.exports = router;

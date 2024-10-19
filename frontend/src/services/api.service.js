@@ -349,6 +349,19 @@ export const apiService = createApi({
       }),
       
     }),
+    getAllGrievances: builder.query({
+      query: (filters) => {
+        const params = new URLSearchParams(filters).toString();
+        return {
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `grievances/all?${params}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Grievances"],
+    }),
   }),
 });
 

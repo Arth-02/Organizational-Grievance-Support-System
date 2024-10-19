@@ -315,19 +315,75 @@ const deleteGrievanceById = async (req, res) => {
 };
 
 // get all grievances
-// const getAllGrievances = async (req, res) => {
-//   try{
-//     const { organization_id } = req.user;
-//     const { page, limit, sort, search, status, priority, department_id, employee_id } = req.query;
-//   } catch (err) {
-//     console.error("Get All Grievances Error:", err.message);
-//     return catchResponse(res);
-//   }
-// }
+const getAllGrievances = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const {
+      page=1,
+      limit=10,
+      sort,
+      search,
+      status,
+      priority,
+      department_id,
+      employee_id,
+    } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = { organization_id };
+    if (status) {
+      query.status = status;
+    }
+    if (priority) {
+      query.priority = priority;
+    }
+    if (department_id) {
+      query.department_id = department_id;
+    }
+    if (employee_id) {
+      query.employee_id = employee_id;
+    }
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+    const grievances = await Grievance.find(query)
+      .sort(sort)
+      .limit(limitNumber)
+      .skip(skip);
+      if (!grievances.length) {
+        return errorResponse(res, 404, "No grievances found");
+      }
+
+      const totalGrievances = await Grievance.countDocuments(query);
+    
+    const totalPages = Math.ceil(totalGrievances / limitNumber);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    const pagination = {
+      currentPage: pageNumber,
+      totalPages: totalPages,
+      totalGrievances: totalGrievances,
+      limit: limitNumber,
+      hasNextPage: hasNextPage,
+      hasPrevPage: hasPrevPage,
+    };
+
+    return successResponse(res, {grievances,pagination}, "Grievances fetched successfully");
+
+  } catch (err) {
+    console.error("Get All Grievances Error:", err.message);
+    return catchResponse(res);
+  }
+};
 module.exports = {
   createGrievance,
   updateGrievance,
   updateGrievanceAttachment,
   getGrievanceById,
   deleteGrievanceById,
+  getAllGrievances,
 };
