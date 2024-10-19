@@ -1,5 +1,4 @@
 import { useState } from "react";
-// import { Check, ArrowUp, ArrowDown, EyeOff, ChevronsUpDown } from "lucide-react";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
 import {
@@ -12,21 +11,19 @@ import ManagePermissions from "../employees/ManagePermissions";
 import { useSelector } from "react-redux";
 
 const Roles = () => {
-  const [filters, setFilters] = useState({
-    // page: 1,
-    // limit: 10,
-    // name: "",
-    // is_active: "",
-    // permissions: "",
-    // sort_by: "created_at",
-    // order: "desc",
-  });
+  const [filters, setFilters] = useState({});
 
   const navigate = useNavigate();
 
   const userPermissions = useSelector(
     (state) => state.user.permissions
-  ).includes("CREATE_ROLE");
+  );
+
+  const canCreate = userPermissions.includes("CREATE_ROLE");
+
+  const canUpdate = userPermissions.includes("UPDATE_ROLE");
+
+  const canDelete = userPermissions.includes("DELETE_ROLE");
 
   const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
@@ -79,11 +76,11 @@ const Roles = () => {
   // };
 
   const handleEdit = (id) => {
-    navigate(`/roles/update/${id}`); // Add your navigation logic
+    navigate(`/roles/update/${id}`);
   };
 
   const handleView = (id) => {
-    console.log("View role:", id); // Add your view logic
+    console.log("View role:", id);
   };
 
   const searchOptions = [
@@ -119,8 +116,8 @@ const Roles = () => {
   return (
     <MainLayout
       title={"Roles"}
-      buttonTitle={userPermissions ? "Add Role" : undefined}
-      buttonLink={userPermissions ? "/roles/add" : undefined}
+      buttonTitle={canCreate ? "Add Role" : undefined}
+      buttonLink={canCreate ? "/roles/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.roles || []}
@@ -138,6 +135,8 @@ const Roles = () => {
         onEdit={handleEdit}
         onView={handleView}
         searchOptions={searchOptions}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
       />
     </MainLayout>
   );

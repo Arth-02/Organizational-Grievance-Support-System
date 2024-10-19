@@ -10,7 +10,7 @@ import { Button } from "./button";
 import React from "react";
 
 const Modal = ({
-  open,
+  open = true,
   onOpenChange,
   title,
   description,
@@ -21,9 +21,7 @@ const Modal = ({
   confirmVariant,
   shoudlShowCancel = true,
 }) => {
-  if (!React.isValidElement(children)) {
-    return null; // or return a fallback UI
-  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       {open && <div className="bg-black/80 fixed inset-0 z-50 !mt-0" />}
@@ -34,7 +32,7 @@ const Modal = ({
           </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        {React.cloneElement(children, {
+        {React.isValidElement(children) && React.cloneElement(children, {
           className: `${children.props.className || ""} pr-0 pl-6`.trim(),
         })}
         <DialogFooter className="px-6">

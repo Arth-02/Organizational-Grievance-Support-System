@@ -82,24 +82,10 @@ const GeneralTable = ({
   onDeleteAll,
   onEdit,
   searchOptions,
+  canUpdate,
+  canDelete,
 }) => {
-  const [updateData, setUpdateData] = useState(false);
-  const [deleteData, setDeleteData] = useState(false);
-  const userPermissions = useSelector((state) => state.user.permissions);
-
-  useEffect(() => {
-    if (tableTitle === "Departments") {
-      setUpdateData(userPermissions.includes("UPDATE_DEPARTMENT"));
-      setDeleteData(userPermissions.includes("DELETE_DEPARTMENT"));
-    } else if (tableTitle === "Roles") {
-      setUpdateData(userPermissions.includes("UPDATE_ROLE"));
-      setDeleteData(userPermissions.includes("DELETE_ROLE"));
-    } else if (tableTitle === "Employees") {
-      setUpdateData(userPermissions.includes("UPDATE_USER"));
-      setDeleteData(userPermissions.includes("DELETE_USER"));
-    }
-  }, [userPermissions]);
-
+  
   let allColumns = [
     {
       accessorKey: "select",
@@ -123,7 +109,7 @@ const GeneralTable = ({
       ...col,
       hideable: col.hideable ?? true,
     })),
-    ...(updateData || deleteData
+    ...(canUpdate || canDelete
       ? [
           {
             accessorKey: "actions",
@@ -131,7 +117,7 @@ const GeneralTable = ({
             hideable: false,
             cell: ({ row }) => (
               <div className="flex gap-2 ml-2">
-                {updateData && (
+                {canUpdate && (
                   <Tooltip>
                     <TooltipTrigger
                       onClick={() => onEdit(row.original._id)}
@@ -144,7 +130,7 @@ const GeneralTable = ({
                     </TooltipContent>
                   </Tooltip>
                 )}
-                {deleteData && (
+                {canDelete && (
                   <Tooltip>
                     <TooltipTrigger
                       onClick={() => handleDeleteClick(row.original._id)}
@@ -178,7 +164,7 @@ const GeneralTable = ({
     if (tableTitle === "Departments" && departmentFilter) {
       setFilters(departmentFilter);
     }
-  }, [userFilter, tableTitle]);
+  }, [userFilter, tableTitle, roleFilter, departmentFilter, setFilters]);
 
   useEffect(() => {
     if (
@@ -305,9 +291,11 @@ const GeneralTable = ({
   };
 
   const handleDeleteClick = (id) => {
+    console.log("Delete item:", id);
     setItemToDelete(id);
     setDeleteDialogOpen(true);
   };
+  console.log("deleteDialogOpen", deleteDialogOpen);
 
   const handleConfirmDelete = () => {
     if (itemToDelete) {
@@ -800,7 +788,7 @@ const GeneralTable = ({
         onConfirm={handleConfirmDelete}
         confirmText="Delete"
         confirmVariant="outline-destructive"
-      ></Modal>
+      />
     </div>
   );
 };

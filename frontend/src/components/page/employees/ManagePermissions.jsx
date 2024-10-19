@@ -45,7 +45,7 @@ const ManagePermissions = ({
         edit === "employee"
           ? { special_permissions: newPermissions }
           : { permissions: newPermissions };
-
+      
       const response =
         edit === "employee"
           ? await updateUser({ id, data }).unwrap()

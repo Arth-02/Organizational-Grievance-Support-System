@@ -15,20 +15,7 @@ import ManagePermissions from "./ManagePermissions";
 import { useSelector } from "react-redux";
 
 const Employees = () => {
-  const [filters, setFilters] = useState({
-    // page: 1,
-    // limit: 10,
-    // username: "",
-    // email: "",
-    // is_active: "",
-    // employee_id: "",
-    // role: "all",
-    // department: "all",
-    // sort_by: "created_at",
-    // order: "desc",
-    // permissionlogic: "or",
-  });
-  
+  const [filters, setFilters] = useState({});
 
   const { data, isLoading, isFetching, error } = useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();
@@ -39,7 +26,13 @@ const Employees = () => {
 
   const userPermissions = useSelector(
     (state) => state.user.permissions
-  ).includes("CREATE_USER");
+  );
+
+  const canCreate = userPermissions.includes("CREATE_USER");
+
+  const canUpdate = userPermissions.includes("UPDATE_USER");
+
+  const canDelete = userPermissions.includes("DELETE_USER");
 
   const navigate = useNavigate();
 
@@ -196,8 +189,8 @@ const Employees = () => {
   return (
     <MainLayout
       title="Employees"
-      buttonTitle={userPermissions ? "Add New Employee" : undefined}
-      buttonLink={userPermissions ? "/employees/add" : undefined}
+      buttonTitle={canCreate ? "Add New Employee" : undefined}
+      buttonLink={canCreate ? "/employees/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.users || []}
@@ -215,6 +208,8 @@ const Employees = () => {
         onEdit={handleEdit}
         onView={handleView}
         searchOptions={searchOptions}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
       />
     </MainLayout>
   );

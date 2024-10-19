@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import GeneralTable from "@/components/table/CustomTable"; // Assuming GeneralTable is reusable
+import GeneralTable from "@/components/table/CustomTable";
 import {
   useGetAllDepartmentsQuery,
   useDeleteDepartmentMutation,
@@ -9,24 +9,22 @@ import MainLayout from "@/components/layout/MainLayout";
 import { useSelector } from "react-redux";
 
 const Departments = () => {
-  const [filters, setFilters] = useState({
-    // page: 1,
-    // limit: 10,
-    // name: "",
-    // is_active: "",
-    // sort_by: "created_at",
-    // order: "desc",
-  });
+  const [filters, setFilters] = useState({});
 
-  const { data, isLoading, isFetching, error } =
-    useGetAllDepartmentsQuery(filters);
+  const { data, isLoading, isFetching, error } = useGetAllDepartmentsQuery(filters);
   const [deleteDepartment] = useDeleteDepartmentMutation();
 
   const navigate = useNavigate();
 
   const userPermissions = useSelector(
     (state) => state.user.permissions
-  ).includes("CREATE_DEPARTMENT");
+  );
+
+  const canCreate = userPermissions.includes("CREATE_DEPARTMENT");
+
+  const canUpdate = userPermissions.includes("UPDATE_DEPARTMENT");
+
+  const canDelete = userPermissions.includes("DELETE_DEPARTMENT");
 
   const columns = [
     { accessorKey: "name", header: "Name", sortable: true },
@@ -82,8 +80,8 @@ const Departments = () => {
   return (
     <MainLayout
       title={"Departments"}
-      buttonTitle={userPermissions ? "Add Department" : undefined}
-      buttonLink={userPermissions ? "/departments/add" : undefined}
+      buttonTitle={canCreate ? "Add Department" : undefined}
+      buttonLink={canCreate ? "/departments/add" : undefined}
     >
       <GeneralTable
         data={data?.data?.departments || []}
@@ -100,6 +98,8 @@ const Departments = () => {
         onView={handleView}
         searchOptions={searchOptions}
         customFilters={customFilters}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
       />
     </MainLayout>
   );
