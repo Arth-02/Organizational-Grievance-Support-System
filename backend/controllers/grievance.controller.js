@@ -19,7 +19,6 @@ const {
   updateGrievanceAttachmentSchema,
   updateMyGrievanceSchema,
 } = require("../validators/grievance.validator");
-const { query } = require("express");
 
 // Create a grievance
 const createGrievance = async (req, res) => {

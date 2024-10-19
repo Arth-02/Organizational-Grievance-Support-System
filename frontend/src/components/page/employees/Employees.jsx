@@ -34,6 +34,8 @@ const Employees = () => {
 
   const canDelete = userPermissions.includes("DELETE_USER");
 
+  const viewPermission = userPermissions.includes("VIEW_PERMISSIONS");
+
   const navigate = useNavigate();
 
   const columns = [
