@@ -23,14 +23,14 @@ const Header = ({ setIsSidebarOpen }) => {
       >
         <Menu size={24} />
       </Button>
-      <div className="flex items-center justify-between w-full p-4 bg-gray-50 shadow-sm rounded-lg">
+      <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-2">
-          <span className="text-2xl font-bold text-primary-foreground bg-primary px-4 py-2 rounded-full shadow-md border border-primary-foreground transition-transform transform hover:scale-105">
+          <span className="text-2xl font-bold text-primary px-4">
             {user.username}
           </span>
         </div>
         <div>
-          <Button onClick={handleLogout}>
+          <Button size='sm' onClick={handleLogout}>
             Logout
           </Button>
         </div>
