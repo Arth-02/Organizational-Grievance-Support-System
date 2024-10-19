@@ -45,10 +45,6 @@ const GrievanceSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    employee_id: {
-      type: String,
-      required: true,
-    },
     reported_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

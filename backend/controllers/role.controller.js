@@ -1,6 +1,6 @@
 const Role = require("../models/role.model");
 const User = require("../models/user.model");
-const { DEFAULT_PERMISSIONS, PERMISSIONS } = require("../utils/constant");
+const { DEFAULT_PERMISSIONS, PERMISSIONS, VIEW_PERMISSION } = require("../utils/constant");
 const {
   errorResponse,
   successResponse,
@@ -147,6 +147,14 @@ const getAllRoles = async (req, res) => {
       permissionlogic = "or",
       order = "desc",
     } = req.query;
+
+    const userPermissions = [
+      ...req.user.role.permissions,
+      ...req.user.special_permissions,
+    ];
+
+    const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
+
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
@@ -164,14 +172,18 @@ const getAllRoles = async (req, res) => {
 
     const pipeline = [{ $match: query }];
 
-    if (permissions) {
+    if (permissions && canViewPermissions) {
       const permissionArray = permissions.split(",");
       if (permissionlogic === "or") {
         pipeline.push({
           $match: {
             $expr: {
               $gt: [
-                { $size: { $setIntersection: [permissionArray, "$permissions"] } },
+                {
+                  $size: {
+                    $setIntersection: [permissionArray, "$permissions"],
+                  },
+                },
                 0,
               ],
             },
@@ -186,7 +198,9 @@ const getAllRoles = async (req, res) => {
           },
         });
       } else {
-        console.warn(`Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`);
+        console.warn(
+          `Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`
+        );
         pipeline.push({
           $match: {
             $expr: {
@@ -209,7 +223,7 @@ const getAllRoles = async (req, res) => {
           {
             $project: {
               name: 1,
-              permissions: 1,
+              ...(canViewPermissions && { permissions: 1 }),
               is_active: 1,
               organization_id: 1,
               created_at: 1,
@@ -223,7 +237,9 @@ const getAllRoles = async (req, res) => {
     const [result] = await Role.aggregate(pipeline);
 
     const roles = result.roles || [];
-    const totalRoles = result.totalRoles.length ? result.totalRoles[0].count : 0;
+    const totalRoles = result.totalRoles.length
+      ? result.totalRoles[0].count
+      : 0;
     const totalPages = Math.ceil(totalRoles / limitNumber);
     const hasNextPage = pageNumber < totalPages;
     const hasPrevPage = pageNumber > 1;
@@ -231,13 +247,14 @@ const getAllRoles = async (req, res) => {
     if (roles.length === 0) {
       return errorResponse(res, 404, "No roles found");
     }
-
-    for (let i = 0; i < roles.length; i++) {
-      roles[i].permissions = roles[i].permissions
-        .map((permissionSlug) =>
-          PERMISSIONS.find((p) => p.slug === permissionSlug)
-        )
-        .filter(Boolean);
+    if (canViewPermissions) {
+      for (let i = 0; i < roles.length; i++) {
+        roles[i].permissions = roles[i].permissions
+          .map((permissionSlug) =>
+            PERMISSIONS.find((p) => p.slug === permissionSlug)
+          )
+          .filter(Boolean);
+      }
     }
 
     const pagination = {
@@ -259,7 +276,6 @@ const getAllRoles = async (req, res) => {
     return catchResponse(res);
   }
 };
-
 
 // delete role
 const deleteRole = async (req, res) => {
