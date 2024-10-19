@@ -29,7 +29,6 @@ import {
 } from "@/services/api.service";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
-import { result } from "lodash";
 
 const schema = z
   .object({
@@ -171,7 +170,7 @@ const AddUpdateEmployee = () => {
         )
       );
     }
-  }, [roleData]);
+  }, [permissionOptions, roleData, selectedPermissions]);
 
   const checkIfUsernameExists = useCallback(
     async (username) => {
