@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { io } from "socket.io-client";
-import { Counter } from "./components/Counter";
 import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
@@ -14,6 +13,7 @@ import AddUpdateRole from "./components/page/roles/AddUpdateRole";
 import PrivateRoute from "./PrivateRoute";
 import Unauthorized from "./Unauthorized";
 import PermissionGuard from "./PermissionGuard";
+import Grievances from "./components/page/grievance/Grievances";
 
 const socket = io("http://localhost:9001");
 
@@ -45,7 +45,7 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/" element={<Counter />} />
+            <Route path="/grievances" element={<Grievances />} />
             <Route
               path="/employees"
               element={
