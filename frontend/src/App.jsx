@@ -14,6 +14,7 @@ import PrivateRoute from "./PrivateRoute";
 import Unauthorized from "./Unauthorized";
 import PermissionGuard from "./PermissionGuard";
 import Grievances from "./components/page/grievance/Grievances";
+import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 
 const socket = io("http://localhost:9001");
 
@@ -46,6 +47,7 @@ function App() {
             }
           >
             <Route path="/grievances" element={<Grievances />} />
+            <Route path="/grievances/add" element={<AddUpdateGrievance />} />
             <Route
               path="/employees"
               element={

@@ -1,6 +1,17 @@
+import MainLayout from "@/components/layout/MainLayout"
+
 const Grievances = () => {
+
   return (
-    <div>Grievance</div>
+    <MainLayout
+        title={"Grievances"}
+        buttonTitle={"Add Grievance"}
+        buttonLink={"/grievances/add"}
+    >
+        <div>
+            Grievances
+        </div>
+    </MainLayout>
   )
 }
 
