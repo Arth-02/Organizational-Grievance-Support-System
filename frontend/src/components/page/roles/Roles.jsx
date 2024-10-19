@@ -100,16 +100,18 @@ const Roles = () => {
         { label: "Inactive", value: "false" },
       ],
     },
-    {
-      label: "Permissions",
-      key: "permissions",
-      options: [
-        ...(allPermissions?.data?.map((permission) => ({
-          label: permission.name,
-          value: permission.slug,
-        })) || []),
-      ],
-    },
+    ...(canViewPermission
+      ? {
+          label: "Permissions",
+          key: "permissions",
+          options: [
+            ...(allPermissions?.data?.map((permission) => ({
+              label: permission.name,
+              value: permission.slug,
+            })) || []),
+          ],
+        }
+      : []),
   ];
 
   return (

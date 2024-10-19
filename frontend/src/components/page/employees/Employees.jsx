@@ -19,8 +19,6 @@ const Employees = () => {
 
   const { data, isLoading, isFetching, error } = useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();
-  const { data: departmentNames } = useGetAllDepartmentNameQuery();
-  const { data: roleNames } = useGetAllRoleNameQuery();
   const [deleteUser] = useDeleteUserMutation();
 
   const userPermissions = useSelector((state) => state.user.permissions);
@@ -28,11 +26,22 @@ const Employees = () => {
   const canCreate = userPermissions.includes("CREATE_USER");
   const canUpdate = userPermissions.includes("UPDATE_USER");
   const canDelete = userPermissions.includes("DELETE_USER");
-  const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
 
-  const { data: allPermissions } = useGetAllPermissionsQuery({
+  const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
+  const canViewRole = userPermissions.includes("VIEW_ROLE");
+  const canViewDepartment = userPermissions.includes("VIEW_DEPARTMENT");
+  console.log("canViewD", canViewDepartment);
+
+  const { data: allPermissions } = useGetAllPermissionsQuery(undefined, {
     skip: !canViewPermission,
   });
+  const { data: departmentNames } = useGetAllDepartmentNameQuery(undefined, {
+    skip: !canViewDepartment,
+  });
+  const { data: roleNames } = useGetAllRoleNameQuery(undefined, {
+    skip: !canViewRole,
+  });
+
   const navigate = useNavigate();
 
   const columns = [
@@ -77,9 +86,12 @@ const Employees = () => {
           },
         ]
       : []),
-
-    { accessorKey: "role", header: "Role", sortable: true },
-    { accessorKey: "department", header: "Department", sortable: true },
+    ...(canViewRole
+      ? [{ accessorKey: "role", header: "Role", sortable: true }]
+      : []),
+    ...(canViewDepartment
+      ? [{ accessorKey: "department", header: "Department", sortable: true }]
+      : []),
     {
       accessorKey: "is_active",
       header: "Status",
@@ -151,38 +163,51 @@ const Employees = () => {
         { label: "Inactive", value: "false" },
       ],
     },
-    {
-      label: "Department",
-      key: "department",
-      options: [
-        { label: "All", value: "all" },
-        ...(departmentNames?.data?.map((dept) => ({
-          label: dept.name,
-          value: dept._id,
-        })) || []),
-      ],
-    },
-    {
-      label: "Role",
-      key: "role",
-      options: [
-        { label: "All", value: "all" },
-        ...(roleNames?.data?.map((role) => ({
-          label: role.name,
-          value: role._id,
-        })) || []),
-      ],
-    },
-    {
-      label: "Permissions",
-      key: "permissions",
-      options: [
-        ...(allPermissions?.data?.map((permission) => ({
-          label: permission.name,
-          value: permission.slug,
-        })) || []),
-      ],
-    },
+    ...(canViewDepartment
+      ? [
+          {
+            label: "Department",
+            key: "department",
+            options: [
+              { label: "All", value: "all" },
+              ...(departmentNames?.data?.map((dept) => ({
+                label: dept.name,
+                value: dept._id,
+              })) || []),
+            ],
+          },
+        ]
+      : []),
+    ...(canViewRole
+      ? [
+          {
+            label: "Role",
+            key: "role",
+            options: [
+              { label: "All", value: "all" },
+              ...(roleNames?.data?.map((role) => ({
+                label: role.name,
+                value: role._id,
+              })) || []),
+            ],
+          },
+        ]
+      : []),
+
+    ...(canViewPermission
+      ? [
+          {
+            label: "Permissions",
+            key: "permissions",
+            options: [
+              ...(allPermissions?.data?.map((permission) => ({
+                label: permission.name,
+                value: permission.slug,
+              })) || []),
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (

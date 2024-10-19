@@ -15,6 +15,8 @@ const {
   ADMIN,
   PERMISSIONS,
   VIEW_PERMISSION,
+  VIEW_ROLE,
+  VIEW_DEPARTMENT,
 } = require("../utils/constant");
 const Role = require("../models/role.model");
 const Department = require("../models/department.model");
@@ -643,6 +645,8 @@ const getAllUsers = async (req, res) => {
       ...req.user.special_permissions,
     ];
     const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
+    const canViewRoles = userPermissions.includes(VIEW_ROLE.slug);
+    const canViewDepartments = userPermissions.includes(VIEW_DEPARTMENT.slug);
 
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -663,10 +667,10 @@ const getAllUsers = async (req, res) => {
     if (employee_id) {
       query.employee_id = { $regex: employee_id, $options: "i" };
     }
-    if (role) {
+    if (role && canViewRoles) {
       query.role = new ObjectId(role);
     }
-    if (department) {
+    if (department && canViewDepartments) {
       query.department = new ObjectId(department);
     }
 
@@ -683,36 +687,43 @@ const getAllUsers = async (req, res) => {
         { $limit: limitNumber }
       );
     }
-    pipeline.push(
-      {
-        $lookup: {
-          from: "roles",
-          localField: "role",
-          foreignField: "_id",
-          as: "role",
+
+    if (canViewRoles) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "roles",
+            localField: "role",
+            foreignField: "_id",
+            as: "role",
+          },
         },
-      },
-      {
-        $unwind: {
-          path: "$role",
-          preserveNullAndEmptyArrays: true,
+        {
+          $unwind: {
+            path: "$role",
+            preserveNullAndEmptyArrays: true,
+          },
+        }
+      );
+    }
+    if (canViewDepartments) {
+      pipeline.push(
+        {
+          $lookup: {
+            from: "departments",
+            localField: "department",
+            foreignField: "_id",
+            as: "department",
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "departments",
-          localField: "department",
-          foreignField: "_id",
-          as: "department",
-        },
-      },
-      {
-        $unwind: {
-          path: "$department",
-          preserveNullAndEmptyArrays: true,
-        },
-      }
-    );
+        {
+          $unwind: {
+            path: "$department",
+            preserveNullAndEmptyArrays: true,
+          },
+        }
+      );
+    }
     if (permissions && canViewPermissions) {
       pipeline.push({
         $addFields: {
@@ -774,12 +785,16 @@ const getAllUsers = async (req, res) => {
 
     pipeline.push({
       $project: {
-        role: "$role.name",
+        ...(canViewRoles && {
+          role: "$role.name",
+        }),
         ...(canViewPermissions && {
           role_permissions: "$role.permissions",
           special_permissions: 1,
         }),
-        department: "$department.name",
+        ...(canViewDepartments && {
+          department: "$department.name",
+        }),
         username: 1,
         email: 1,
         firstname: 1,
