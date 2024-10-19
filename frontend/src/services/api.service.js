@@ -396,4 +396,5 @@ export const {
   useCheckEmailMutation,
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
+  useGetAllGrievancesQuery,
 } = apiService;
