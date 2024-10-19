@@ -304,7 +304,6 @@ const getUsersCountByDepartmentId = async (req, res) => {
     if (organization_id) {
       query.organization_id = organization_id;
     }
-    console.log(query);
     const usersCount = await User.countDocuments(query);
     return successResponse(
       res,

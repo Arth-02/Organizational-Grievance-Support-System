@@ -237,7 +237,6 @@ const AddUpdateEmployee = () => {
   useDebounce(username, 700, checkIfUsernameExists);
 
   const onSubmit = async (data) => {
-    console.log(data);
     try {
       if (id) {
         delete data.id;

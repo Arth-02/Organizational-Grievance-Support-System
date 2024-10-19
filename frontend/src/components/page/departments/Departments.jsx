@@ -53,10 +53,6 @@ const Departments = () => {
     navigate(`/departments/update/${id}`);
   };
 
-  const handleView = (id) => {
-    console.log("View department:", id);
-  };
-
   const searchOptions = [
     {
       label: "Name",
@@ -95,7 +91,6 @@ const Departments = () => {
         pagination={data?.data?.pagination}
         onDelete={handleDelete}
         onEdit={handleEdit}
-        onView={handleView}
         searchOptions={searchOptions}
         customFilters={customFilters}
         canUpdate={canUpdate}

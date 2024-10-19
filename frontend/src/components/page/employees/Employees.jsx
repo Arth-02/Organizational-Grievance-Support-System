@@ -116,11 +116,6 @@ const Employees = () => {
     navigate(`/employees/update/${id}`);
   };
 
-  const handleView = (id) => {
-    // Implement view functionality
-    console.log("View user:", id);
-  };
-
   const searchOptions = [
     {
       label: "Username",
@@ -206,7 +201,6 @@ const Employees = () => {
         onDelete={handleDelete}
         onDeleteAll={handleDeleteAll}
         onEdit={handleEdit}
-        onView={handleView}
         searchOptions={searchOptions}
         canUpdate={canUpdate}
         canDelete={canDelete}

@@ -79,10 +79,6 @@ const Roles = () => {
     navigate(`/roles/update/${id}`);
   };
 
-  const handleView = (id) => {
-    console.log("View role:", id);
-  };
-
   const searchOptions = [
     {
       label: "Name",
@@ -133,7 +129,6 @@ const Roles = () => {
         onDelete={handleDelete}
         // onDeleteAll={handleDeleteAll}
         onEdit={handleEdit}
-        onView={handleView}
         searchOptions={searchOptions}
         canUpdate={canUpdate}
         canDelete={canDelete}

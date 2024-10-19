@@ -35,7 +35,6 @@ const Login = () => {
         : { username, password };
 
       const response = await login(loginData).unwrap();
-      console.log(response);
       if (response) {
         toast.success("Login successful!");
         if (response.role.name) {

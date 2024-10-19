@@ -16,7 +16,6 @@ const {
 // cmd function to reset all permissons for each role
 const resetPermissions = async (req, res) => {
   try {
-    console.log("Resetting permissions");
     for (let i = 0; i < DEFAULT_PERMISSIONS.length; i++) {
       const newRole = {
         name: DEFAULT_PERMISSIONS[i].name,

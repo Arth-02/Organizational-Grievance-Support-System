@@ -231,7 +231,6 @@ const updateGrievanceAttachment = async (req, res) => {
       grievance.attachments = grievance.attachments.filter(
         (attachment) => !delete_attachments.includes(attachment._id.toString())
       );
-      console.log(grievance.attachments);
     }
     if (req.files && req.files.length > 0) {
       for (let file of req.files) {
