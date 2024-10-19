@@ -15,15 +15,15 @@ const Roles = () => {
 
   const navigate = useNavigate();
 
-  const userPermissions = useSelector(
-    (state) => state.user.permissions
-  );
+  const userPermissions = useSelector((state) => state.user.permissions);
 
   const canCreate = userPermissions.includes("CREATE_ROLE");
 
   const canUpdate = userPermissions.includes("UPDATE_ROLE");
 
   const canDelete = userPermissions.includes("DELETE_ROLE");
+
+  const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
 
   const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
@@ -35,19 +35,23 @@ const Roles = () => {
       header: "Name",
       sortable: true,
     },
-    {
-      accessorKey: "permissions",
-      header: "Permissions",
-      sortable: false,
-      cell: ({ row }) => (
-        <ManagePermissions
-          permissions={row.original.permissions}
-          id={row.original._id}
-          isEditable={true}
-          edit="role"
-        />
-      ),
-    },
+    ...(canViewPermission
+      ? [
+          {
+            accessorKey: "permissions",
+            header: "Permissions",
+            sortable: false,
+            cell: ({ row }) => (
+              <ManagePermissions
+                permissions={row.original.permissions}
+                id={row.original._id}
+                isEditable={true}
+                edit="role"
+              />
+            ),
+          },
+        ]
+      : []),
     {
       accessorKey: "is_active",
       header: "Status",

@@ -24,9 +24,7 @@ const Employees = () => {
   const { data: allPermissions } = useGetAllPermissionsQuery();
   const [deleteUser] = useDeleteUserMutation();
 
-  const userPermissions = useSelector(
-    (state) => state.user.permissions
-  );
+  const userPermissions = useSelector((state) => state.user.permissions);
 
   const canCreate = userPermissions.includes("CREATE_USER");
 
@@ -34,7 +32,7 @@ const Employees = () => {
 
   const canDelete = userPermissions.includes("DELETE_USER");
 
-  const viewPermission = userPermissions.includes("VIEW_PERMISSIONS");
+  const viewPermission = userPermissions.includes("VIEW_PERMISSION");
 
   const navigate = useNavigate();
 
@@ -50,32 +48,37 @@ const Employees = () => {
     { accessorKey: "lastname", header: "Last Name", sortable: true },
     { accessorKey: "employee_id", header: "Employee ID", sortable: false },
     { accessorKey: "phone_number", header: "Phone", sortable: false },
-    {
-      accessorKey: "role_permissions",
-      header: "Permissions",
-      sortable: false,
-      cell: ({ row }) => (
-        <ManagePermissions
-          permissions={row.original.role_permissions}
-          removePermissions={row.original.special_permissions}
-          edit="employee"
-        />
-      ),
-    },
-    {
-      accessorKey: "special_permissions",
-      header: "Special Permissions",
-      sortable: false,
-      cell: ({ row }) => (
-        <ManagePermissions
-          permissions={row.original.special_permissions}
-          removePermissions={row.original.role_permissions}
-          id={row.original._id}
-          isEditable={true}
-          edit="employee"
-        />
-      ),
-    },
+    ...(viewPermission
+      ? [
+          {
+            accessorKey: "role_permissions",
+            header: "Permissions",
+            sortable: false,
+            cell: ({ row }) => (
+              <ManagePermissions
+                permissions={row.original.role_permissions}
+                removePermissions={row.original.special_permissions}
+                edit="employee"
+              />
+            ),
+          },
+          {
+            accessorKey: "special_permissions",
+            header: "Special Permissions",
+            sortable: false,
+            cell: ({ row }) => (
+              <ManagePermissions
+                permissions={row.original.special_permissions}
+                removePermissions={row.original.role_permissions}
+                id={row.original._id}
+                isEditable={true}
+                edit="employee"
+              />
+            ),
+          },
+        ]
+      : []),
+
     { accessorKey: "role", header: "Role", sortable: true },
     { accessorKey: "department", header: "Department", sortable: true },
     {
