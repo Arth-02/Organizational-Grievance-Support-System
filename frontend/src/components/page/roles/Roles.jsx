@@ -7,7 +7,7 @@ import {
   useGetAllPermissionsQuery,
 } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
-import ManagePermissions from "../employees/ManagePermissions";
+import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
 
 const Roles = () => {

@@ -11,7 +11,7 @@ import {
 } from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
-import ManagePermissions from "./ManagePermissions";
+import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
 
 const Employees = () => {
@@ -33,6 +33,8 @@ const Employees = () => {
   const canUpdate = userPermissions.includes("UPDATE_USER");
 
   const canDelete = userPermissions.includes("DELETE_USER");
+
+  const viewPermission = userPermissions.includes("VIEW_PERMISSIONS");
 
   const navigate = useNavigate();
 

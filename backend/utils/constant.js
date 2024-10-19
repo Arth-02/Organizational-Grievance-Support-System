@@ -81,6 +81,22 @@ const UPDATE_GRIEVANCE_ASSIGNEE = {
   name: "Update Grievance Assignee",
   slug: "UPDATE_GRIEVANCE_ASSIGNEE",
 };
+const CREATE_PROJECT = {
+  name: "Create Project",
+  slug: "CREATE_PROJECT",
+};
+const UPDATE_PROJECT = {
+  name: "Update Project",
+  slug: "UPDATE_PROJECT",
+};
+const DELETE_PROJECT = {
+  name: "Delete Project",
+  slug: "DELETE_PROJECT",
+};
+const VIEW_PROJECT = {
+  name: "View Project",
+  slug: "VIEW_PROJECT",
+};
 
 const PERMISSIONS = [
   CREATE_USER,
@@ -103,6 +119,10 @@ const PERMISSIONS = [
   VIEW_PERMISSION,
   VIEW_DEPARTMENT,
   UPDATE_GRIEVANCE_ASSIGNEE,
+  CREATE_PROJECT,
+  UPDATE_PROJECT,
+  DELETE_PROJECT,
+  VIEW_PROJECT,
 ];
 
 const DEFAULT_ADMIN_PERMISSIONS = [
@@ -126,6 +146,10 @@ const DEFAULT_ADMIN_PERMISSIONS = [
   "VIEW_PERMISSION",
   "VIEW_DEPARTMENT",
   "UPDATE_GRIEVANCE_ASSIGNEE",
+  "CREATE_PROJECT",
+  "UPDATE_PROJECT",
+  "DELETE_PROJECT",
+  "VIEW_PROJECT",
 ];
 
 module.exports = {
@@ -154,4 +178,8 @@ module.exports = {
   DEFAULT_ADMIN_PERMISSIONS,
   UPDATE_PERMISSION,
   VIEW_PERMISSION,
+  CREATE_PROJECT,
+  UPDATE_PROJECT,
+  DELETE_PROJECT,
+  VIEW_PROJECT,
 };

@@ -75,6 +75,12 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    board_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Board",
+      required: [true, "Board ID is required"],
+      trim: true,
+    },
   },
   {
     timestamps: {
