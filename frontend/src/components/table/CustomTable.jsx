@@ -291,11 +291,9 @@ const GeneralTable = ({
   };
 
   const handleDeleteClick = (id) => {
-    console.log("Delete item:", id);
     setItemToDelete(id);
     setDeleteDialogOpen(true);
   };
-  console.log("deleteDialogOpen", deleteDialogOpen);
 
   const handleConfirmDelete = () => {
     if (itemToDelete) {
