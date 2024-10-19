@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { io } from "socket.io-client";
-import { Counter } from "./components/Counter";
 import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
@@ -45,7 +44,6 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/" element={<Counter />} />
             <Route
               path="/employees"
               element={
