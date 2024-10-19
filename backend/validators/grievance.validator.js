@@ -9,8 +9,6 @@ const createGrievanceSchema = Joi.object({
   status: Joi.string()
     .valid(
       "submitted",
-      "reviewing",
-      "assigned",
       "in-progress",
       "resolved",
       "dismissed"
@@ -26,8 +24,6 @@ const updateFullGrievanceSchema = Joi.object({
   priority: Joi.string().valid("low", "medium", "high"),
   status: Joi.string().valid(
     "submitted",
-    "reviewing",
-    "assigned",
     "in-progress",
     "resolved",
     "dismissed"
@@ -44,8 +40,6 @@ const updateStatusGrievanceSchema = Joi.object({
   status: Joi.string()
     .valid(
       "submitted",
-      "reviewing",
-      "assigned",
       "in-progress",
       "resolved",
       "dismissed"
@@ -59,8 +53,6 @@ const updateMyGrievanceSchema = Joi.object({
   priority: Joi.string().valid("low", "medium", "high"),
   status: Joi.string().valid(
     "submitted",
-    "reviewing",
-    "assigned",
     "in-progress",
     "resolved",
     "dismissed"
