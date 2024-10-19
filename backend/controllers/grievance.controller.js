@@ -352,7 +352,9 @@ const getAllGrievances = async (req, res) => {
     const grievances = await Grievance.find(query)
       .sort(sort)
       .limit(limitNumber)
-      .skip(skip);
+      .skip(skip)
+      .populate({path:"department_id",select:"name"})
+      .populate({path:"reported_by",select:"username"})
       if (!grievances.length) {
         return errorResponse(res, 404, "No grievances found");
       }

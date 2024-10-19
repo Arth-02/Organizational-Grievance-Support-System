@@ -21,19 +21,18 @@ const Employees = () => {
   const [deleteAllUsers] = useDeleteAllUsersMutation();
   const { data: departmentNames } = useGetAllDepartmentNameQuery();
   const { data: roleNames } = useGetAllRoleNameQuery();
-  const { data: allPermissions } = useGetAllPermissionsQuery();
   const [deleteUser] = useDeleteUserMutation();
 
   const userPermissions = useSelector((state) => state.user.permissions);
 
   const canCreate = userPermissions.includes("CREATE_USER");
-
   const canUpdate = userPermissions.includes("UPDATE_USER");
-
   const canDelete = userPermissions.includes("DELETE_USER");
+  const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
 
-  const viewPermission = userPermissions.includes("VIEW_PERMISSION");
-
+  const { data: allPermissions } = useGetAllPermissionsQuery({
+    skip: !canViewPermission,
+  });
   const navigate = useNavigate();
 
   const columns = [
@@ -48,7 +47,7 @@ const Employees = () => {
     { accessorKey: "lastname", header: "Last Name", sortable: true },
     { accessorKey: "employee_id", header: "Employee ID", sortable: false },
     { accessorKey: "phone_number", header: "Phone", sortable: false },
-    ...(viewPermission
+    ...(canViewPermission
       ? [
           {
             accessorKey: "role_permissions",

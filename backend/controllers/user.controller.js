@@ -643,7 +643,6 @@ const getAllUsers = async (req, res) => {
       ...req.user.special_permissions,
     ];
     const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
-    console.log("canViewPermissions", canViewPermissions);
 
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
