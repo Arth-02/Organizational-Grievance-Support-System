@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronLeft,
   Home,
+  MessageSquareWarning,
   Users,
 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -109,6 +110,7 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   
   const menuItems = [
     { icon: <Home />, label: "Dashboard", path: "/" },
+    { icon: <MessageSquareWarning /> , label: "Grievances", path: "/grievances"},
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
     ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
