@@ -362,6 +362,19 @@ export const apiService = createApi({
       },
       providesTags: ["Grievances"],
     }),
+    updateGrievance: builder.mutation({
+      query: (body) => (
+          console.log("body", body),
+        {
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `grievances/update/${body.id}`,
+        method: "PATCH",
+        body: body,
+      }),
+      invalidatesTags: ["Grievances"],
+    })
   }),
 });
 
@@ -397,4 +410,5 @@ export const {
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
   useGetAllGrievancesQuery,
+  useUpdateGrievanceMutation
 } = apiService;

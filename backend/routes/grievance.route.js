@@ -42,5 +42,6 @@ router.delete(
 );
 
 router.get("/all", isLoggedIn, getAllGrievances);
+router.patch("/update/:id", isLoggedIn, updateGrievance);
 
 module.exports = router;

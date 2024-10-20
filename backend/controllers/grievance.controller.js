@@ -136,7 +136,7 @@ const updateGrievance = async (req, res) => {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
-      if (req.body.reported_by.toString() === _id.toString()) {
+      if (req.body.reported_by && req.body.reported_by.toString() === _id.toString()) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
       if (permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status) {

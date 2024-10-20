@@ -1,13 +1,24 @@
 import MainLayout from "@/components/layout/MainLayout";
 import GeneralTable from "@/components/table/CustomTable";
-import { useGetAllGrievancesQuery } from "@/services/api.service";
-import { useState } from "react";
+import StatusTag from "@/components/table/StatusTag";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
+import { useEffect, useState } from "react";
+import GrievanceBoardView from "./GrievanceBoardView";
 
 const Grievances = () => {
   const [filters, setFilters] = useState({});
+  const [activeView, setActiveView] = useState("table");
+  const [localGrievances, setLocalGrievances] = useState([]);
 
-  const { data, isLoading, isFetching, error } =
-    useGetAllGrievancesQuery(filters);
+  const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(filters);
+  const [updateGrievance] = useUpdateGrievanceMutation();
+
+  useEffect(() => {
+    if (data?.data?.grievances) {
+      setLocalGrievances(data.data.grievances);
+    }
+  }, [data]);
 
   const columns = [
     {
@@ -32,10 +43,34 @@ const Grievances = () => {
       cell: ({ row }) => new Date(row.original.date_reported).toDateString(),
     },
     {
-      accessorKey: "reported_by",
+      accessorKey: "reported_by.username",
       header: "Reported By",
       sortable: true,
     },
+    {
+      accessorKey: "assigned_to.name",
+      header: "Assigned To",
+      sortable: true,
+    },
+    {
+        accessorKey: "department_id.name",
+        header: "Department",
+        sortable: true,
+    },
+    {
+        accessorKey: "priority",
+        header: "Priority",
+        sortable: true,
+        cell: ({ row }) => {
+            if (row.original.priority === "low") {
+                return <StatusTag value={row.original.priority} classNames={'bg-green-100 text-green-600'} />;
+            } else if (row.original.priority === "medium") {
+                return <StatusTag value={row.original.priority} classNames={'bg-orange-100 text-orange-600'} />;
+            } else {
+                return <StatusTag value={row.original.priority} classNames={'bg-red-100 text-red-600'} />;
+            }
+        } 
+    }
   ];
 
   const customFilters = [
@@ -67,24 +102,63 @@ const Grievances = () => {
     },
   ];
 
+  const handleDragEnd = async (grievanceId, newStatus) => {
+    try {
+      // Update local state immediately for a responsive UI
+      setLocalGrievances(prevGrievances =>
+        prevGrievances.map(grievance =>
+          grievance._id.toString() === grievanceId
+            ? { ...grievance, status: newStatus }
+            : grievance
+        )
+      );
+
+      console.log("Updating grievance status:", grievanceId, newStatus);
+
+      // Call the API to update the grievance status
+      await updateGrievance({ id: grievanceId, status: newStatus });
+      
+      // Optionally, you can refetch the data here if needed
+      // refetch();
+    } catch (error) {
+      console.error("Error updating grievance status:", error);
+      // Revert the local state if the API call fails
+      setLocalGrievances(data?.data?.grievances || []);
+    }
+  };
+
   return (
     <MainLayout
       title={"Grievances"}
       buttonTitle={"Add Grievance"}
       buttonLink={"/grievances/add"}
     >
-      <GeneralTable
-        data={data?.data?.grievances || []}
-        tableTitle={"Grievances"}
-        columns={columns}
-        filters={filters}
-        setFilters={setFilters}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        customFilters={customFilters}
-        searchOptions={searchOptions}
-      />
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList>
+          <TabsTrigger value="table">Table View</TabsTrigger>
+          <TabsTrigger value="board">Board View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="table">
+          <GeneralTable
+            data={localGrievances || []}
+            tableTitle={"Grievances"}
+            columns={columns}
+            filters={filters}
+            setFilters={setFilters}
+            isLoading={isLoading}
+            isFetching={isFetching}
+            error={error}
+            customFilters={customFilters}
+            searchOptions={searchOptions}
+          />
+        </TabsContent>
+        <TabsContent value="board">
+          <GrievanceBoardView
+            grievances={localGrievances || []}
+            onDragEnd={handleDragEnd}
+          />
+        </TabsContent>
+      </Tabs>
     </MainLayout>
   );
 };
