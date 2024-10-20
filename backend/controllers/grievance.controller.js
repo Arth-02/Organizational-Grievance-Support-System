@@ -19,6 +19,8 @@ const {
   updateGrievanceAttachmentSchema,
   updateMyGrievanceSchema,
 } = require("../validators/grievance.validator");
+const Joi = require("joi");
+const { UPDATE_GRIEVANCE_ASSIGNEE, UPDATE_GRIEVANCE_STATUS, UPDATE_GRIEVANCE } = require("../utils/constant");
 
 // Create a grievance
 const createGrievance = async (req, res) => {
@@ -104,37 +106,28 @@ const updateGrievance = async (req, res) => {
     if (!isValidObjectId(id)) {
       return errorResponse(res, 400, "Invalid grievance ID");
     }
-    const { organization_id, role, _id } = req.user;
-    const permissions = await Role.findById(role).select("permissions");
-    if (!permissions) {
-      return errorResponse(res, 400, "Role not found");
-    }
-    const permission = permissions.permissions;
+    const { organization_id, role, _id, special_permissions } = req.user;
+    const permission = [...role.permissions, ...special_permissions];
 
-    const canUpdateGrievance = permission.includes("UPDATE_GRIEVANCE");
-    const canUpdateGrievanceStatus = permission.includes(
-      "UPDATE_GRIEVANCE_STATUS"
-    );
-    const canUpdateGrievanceAssignee = permission.includes(
-      "UPDATE_GRIEVANCE_ASSIGNEE"
-    );
-    const canUpdateMyGrievance =
-      req.body.reported_by.toString() === _id.toString();
-    let schema;
+    const canUpdateGrievance = permission.includes(UPDATE_GRIEVANCE.slug);
+    const canUpdateGrievanceStatus = permission.includes(UPDATE_GRIEVANCE_STATUS.slug);
+    const canUpdateGrievanceAssignee = permission.includes(UPDATE_GRIEVANCE_ASSIGNEE.slug);
+    const canUpdateMyGrievance = req.body.reported_by?.toString() === _id.toString();
+    let schema = Joi.object();
 
     if (canUpdateGrievance) {
       schema = updateFullGrievanceSchema;
-      if (!isValidObjectId(req.body.department_id)) {
+      if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
       if (canUpdateMyGrievance) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
-      if (canUpdateGrievanceStatus && !canUpdateMyGrievance) {
+      if (canUpdateGrievanceStatus && req.body.status) {
         schema = schema.concat(updateStatusGrievanceSchema);
       }
-      if (canUpdateGrievanceAssignee) {
+      if (canUpdateGrievanceAssignee && req.body.assigned_to) {
         schema = schema.concat(updateAssignedGrievanceSchema);
       }
     }

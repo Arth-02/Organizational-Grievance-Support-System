@@ -2,7 +2,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 
 const GrievanceBoardView = ({ grievances, onDragEnd }) => {
-  const lists = ['reviewing', 'submitted', 'in-progress', 'resolved', 'dismissed'];
+  const lists = ['submitted', 'in-progress', 'resolved', 'dismissed'];
 
   const handleDragEnd = (result) => {
     if (!result.destination) {

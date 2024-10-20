@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
 import { useEffect, useState } from "react";
 import GrievanceBoardView from "./GrievanceBoardView";
+import toast from "react-hot-toast";
 
 const Grievances = () => {
   const [filters, setFilters] = useState({});
@@ -113,15 +114,23 @@ const Grievances = () => {
         )
       );
 
-      console.log("Updating grievance status:", grievanceId, newStatus);
+      const data = {
+        status: newStatus,
+      }
 
       // Call the API to update the grievance status
-      await updateGrievance({ id: grievanceId, status: newStatus });
+      const test = await updateGrievance({ id: grievanceId, data });
+      console.log("test", test);
+
+      if (test.error) {
+        throw new Error(test.error.data.message[0]);
+      }
       
       // Optionally, you can refetch the data here if needed
       // refetch();
     } catch (error) {
-      console.error("Error updating grievance status:", error);
+      console.log("Error updating grievance status:", error.message);
+      toast.error(error.message);
       // Revert the local state if the API call fails
       setLocalGrievances(data?.data?.grievances || []);
     }
@@ -150,6 +159,7 @@ const Grievances = () => {
             error={error}
             customFilters={customFilters}
             searchOptions={searchOptions}
+            pagination={data?.data?.pagination}
           />
         </TabsContent>
         <TabsContent value="board">

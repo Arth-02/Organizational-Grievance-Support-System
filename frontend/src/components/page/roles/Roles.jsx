@@ -101,7 +101,7 @@ const Roles = () => {
       ],
     },
     ...(canViewPermission
-      ? {
+      ? [{
           label: "Permissions",
           key: "permissions",
           options: [
@@ -110,7 +110,7 @@ const Roles = () => {
               value: permission.slug,
             })) || []),
           ],
-        }
+        }]
       : []),
   ];
 

@@ -363,15 +363,13 @@ export const apiService = createApi({
       providesTags: ["Grievances"],
     }),
     updateGrievance: builder.mutation({
-      query: (body) => (
-          console.log("body", body),
-        {
+      query: ({ id, data }) => ({
         headers: {
           Authorization: `Bearer ${getFromLocalStorage("token")}`,
         },
-        url: `grievances/update/${body.id}`,
+        url: `grievances/update/${id}`,
         method: "PATCH",
-        body: body,
+        body: data,
       }),
       invalidatesTags: ["Grievances"],
     })

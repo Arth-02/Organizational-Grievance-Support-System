@@ -51,12 +51,6 @@ const updateMyGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100),
   description: Joi.string().min(10).max(1000),
   priority: Joi.string().valid("low", "medium", "high"),
-  status: Joi.string().valid(
-    "submitted",
-    "in-progress",
-    "resolved",
-    "dismissed"
-  ),
 });
 
 const updateGrievanceAttachmentSchema = Joi.object({

@@ -11,6 +11,7 @@ const {
   checkPermission,
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
+const { UPDATE_GRIEVANCE, UPDATE_GRIEVANCE_ASSIGNEE, UPDATE_GRIEVANCE_STATUS } = require("../utils/constant");
 const router = require("express").Router();
 
 router.post(
@@ -42,6 +43,6 @@ router.delete(
 );
 
 router.get("/all", isLoggedIn, getAllGrievances);
-router.patch("/update/:id", isLoggedIn, updateGrievance);
+router.patch("/update/:id", checkPermission([UPDATE_GRIEVANCE.slug, UPDATE_GRIEVANCE_ASSIGNEE.slug, UPDATE_GRIEVANCE_STATUS.slug]), updateGrievance);
 
 module.exports = router;
