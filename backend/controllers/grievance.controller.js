@@ -110,42 +110,31 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 400, "Role not found");
     }
     const permission = permissions.permissions;
-    let schema;
-    // if (permission.includes("UPDATE_GRIEVANCE")) {
-    //   schema = updateFullGrievanceSchema;
-    //   if (!isValidObjectId(req.body.department_id)) {
-    //     return errorResponse(res, 400, "Invalid department ID");
-    //   }
-    // } else if (
-    //   permission.includes("UPDATE_GRIEVANCE_STATUS") &&
-    //   req.body.status
-    // ) {
-    //   schema = updateStatusGrievanceSchema;
-    // } else if (
-    //   permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
-    //   req.body.assigned_to
-    // ) {
-    //   schema = updateAssignedGrievanceSchema;
-    // } else {
-    //   return errorResponse(res, 403, "Permission denied");
-    // }
 
-    if (permission.includes("UPDATE_GRIEVANCE")) {
+    const canUpdateGrievance = permission.includes("UPDATE_GRIEVANCE");
+    const canUpdateGrievanceStatus = permission.includes(
+      "UPDATE_GRIEVANCE_STATUS"
+    );
+    const canUpdateGrievanceAssignee = permission.includes(
+      "UPDATE_GRIEVANCE_ASSIGNEE"
+    );
+    const canUpdateMyGrievance =
+      req.body.reported_by.toString() === _id.toString();
+    let schema;
+
+    if (canUpdateGrievance) {
       schema = updateFullGrievanceSchema;
       if (!isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
-      if (req.body.reported_by && req.body.reported_by.toString() === _id.toString()) {
+      if (canUpdateMyGrievance) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
-      if (permission.includes("UPDATE_GRIEVANCE_STATUS") && req.body.status) {
+      if (canUpdateGrievanceStatus && !canUpdateMyGrievance) {
         schema = schema.concat(updateStatusGrievanceSchema);
       }
-      if (
-        permission.includes("UPDATE_GRIEVANCE_ASSIGNEE") &&
-        req.body.assigned_to
-      ) {
+      if (canUpdateGrievanceAssignee) {
         schema = schema.concat(updateAssignedGrievanceSchema);
       }
     }
@@ -319,8 +308,8 @@ const getAllGrievances = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const {
-      page=1,
-      limit=10,
+      page = 1,
+      limit = 10,
       sort,
       search,
       status,
@@ -353,14 +342,14 @@ const getAllGrievances = async (req, res) => {
       .sort(sort)
       .limit(limitNumber)
       .skip(skip)
-      .populate({path:"department_id",select:"name"})
-      .populate({path:"reported_by",select:"username"})
-      if (!grievances.length) {
-        return errorResponse(res, 404, "No grievances found");
-      }
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" });
+    if (!grievances.length) {
+      return errorResponse(res, 404, "No grievances found");
+    }
 
-      const totalGrievances = await Grievance.countDocuments(query);
-    
+    const totalGrievances = await Grievance.countDocuments(query);
+
     const totalPages = Math.ceil(totalGrievances / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
@@ -374,8 +363,11 @@ const getAllGrievances = async (req, res) => {
       hasPrevPage: hasPrevPage,
     };
 
-    return successResponse(res, {grievances,pagination}, "Grievances fetched successfully");
-
+    return successResponse(
+      res,
+      { grievances, pagination },
+      "Grievances fetched successfully"
+    );
   } catch (err) {
     console.error("Get All Grievances Error:", err.message);
     return catchResponse(res);

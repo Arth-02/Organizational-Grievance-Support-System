@@ -53,6 +53,7 @@ const GrievanceSchema = new mongoose.Schema(
     assigned_to: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
   },
   {
