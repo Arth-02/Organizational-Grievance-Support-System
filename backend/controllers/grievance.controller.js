@@ -104,32 +104,29 @@ const createGrievance = async (req, res) => {
 const updateGrievance = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) {
-      return errorResponse(res, 400, "Grievance ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid grievance ID");
-    }
-    const { organization_id, role, _id, special_permissions } = req.user;
-    const permission = [...role.permissions, ...special_permissions];
+    if (!id) return errorResponse(res, 400, "Grievance ID is required");
+    if (!isValidObjectId(id)) return errorResponse(res, 400, "Invalid grievance ID");
 
-    const canUpdateGrievance = permission.includes(UPDATE_GRIEVANCE.slug);
-    const canUpdateGrievanceStatus = permission.includes(
-      UPDATE_GRIEVANCE_STATUS.slug
-    );
-    const canUpdateGrievanceAssignee = permission.includes(
-      UPDATE_GRIEVANCE_ASSIGNEE.slug
-    );
-    const canUpdateMyGrievance =
-      req.body.reported_by?.toString() === _id.toString();
+    const { organization_id, role, _id, special_permissions } = req.user;
+    const permissions = [...role.permissions, ...special_permissions];
+
+    // Check permissions for various grievance updates
+    const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
+    const canUpdateGrievanceStatus = permissions.includes(UPDATE_GRIEVANCE_STATUS.slug);
+    const canUpdateGrievanceAssignee = permissions.includes(UPDATE_GRIEVANCE_ASSIGNEE.slug);
+    const canUpdateMyGrievance = req.body.reported_by?.toString() === _id.toString();
+
+    // Initialize schema
     let schema = Joi.object();
 
+    // If user has full permission to update grievance
     if (canUpdateGrievance) {
       schema = updateFullGrievanceSchema;
       if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
+      // Conditionally add schemas based on specific permissions
       if (canUpdateMyGrievance) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
@@ -139,35 +136,34 @@ const updateGrievance = async (req, res) => {
       if (canUpdateGrievanceAssignee && req.body.assigned_to) {
         schema = schema.concat(updateAssignedGrievanceSchema);
       }
+
+      // If no valid permissions are found, deny access
+      if (schema.describe().keys === undefined) {
+        return errorResponse(res, 403, "Permission denied");
+      }
     }
-    if (!schema) {
-      return errorResponse(res, 403, "Permission denied");
-    }
+
+    // Validate request body with the constructed schema
     const { error, value } = schema.validate(req.body);
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
-    const query = { _id: id };
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
-      new: true,
-    });
-    if (!updatedGrievance) {
-      return errorResponse(res, 404, "Grievance not found");
-    }
-    return successResponse(
-      res,
-      updatedGrievance,
-      "Grievance updated successfully"
-    );
+
+    // Prepare query to find and update grievance
+    const query = { _id: id, organization_id };
+    
+    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, { new: true });
+    if (!updatedGrievance) return errorResponse(res, 404, "Grievance not found");
+
+    return successResponse(res, updatedGrievance, "Grievance updated successfully");
+
   } catch (err) {
-    console.error("Update Grievance Error:", err.message);
+    console.error("Update Grievance Error:", err.stack);
     return catchResponse(res);
   }
 };
+
 
 // update grievance attachment
 const updateGrievanceAttachment = async (req, res) => {

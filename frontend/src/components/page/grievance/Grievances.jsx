@@ -123,7 +123,7 @@ const Grievances = () => {
       console.log("test", test);
 
       if (test.error) {
-        throw new Error(test.error.data.message[0]);
+        throw new Error(test.error.data.message);
       }
       
       // Optionally, you can refetch the data here if needed
