@@ -15,18 +15,31 @@ import Unauthorized from "./Unauthorized";
 import PermissionGuard from "./PermissionGuard";
 import Grievances from "./components/page/grievance/Grievances";
 import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const socket = io("http://localhost:9001");
 
-socket.on("connect", () => {
-  console.log("hey, ", socket.id);
-});
-
-socket.on("receive_notification", (msg) => {
-  console.log(msg);
-});
-
 function App() {
+
+  const user = useSelector((state) => state.user.user);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("hey, ", socket.id);
+    });
+    if(!user) return;
+
+    socket.emit("register_user", user._id);
+    console.log(`User ${user._id} registered`);
+
+    // Listen for the 'receive_notification' event from the server
+    socket.on("receive_notification", (msg) => {
+      console.log("Notification received:", msg);
+      // setNotifications((prev) => [...prev, msg]); // Append new notification to state
+    });
+  }, [user]);
+
   return (
     <>
       <BrowserRouter>

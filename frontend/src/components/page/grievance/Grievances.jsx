@@ -49,7 +49,7 @@ const Grievances = () => {
       sortable: true,
     },
     {
-      accessorKey: "assigned_to.name",
+      accessorKey: "assigned_to.username",
       header: "Assigned To",
       sortable: true,
     },

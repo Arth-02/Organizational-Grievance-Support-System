@@ -126,7 +126,6 @@ const updateGrievance = async (req, res) => {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
-      // Conditionally add schemas based on specific permissions
       if (canUpdateMyGrievance) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
@@ -137,13 +136,11 @@ const updateGrievance = async (req, res) => {
         schema = schema.concat(updateAssignedGrievanceSchema);
       }
 
-      // If no valid permissions are found, deny access
       if (schema.describe().keys === undefined) {
         return errorResponse(res, 403, "Permission denied");
       }
     }
 
-    // Validate request body with the constructed schema
     const { error, value } = schema.validate(req.body);
     if (error) {
       const errors = error.details.map((detail) => detail.message);
@@ -155,6 +152,28 @@ const updateGrievance = async (req, res) => {
     
     const updatedGrievance = await Grievance.findOneAndUpdate(query, value, { new: true });
     if (!updatedGrievance) return errorResponse(res, 404, "Grievance not found");
+
+    const reporterId = updatedGrievance.reported_by;
+    const assigneeId = updatedGrievance.assigned_to;
+
+    const users = req.users;
+    console.log("Users:", users);
+
+    if (reporterId && users[reporterId]) {
+      req.io.to(users[reporterId]).emit("receive_notification", {
+        message: `Your grievance with ID ${id} has been updated`,
+        grievanceId: id,
+        updatedData: updatedGrievance,
+      });
+    }
+
+    if (assigneeId && users[assigneeId]) {
+      req.io.to(users[assigneeId]).emit("receive_notification", {
+        message: `You have been assigned an updated grievance with ID ${id}`,
+        grievanceId: id,
+        updatedData: updatedGrievance,
+      });
+    }
 
     return successResponse(res, updatedGrievance, "Grievance updated successfully");
 
@@ -343,7 +362,8 @@ const getAllGrievances = async (req, res) => {
         .limit(limitNumber)
         .skip(skip)
         .populate({ path: "department_id", select: "name" })
-        .populate({ path: "reported_by", select: "username" }),
+        .populate({ path: "reported_by", select: "username" })
+        .populate({ path: "assigned_to", select: "username" }),
       Grievance.countDocuments(query),
     ]);
 

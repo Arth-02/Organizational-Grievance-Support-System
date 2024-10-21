@@ -18,22 +18,42 @@ const io = new Server(httpServer, {
   },
 });
 
+const users = {}; // This will store userID -> socketID mapping
+
 io.on("connection", (socket) => {
-  console.log("a user connected");
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
+  console.log("a user connected", socket.id);
+
+  // Listen for event where user sends their userID to identify them
+  socket.on("register_user", (userId) => {
+    users[userId] = socket.id; // Map userID to socket ID
+    console.log(`User ${userId} is connected with socket ID: ${socket.id}`);
   });
-  socket.on("notification", (msg) => {
-    console.log("message: " + msg);
-    io.emit("receive_notification", msg);
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected", socket.id);
+
+    // Remove the user from users object when they disconnect
+    for (let userId in users) {
+      if (users[userId] === socket.id) {
+        delete users[userId];
+        console.log(`User ${userId} disconnected`);
+        break;
+      }
+    }
   });
 });
+
 
 connectDB();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  req.io = io;
+  req.users = users;
+  next();
+});
 
 app.use("/", routes);
 
