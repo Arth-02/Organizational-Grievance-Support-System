@@ -107,14 +107,14 @@ const updateGrievance = async (req, res) => {
     if (!id) return errorResponse(res, 400, "Grievance ID is required");
     if (!isValidObjectId(id)) return errorResponse(res, 400, "Invalid grievance ID");
 
-    const { organization_id, role, _id, special_permissions } = req.user;
+    const { organization_id, role, _id: userId, special_permissions } = req.user;
     const permissions = [...role.permissions, ...special_permissions];
 
     // Check permissions for various grievance updates
     const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
     const canUpdateGrievanceStatus = permissions.includes(UPDATE_GRIEVANCE_STATUS.slug);
     const canUpdateGrievanceAssignee = permissions.includes(UPDATE_GRIEVANCE_ASSIGNEE.slug);
-    const canUpdateMyGrievance = req.body.reported_by?.toString() === _id.toString();
+    const canUpdateMyGrievance = req.body.reported_by?.toString() === userId.toString();
 
     // Initialize schema
     let schema = Joi.object();
@@ -157,18 +157,22 @@ const updateGrievance = async (req, res) => {
     const assigneeId = updatedGrievance.assigned_to;
 
     const users = req.users;
-    console.log("Users:", users);
 
-    if (reporterId && users[reporterId]) {
+    const isReporterUserSame = reporterId.toString() === userId.toString();
+    const isAssigneeUserSame = assigneeId && assigneeId.toString() === userId.toString();
+
+    if (reporterId && users[reporterId] && !isReporterUserSame) {
       req.io.to(users[reporterId]).emit("receive_notification", {
+        type: "update_grievance",
         message: `Your grievance with ID ${id} has been updated`,
         grievanceId: id,
         updatedData: updatedGrievance,
       });
     }
 
-    if (assigneeId && users[assigneeId]) {
+    if (assigneeId && users[assigneeId] && !isAssigneeUserSame) {
       req.io.to(users[assigneeId]).emit("receive_notification", {
+        type: "update_grievance_assignee",
         message: `You have been assigned an updated grievance with ID ${id}`,
         grievanceId: id,
         updatedData: updatedGrievance,
