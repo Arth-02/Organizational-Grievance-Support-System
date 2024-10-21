@@ -701,7 +701,7 @@ const GeneralTable = ({
                     size="sm"
                     className="data-[state=open]:bg-muted h-8 px-2 pl-3"
                   >
-                    {filters.limit}{" "}
+                    {filters.limit === undefined ? 10 : filters.limit}{" "}
                     <ChevronsUpDown size={16} className="ml-1" />
                   </Button>
                 </DropdownMenuTrigger>

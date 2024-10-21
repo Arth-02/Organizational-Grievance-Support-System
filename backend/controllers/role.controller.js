@@ -1,6 +1,10 @@
 const Role = require("../models/role.model");
 const User = require("../models/user.model");
-const { DEFAULT_PERMISSIONS, PERMISSIONS, VIEW_PERMISSION } = require("../utils/constant");
+const {
+  DEFAULT_PERMISSIONS,
+  PERMISSIONS,
+  VIEW_PERMISSION,
+} = require("../utils/constant");
 const {
   errorResponse,
   successResponse,
@@ -258,9 +262,9 @@ const getAllRoles = async (req, res) => {
     }
 
     const pagination = {
-      currentPage: pageNumber,
+      totalItems: totalRoles,
       totalPages,
-      totalRoles,
+      currentPage: pageNumber,
       limit: limitNumber,
       hasNextPage,
       hasPrevPage,

@@ -838,10 +838,10 @@ const getAllUsers = async (req, res) => {
       {
         users,
         pagination: {
-          totalUsers,
+          totalItems: totalUsers,
           totalPages,
           currentPage: pageNumber,
-          pageSize: limitNumber,
+          limit: limitNumber,
           hasNextPage,
           hasPrevPage,
         },

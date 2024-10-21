@@ -146,9 +146,9 @@ const getAllDepartment = async (req, res) => {
     const hasPrevPage = page > 1;
 
     const pagination = {
-      currentPage: pageNumber,
+      totalItems: totalDepartments,
       totalPages: totalPages,
-      totalDepartments: totalDepartments,
+      currentPage: pageNumber,
       limit: limitNumber,
       hasNextPage: hasNextPage,
       hasPrevPage: hasPrevPage,

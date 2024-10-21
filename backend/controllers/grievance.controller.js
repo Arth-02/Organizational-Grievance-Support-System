@@ -348,9 +348,9 @@ const getAllGrievances = async (req, res) => {
     const hasPrevPage = page > 1;
 
     const pagination = {
-      currentPage: pageNumber,
+      totalItems: totalGrievances,
       totalPages: totalPages,
-      totalGrievances: totalGrievances,
+      currentPage: pageNumber,
       limit: limitNumber,
       hasNextPage: hasNextPage,
       hasPrevPage: hasPrevPage,
