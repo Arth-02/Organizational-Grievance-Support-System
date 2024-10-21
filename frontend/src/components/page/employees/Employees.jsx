@@ -30,7 +30,6 @@ const Employees = () => {
   const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
   const canViewRole = userPermissions.includes("VIEW_ROLE");
   const canViewDepartment = userPermissions.includes("VIEW_DEPARTMENT");
-  console.log("canViewD", canViewDepartment);
 
   const { data: allPermissions } = useGetAllPermissionsQuery(undefined, {
     skip: !canViewPermission,

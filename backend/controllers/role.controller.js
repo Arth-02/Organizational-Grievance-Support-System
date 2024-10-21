@@ -222,28 +222,19 @@ const getAllRoles = async (req, res) => {
     );
 
     pipeline.push({
-      $facet: {
-        roles: [
-          {
-            $project: {
-              name: 1,
-              ...(canViewPermissions && { permissions: 1 }),
-              is_active: 1,
-              organization_id: 1,
-              created_at: 1,
-            },
-          },
-        ],
-        totalRoles: [{ $count: "count" }],
+      $project: {
+        name: 1,
+        ...(canViewPermissions && { permissions: 1 }),
+        is_active: 1,
+        organization_id: 1,
+        created_at: 1,
       },
     });
 
-    const [result] = await Role.aggregate(pipeline);
-
-    const roles = result.roles || [];
-    const totalRoles = result.totalRoles.length
-      ? result.totalRoles[0].count
-      : 0;
+    const [roles, totalRoles] = await Promise.all([
+      Role.aggregate(pipeline),
+      Role.countDocuments(query),
+    ]);
     const totalPages = Math.ceil(totalRoles / limitNumber);
     const hasNextPage = pageNumber < totalPages;
     const hasPrevPage = pageNumber > 1;

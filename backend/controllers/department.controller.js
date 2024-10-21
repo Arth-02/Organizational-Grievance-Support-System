@@ -130,17 +130,19 @@ const getAllDepartment = async (req, res) => {
       query.name = { $regex: name, $options: "i" };
     }
 
-    const departments = await Department.find(query)
-      .collation({ locale: "en", strength: 2 }) // Case-insensitive collation
-      .sort({ [sort_by]: order === "desc" ? -1 : 1 })
-      .skip(skip)
-      .limit(limitNumber);
+    const [departments, totalDepartments] = await Promise.all([
+      Department.find(query)
+        .collation({ locale: "en", strength: 2 })
+        .sort({ [sort_by]: order === "desc" ? -1 : 1 })
+        .skip(skip)
+        .limit(limitNumber),
+      Department.countDocuments(query),
+    ]);
 
     if (!departments.length) {
       return errorResponse(res, 404, "No departments found");
     }
 
-    const totalDepartments = await Department.countDocuments(query);
     const totalPages = Math.ceil(totalDepartments / limitNumber);
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;

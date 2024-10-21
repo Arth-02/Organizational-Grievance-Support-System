@@ -20,7 +20,11 @@ const {
   updateMyGrievanceSchema,
 } = require("../validators/grievance.validator");
 const Joi = require("joi");
-const { UPDATE_GRIEVANCE_ASSIGNEE, UPDATE_GRIEVANCE_STATUS, UPDATE_GRIEVANCE } = require("../utils/constant");
+const {
+  UPDATE_GRIEVANCE_ASSIGNEE,
+  UPDATE_GRIEVANCE_STATUS,
+  UPDATE_GRIEVANCE,
+} = require("../utils/constant");
 
 // Create a grievance
 const createGrievance = async (req, res) => {
@@ -110,9 +114,14 @@ const updateGrievance = async (req, res) => {
     const permission = [...role.permissions, ...special_permissions];
 
     const canUpdateGrievance = permission.includes(UPDATE_GRIEVANCE.slug);
-    const canUpdateGrievanceStatus = permission.includes(UPDATE_GRIEVANCE_STATUS.slug);
-    const canUpdateGrievanceAssignee = permission.includes(UPDATE_GRIEVANCE_ASSIGNEE.slug);
-    const canUpdateMyGrievance = req.body.reported_by?.toString() === _id.toString();
+    const canUpdateGrievanceStatus = permission.includes(
+      UPDATE_GRIEVANCE_STATUS.slug
+    );
+    const canUpdateGrievanceAssignee = permission.includes(
+      UPDATE_GRIEVANCE_ASSIGNEE.slug
+    );
+    const canUpdateMyGrievance =
+      req.body.reported_by?.toString() === _id.toString();
     let schema = Joi.object();
 
     if (canUpdateGrievance) {
@@ -331,17 +340,20 @@ const getAllGrievances = async (req, res) => {
     if (search) {
       query.title = { $regex: search, $options: "i" };
     }
-    const grievances = await Grievance.find(query)
-      .sort(sort)
-      .limit(limitNumber)
-      .skip(skip)
-      .populate({ path: "department_id", select: "name" })
-      .populate({ path: "reported_by", select: "username" });
+
+    const [grievances, totalGrievances] = await Promise.all([
+      Grievance.find(query)
+        .sort(sort)
+        .limit(limitNumber)
+        .skip(skip)
+        .populate({ path: "department_id", select: "name" })
+        .populate({ path: "reported_by", select: "username" }),
+      Grievance.countDocuments(query),
+    ]);
+
     if (!grievances.length) {
       return errorResponse(res, 404, "No grievances found");
     }
-
-    const totalGrievances = await Grievance.countDocuments(query);
 
     const totalPages = Math.ceil(totalGrievances / limitNumber);
     const hasNextPage = page < totalPages;
