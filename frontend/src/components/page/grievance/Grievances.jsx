@@ -120,7 +120,6 @@ const Grievances = () => {
 
       // Call the API to update the grievance status
       const test = await updateGrievance({ id: grievanceId, data });
-      console.log("test", test);
 
       if (test.error) {
         throw new Error(test.error.data.message);

@@ -25,6 +25,7 @@ const {
   UPDATE_GRIEVANCE_STATUS,
   UPDATE_GRIEVANCE,
 } = require("../utils/constant");
+const { sendNotification } = require("../helpers/notification");
 
 // Create a grievance
 const createGrievance = async (req, res) => {
@@ -105,16 +106,27 @@ const updateGrievance = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) return errorResponse(res, 400, "Grievance ID is required");
-    if (!isValidObjectId(id)) return errorResponse(res, 400, "Invalid grievance ID");
+    if (!isValidObjectId(id))
+      return errorResponse(res, 400, "Invalid grievance ID");
 
-    const { organization_id, role, _id: userId, special_permissions } = req.user;
+    const {
+      organization_id,
+      role,
+      _id: userId,
+      special_permissions,
+    } = req.user;
     const permissions = [...role.permissions, ...special_permissions];
 
     // Check permissions for various grievance updates
     const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
-    const canUpdateGrievanceStatus = permissions.includes(UPDATE_GRIEVANCE_STATUS.slug);
-    const canUpdateGrievanceAssignee = permissions.includes(UPDATE_GRIEVANCE_ASSIGNEE.slug);
-    const canUpdateMyGrievance = req.body.reported_by?.toString() === userId.toString();
+    const canUpdateGrievanceStatus = permissions.includes(
+      UPDATE_GRIEVANCE_STATUS.slug
+    );
+    const canUpdateGrievanceAssignee = permissions.includes(
+      UPDATE_GRIEVANCE_ASSIGNEE.slug
+    );
+    const canUpdateMyGrievance =
+      req.body.reported_by?.toString() === userId.toString();
 
     // Initialize schema
     let schema = Joi.object();
@@ -149,44 +161,74 @@ const updateGrievance = async (req, res) => {
 
     // Prepare query to find and update grievance
     const query = { _id: id, organization_id };
-    
-    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, { new: true });
-    if (!updatedGrievance) return errorResponse(res, 404, "Grievance not found");
+
+    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
+      new: true,
+    });
+    if (!updatedGrievance)
+      return errorResponse(res, 404, "Grievance not found");
 
     const reporterId = updatedGrievance.reported_by;
     const assigneeId = updatedGrievance.assigned_to;
 
+    const isReporterUserSame = reporterId.toString() === userId.toString();
+    const isAssigneeUserSame =
+      assigneeId && assigneeId.toString() === userId.toString();
+
     const users = req.users;
 
-    const isReporterUserSame = reporterId.toString() === userId.toString();
-    const isAssigneeUserSame = assigneeId && assigneeId.toString() === userId.toString();
+    if (reporterId.toString() === assigneeId.toString() && !isReporterUserSame) {
+      sendNotification(
+        reporterId,
+        {
+          type: "update_grievance",
+          message: `Your grievance with ID ${id} has been updated`,
+          grievanceId: id,
+          updatedData: updatedGrievance,
+        },
+        req.users,
+        req.io
+      );
+    } else {
+      if (reporterId && users[reporterId] && !isReporterUserSame) {
+        sendNotification(
+          reporterId,
+          {
+            type: "update_grievance",
+            message: `Your grievance with ID ${id} has been updated`,
+            grievanceId: id,
+            updatedData: updatedGrievance,
+          },
+          req.users,
+          req.io
+        );
+      }
 
-    if (reporterId && users[reporterId] && !isReporterUserSame) {
-      req.io.to(users[reporterId]).emit("receive_notification", {
-        type: "update_grievance",
-        message: `Your grievance with ID ${id} has been updated`,
-        grievanceId: id,
-        updatedData: updatedGrievance,
-      });
+      if (assigneeId && users[assigneeId] && !isAssigneeUserSame) {
+        sendNotification(
+          assigneeId,
+          {
+            type: "update_grievance",
+            message: `Grievance with ID ${id} has been updated`,
+            grievanceId: id,
+            updatedData: updatedGrievance,
+          },
+          req.users,
+          req.io
+        );
+      }
     }
 
-    if (assigneeId && users[assigneeId] && !isAssigneeUserSame) {
-      req.io.to(users[assigneeId]).emit("receive_notification", {
-        type: "update_grievance_assignee",
-        message: `You have been assigned an updated grievance with ID ${id}`,
-        grievanceId: id,
-        updatedData: updatedGrievance,
-      });
-    }
-
-    return successResponse(res, updatedGrievance, "Grievance updated successfully");
-
+    return successResponse(
+      res,
+      updatedGrievance,
+      "Grievance updated successfully"
+    );
   } catch (err) {
     console.error("Update Grievance Error:", err.stack);
     return catchResponse(res);
   }
 };
-
 
 // update grievance attachment
 const updateGrievanceAttachment = async (req, res) => {
