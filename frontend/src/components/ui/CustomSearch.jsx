@@ -54,7 +54,7 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
 
   return (
     <div
-      className={`relative flex items-center justify-around h-9 rounded-md border bg-background py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 ease-in-out ${
+      className={`relative flex items-center justify-around h-9 rounded-md border dark:border-input/50 bg-background py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 ease-in-out ${
         selectedOption ? "px-3 pr-1 w-[350px]" : " px-1 w-[250px]"
       }`}
     >

@@ -3,6 +3,7 @@ import { logout } from "@/features/userSlice";
 import { Menu } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 const Header = ({ setIsSidebarOpen }) => {
   const user = useSelector((state) => state.user.user);
@@ -15,7 +16,7 @@ const Header = ({ setIsSidebarOpen }) => {
   };
 
   return (
-    <header className="bg-white shadow p-4 flex justify-between items-center h-[50px]">
+    <header className="bg-white dark:bg-black shadow p-4 flex justify-between items-center h-[50px]">
       <Button
         variant="ghost"
         className="lg:hidden"
@@ -30,6 +31,7 @@ const Header = ({ setIsSidebarOpen }) => {
           </span>
         </div>
         <div>
+          <ThemeToggle />
           <Button size='sm' onClick={handleLogout}>
             Logout
           </Button>

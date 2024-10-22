@@ -15,7 +15,7 @@ const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
           "focus:outline-none",
           error
             ? "border-red-500 focus:border-red-500"
-            : "border-gray-300 focus:border-primary",
+            : "border-gray-300 dark:border-secondary/70 focus:border-primary dark:focus:border-primary",
           className
         )}
         ref={ref}
@@ -46,7 +46,7 @@ const CustomInput = React.forwardRef(({ label, error, type, ...props }, ref) => 
           ref={ref}
           error={error}
           type={showPassword && type === "password" ? "text" : type}
-          className={"bg-secondary/15"}
+          className={"bg-secondary/15 dark:bg-black"}
           {...props}
         />
         {type === "password" && (

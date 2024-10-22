@@ -54,9 +54,9 @@ const RegisterOrg = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
       <div className="w-full max-w-6xl bg-secondary/20 p-10 rounded-lg">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white dark:bg-black rounded-lg shadow-lg overflow-hidden">
           <div className="flex flex-col md:flex-row">
             <div className="md:w-1/2 p-6">
               <h1 className="text-3xl font-bold mb-6">Register</h1>

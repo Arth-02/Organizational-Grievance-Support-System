@@ -121,7 +121,7 @@ const GeneralTable = ({
                   <Tooltip>
                     <TooltipTrigger
                       onClick={() => onEdit(row.original._id)}
-                      className="p-2 h-8 w-8 rounded-md bg-orange-100/50 text-orange-500 hover:bg-orange-100/80 hover:text-orange-700"
+                      className="p-2 h-8 w-8 rounded-md bg-orange-100/50 dark:bg-orange-100/10 dark:hover:bg-orange-100/30 text-orange-500 dark:text-orange-500 hover:bg-orange-100/80 hover:text-orange-700 transition-all duration-200 ease-in-out"
                     >
                       <Edit3 size={15} />
                     </TooltipTrigger>
@@ -134,7 +134,7 @@ const GeneralTable = ({
                   <Tooltip>
                     <TooltipTrigger
                       onClick={() => handleDeleteClick(row.original._id)}
-                      className="p-2 h-8 w-8 rounded-md bg-red-100/50 text-red-500 hover:bg-red-100/80 hover:text-red-700"
+                      className="p-2 h-8 w-8 rounded-md bg-red-100/50 dark:bg-red-100/10 dark:hover:bg-red-100/30 dark:text-red-500 text-red-500 hover:bg-red-100/80 hover:text-red-700 transition-all duration-200 ease-in-out"
                     >
                       <Trash size={15} />
                     </TooltipTrigger>
@@ -425,7 +425,7 @@ const GeneralTable = ({
                       <Button
                         variant="outline"
                         role="combobox"
-                        className="w-full justify-between"
+                        className="w-full justify-between dark:hover:bg-muted/50"
                       >
                         {filters[filter.key]?.length > 0
                           ? `Selected (${filters[filter.key].length})`
@@ -436,7 +436,7 @@ const GeneralTable = ({
                     <PopoverContent className="w-auto h-[400px] overflow-y-auto p-0">
                       <div className="flex flex-col space-y-2">
                         {/* OR and AND Option */}
-                        <div className="grid grid-cols-2 gap-4 sticky top-0 p-2 pb-3 bg-white">
+                        <div className="grid grid-cols-2 gap-4 sticky top-0 p-2 pb-3 bg-white dark:bg-black">
                           <RadioGroup
                             defaultValue="or"
                             onValueChange={(value) =>
@@ -549,7 +549,7 @@ const GeneralTable = ({
               variant="outline"
               size="sm"
               onClick={handleResetFilters}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 dark:hover:bg-muted/50"
             >
               <RefreshCcw size={16} />
               Reset Filters
@@ -561,7 +561,7 @@ const GeneralTable = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="data-[state=open]:bg-muted"
+                className="data-[state=open]:bg-muted dark:hover:bg-muted/50"
               >
                 <Settings2 size={18} className="mr-2" />
                 View
@@ -738,7 +738,7 @@ const GeneralTable = ({
         </div>
       )}
       {selectedRows.length > 0 && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 border border-secondary flex gap-2 py-2 px-3 bg-white shadow-customlight rounded-md items-center">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 border border-secondary flex gap-2 py-2 px-3 bg-white dark:bg-black shadow-customlight rounded-md items-center">
           <div className="border border-dashed rounded-lg border-black/30 px-1 py-1 flex gap-2 justify-between items-center">
             <span className="mb-[2px] ml-2">
               {selectedRows.length} selected

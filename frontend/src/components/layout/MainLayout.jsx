@@ -6,7 +6,7 @@ const MainLayout = ({ title, buttonTitle, buttonLink, children }) => {
   return (
     <div className="w-full h-full">
       <div className="flex justify-between items-center pb-4">
-        <h1 className="text-xl font-semibold text-primary">{title}</h1>
+        <h1 className="text-xl font-semibold text-primary dark:text-white">{title}</h1>
         {buttonTitle && buttonLink && (
           <Link to={buttonLink}>
             <Button size='sm'>

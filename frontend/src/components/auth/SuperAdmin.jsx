@@ -112,7 +112,7 @@ const SuperAdmin = () => {
               />
             </div>
           </div>
-          <div className="md:w-3/5 p-6 px-10 bg-white rounded-[2.5rem]">
+          <div className="md:w-3/5 p-6 px-10 bg-white dark:bg-black rounded-[2.5rem]">
             <h1 className="text-3xl font-bold my-6 mb-8">Super Admin</h1>
             {step === 1 ? (
               <form
