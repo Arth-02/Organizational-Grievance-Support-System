@@ -6,14 +6,21 @@ import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services
 import { useEffect, useState } from "react";
 import GrievanceBoardView from "./GrievanceBoardView";
 import toast from "react-hot-toast";
+import useSocket from "@/utils/useSocket";
 
 const Grievances = () => {
   const [filters, setFilters] = useState({});
   const [activeView, setActiveView] = useState("table");
   const [localGrievances, setLocalGrievances] = useState([]);
 
-  const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(filters);
+  const { data, isLoading, isFetching, error,refetch } = useGetAllGrievancesQuery(filters);
   const [updateGrievance] = useUpdateGrievanceMutation();
+
+  const handleGrievanceRefetch = () => {
+    refetch();
+  };
+  
+  useSocket(handleGrievanceRefetch);
 
   useEffect(() => {
     if (data?.data?.grievances) {

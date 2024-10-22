@@ -7,7 +7,7 @@ const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const socket = io(baseUrl);
 
-const useSocket = () => {
+const useSocket = (onGrievanceupdate) => {
   const user = useSelector((state) => state.user.user);
 
   useEffect(() => {
@@ -23,8 +23,11 @@ const useSocket = () => {
     // Handle receiving notifications
     socket.on("receive_notification", (msg) => {
       console.log("Notification received:", msg);
-      // e.g., setNotifications((prev) => [...prev, msg]);
+      if (msg.type === "update_grievance") {
+        onGrievanceupdate();
+      }
     });
+
     return () => {
       socket.off("connect");
       socket.off("receive_notification");
