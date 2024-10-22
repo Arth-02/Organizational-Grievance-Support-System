@@ -420,7 +420,7 @@ const AddUpdateEmployee = () => {
           <div className="">
             <label
               htmlFor="special-permissions"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium mb-2"
             >
               Special Permissions
             </label>

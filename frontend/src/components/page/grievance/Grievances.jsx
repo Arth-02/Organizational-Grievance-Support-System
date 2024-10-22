@@ -64,11 +64,11 @@ const Grievances = () => {
         sortable: true,
         cell: ({ row }) => {
             if (row.original.priority === "low") {
-                return <StatusTag value={row.original.priority} classNames={'bg-green-100 text-green-600'} />;
-            } else if (row.original.priority === "medium") {
-                return <StatusTag value={row.original.priority} classNames={'bg-orange-100 text-orange-600'} />;
+                return <StatusTag value={row.original.priority} classNames={'bg-green-100 dark:bg-green-100/30 text-green-600 dark:text-green-400'} />;
+            } else if (row.original.priority === "meduim") {
+                return <StatusTag value={row.original.priority} classNames={'bg-orange-100 dark:bg-orange-100/30 text-orange-600 dark:text-orange-400'} />;
             } else {
-                return <StatusTag value={row.original.priority} classNames={'bg-red-100 text-red-600'} />;
+                return <StatusTag value={row.original.priority} classNames={'bg-red-100 dark:bg-red-100/30 text-red-600 dark:text-red-600'} />;
             }
         } 
     }

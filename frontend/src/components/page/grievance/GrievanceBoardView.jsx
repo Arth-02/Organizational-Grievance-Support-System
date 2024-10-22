@@ -20,7 +20,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-full overflow-x-auto">
         {lists.map((list) => (
-          <div key={list} className="flex-shrink-0 w-80 bg-gray-100 p-4 m-2 rounded-lg flex flex-col h-full">
+          <div key={list} className="flex-shrink-0 w-80 bg-gray-100 dark:bg-gray-50/10 p-4 m-2 rounded-lg flex flex-col h-full">
             <h3 className="font-semibold mb-4 capitalize">{list}</h3>
             <Droppable droppableId={list}>
               {(provided) => (
@@ -40,7 +40,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                             {...provided.dragHandleProps}
                             className={`mb-4 ${snapshot.isDragging ? 'opacity-50' : ''}`}
                           >
-                            <Card className="bg-white">
+                            <Card className="bg-white dark:bg-black">
                               <CardHeader className="font-semibold">{grievance.title}</CardHeader>
                               <CardContent>
                                 <p className="text-sm text-gray-600">{grievance.description}</p>

@@ -18,8 +18,8 @@ const Layout = () => {
                 className="fixed inset-0 bg-black bg-opacity-50 z-10"
                 />
             )}
-            <main className="flex-1 overflow-y-auto py-4 px-6 h-full bg-secondary/20">
-                <div className="p-4 bg-white shadow-lg rounded-md min-h-full relative">
+            <main className="flex-1 overflow-y-auto py-4 px-6 h-full bg-secondary/10">
+                <div className="p-4 bg-white dark:bg-black shadow-lg dark:shadow-white/10 rounded-md min-h-full relative">
                   <Outlet />
                 </div>
             </main>

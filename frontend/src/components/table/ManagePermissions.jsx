@@ -66,7 +66,7 @@ const ManagePermissions = ({
         <IconComponent
           onClick={onClickHandler}
           size={30}
-          className={`cursor-pointer p-[6px] rounded-md text-black/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
+          className={`cursor-pointer p-[6px] rounded-md text-black dark:text-gray-200/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 ease-in ${
             isUpdating ? "opacity-50 cursor-not-allowed" : ""
           }`}
           disabled={isUpdating}

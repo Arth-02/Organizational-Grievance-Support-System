@@ -19,7 +19,7 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
       <>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-between w-full p-2 rounded-lg text-gray-700 hover:text-primary ${
+          className={`flex items-center justify-between w-full p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-gray-200 ${
             isActive
               ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
               : "hover:bg-primary/10"
@@ -81,10 +81,10 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
   return (
     <Link
       to={item.path}
-      className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary ${
+      className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary dark:text-gray-400 dark:hover:text-gray-50 ${
         isActive
-          ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
-          : "hover:bg-primary/10"
+          ? "bg-primary/10 hover:bg-primary/15 text-primary dark:!text-gray-50 dark:bg-white/10 font-medium"
+          : "hover:bg-primary/10 dark:hover:bg-white/10"
       }`}
     >
       <span
@@ -118,14 +118,14 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   
 
   return (
-    <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white top-0 left-0 ${
+    <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white dark:bg-black top-0 left-0 ${
       isSidebarOpen ? "translate-x-0" : "-translate-x-full"
     } lg:translate-x-0`}>
-      <button className="hidden lg:block p-1 z-30 absolute top-0 -right-4 bg-white shadow-md text-primary/80 hover:text-primary hover:bg-primary/15 transition-all backdrop-blur-3xl duration-200 rounded-full" onClick={() => setIsCollapsed((prev) => !prev)}>
+      <button className="hidden lg:block p-1 z-30 absolute top-0 -right-4 bg-white dark:bg-gray-700 dark:hover:bg-gray-600 shadow-md text-primary/80 dark:text-white hover:text-primary hover:bg-primary/15 transition-all backdrop-blur-3xl duration-200 rounded-full" onClick={() => setIsCollapsed((prev) => !prev)}>
         <ChevronLeft size={28} className={`transition-all duration-300 ${isCollapsed ? 'rotate-180 ml-[2px]' : 'rotate-0 mr-[2px]'}`} />
       </button>
     <div
-      className={`pt-5 h-full shadow-lg lg:h-full bg-white z-40 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${isCollapsed ? "w-[84px]" : "w-[256px]"}`}
+      className={`pt-5 h-full shadow-lg dark:shadow-white/10 lg:h-full bg-white dark:bg-black z-40 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${isCollapsed ? "w-[84px]" : "w-[256px]"}`}
     >
       <div className="p-4">
         <ul className="space-y-2">

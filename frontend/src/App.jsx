@@ -15,12 +15,14 @@ import PermissionGuard from "./PermissionGuard";
 import Grievances from "./components/page/grievance/Grievances";
 import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 import useSocket from "./utils/useSocket";
+import { ThemeProvider } from "./components/ui/theme-provider";
 
 function App() {
   useSocket();
 
   return (
     <>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -117,6 +119,7 @@ function App() {
           <Route path="*" element={<Unauthorized />} />
         </Routes>
       </BrowserRouter>
+    </ThemeProvider>
     </>
   );
 }
