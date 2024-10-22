@@ -623,7 +623,6 @@ const checkEmployeeID = async (req, res) => {
 // get all users
 const getAllUsers = async (req, res) => {
   try {
-    console.log(req.user);
     const { organization_id, _id } = req.user;
     const {
       page = 1,

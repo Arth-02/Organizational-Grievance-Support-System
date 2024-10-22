@@ -157,7 +157,6 @@ const updateGrievance = async (req, res) => {
     const assigneeId = updatedGrievance.assigned_to;
 
     const users = req.users;
-    console.log("Users:", users);
 
     if (reporterId && users[reporterId]) {
       req.io.to(users[reporterId]).emit("receive_notification", {
