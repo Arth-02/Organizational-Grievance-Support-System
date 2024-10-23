@@ -15,7 +15,7 @@ const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
           "focus:outline-none",
           error
             ? "border-red-500 focus:border-red-500"
-            : "border-gray-300 dark:border-secondary/70 focus:border-primary dark:focus:border-primary",
+            : "border-gray-300 dark:border-secondary/40 focus:border-primary dark:focus:border-primary",
           className
         )}
         ref={ref}

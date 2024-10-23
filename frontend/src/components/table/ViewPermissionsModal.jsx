@@ -24,9 +24,9 @@ const ViewPermissionsModal = ({
             permissions.map((permission, index) => (
               <div
                 key={index}
-                className="flex items-center space-x-2 h-10 bg-secondary/20 p-2 rounded-md"
+                className="flex items-center space-x-2 h-10 bg-secondary/20 p-2 px-3 rounded-md"
               >
-                <Label htmlFor={`permission-${index}`} className="flex-grow">
+                <Label htmlFor={`permission-${index}`} className="flex-grow tracking-wide">
                   {permission.name}
                 </Label>
               </div>

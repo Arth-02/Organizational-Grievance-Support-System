@@ -137,7 +137,7 @@ const PermissionsModal = ({
                       >
                         Select All
                       </CommandItem>
-                      <Separator className="my-1 bg-secondary" />
+                      <Separator className="my-1 bg-secondary dark:bg-secondary/50 w-[98%] mx-auto" />
                     </>
                   )}
                   {optionPermissions?.length > 0 &&

@@ -121,7 +121,7 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
     <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white dark:bg-black top-0 left-0 ${
       isSidebarOpen ? "translate-x-0" : "-translate-x-full"
     } lg:translate-x-0`}>
-      <button className="hidden lg:block p-1 z-30 absolute top-0 -right-4 bg-white dark:bg-gray-700 dark:hover:bg-gray-600 shadow-md text-primary/80 dark:text-white hover:text-primary hover:bg-primary/15 transition-all backdrop-blur-3xl duration-200 rounded-full" onClick={() => setIsCollapsed((prev) => !prev)}>
+      <button className="hidden lg:block p-1 z-30 absolute top-0 -right-4 bg-white dark:bg-white/10 dark:hover:bg-white/15 shadow-md text-primary/80 dark:text-white hover:text-primary hover:bg-primary/15 transition-all backdrop-blur-3xl duration-200 rounded-full" onClick={() => setIsCollapsed((prev) => !prev)}>
         <ChevronLeft size={28} className={`transition-all duration-300 ${isCollapsed ? 'rotate-180 ml-[2px]' : 'rotate-0 mr-[2px]'}`} />
       </button>
     <div
