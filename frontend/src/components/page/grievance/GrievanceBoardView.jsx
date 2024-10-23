@@ -40,7 +40,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                             {...provided.dragHandleProps}
                             className={`mb-4 ${snapshot.isDragging ? 'opacity-50' : ''}`}
                           >
-                            <Card className="bg-white dark:bg-black">
+                            <Card className="">
                               <CardHeader className="font-semibold">{grievance.title}</CardHeader>
                               <CardContent>
                                 <p className="text-sm text-gray-600">{grievance.description}</p>
