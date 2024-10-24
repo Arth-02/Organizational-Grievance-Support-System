@@ -7,14 +7,14 @@ const createGrievanceSchema = Joi.object({
   priority: Joi.string().valid("low", "medium", "high").required(),
   attachments: Joi.array().items(Joi.object()),
   status: Joi.string()
-    .valid(
-      "submitted",
-      "in-progress",
-      "resolved",
-      "dismissed"
-    )
+    .valid("submitted")
     .default("submitted")
-    .required(),
+    .custom((value, helpers) => {
+      if (value !== "submitted") {
+        return helpers.error("any.invalid");
+      }
+      return value;
+    }),
 });
 
 const updateFullGrievanceSchema = Joi.object({
@@ -38,12 +38,7 @@ const updateAssignedGrievanceSchema = Joi.object({
 
 const updateStatusGrievanceSchema = Joi.object({
   status: Joi.string()
-    .valid(
-      "submitted",
-      "in-progress",
-      "resolved",
-      "dismissed"
-    )
+    .valid("submitted", "in-progress", "resolved", "dismissed")
     .required(),
 });
 
