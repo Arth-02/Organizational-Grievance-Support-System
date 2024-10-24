@@ -47,6 +47,7 @@ const createGrievance = async (req, res) => {
       _id: department_id,
     });
     if (!departmentExists) {
+      await session.abortTransaction();
       return errorResponse(res, 400, "Invalid department");
     }
 
@@ -103,12 +104,18 @@ const createGrievance = async (req, res) => {
 
 // Update a grievance
 const updateGrievance = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
-    if (!id) return errorResponse(res, 400, "Grievance ID is required");
-    if (!isValidObjectId(id))
+    if (!id) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, "Grievance ID is required");
+    }
+    if (!isValidObjectId(id)) {
+      await session.abortTransaction();
       return errorResponse(res, 400, "Invalid grievance ID");
-
+    }
     const {
       organization_id,
       role,
@@ -135,6 +142,7 @@ const updateGrievance = async (req, res) => {
     if (canUpdateGrievance) {
       schema = updateFullGrievanceSchema;
       if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
+        await session.abortTransaction();
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
@@ -149,6 +157,7 @@ const updateGrievance = async (req, res) => {
       }
 
       if (schema.describe().keys === undefined) {
+        await session.abortTransaction();
         return errorResponse(res, 403, "Permission denied");
       }
     }
@@ -156,6 +165,7 @@ const updateGrievance = async (req, res) => {
     const { error, value } = schema.validate(req.body);
     if (error) {
       const errors = error.details.map((detail) => detail.message);
+      await session.abortTransaction();
       return errorResponse(res, 400, errors);
     }
 
@@ -165,8 +175,10 @@ const updateGrievance = async (req, res) => {
     const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
       new: true,
     });
-    if (!updatedGrievance)
+    if (!updatedGrievance) {
+      await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
+    }
 
     const reporterId = updatedGrievance.reported_by;
     const assigneeId = updatedGrievance.assigned_to;
@@ -177,7 +189,7 @@ const updateGrievance = async (req, res) => {
 
     const users = req.users;
 
-    if (reporterId.toString() === assigneeId.toString() && !isReporterUserSame) {
+    if (reporterId === assigneeId && !isReporterUserSame) {
       sendNotification(
         reporterId,
         {
@@ -218,7 +230,7 @@ const updateGrievance = async (req, res) => {
         );
       }
     }
-
+    await session.commitTransaction();
     return successResponse(
       res,
       updatedGrievance,
@@ -226,7 +238,10 @@ const updateGrievance = async (req, res) => {
     );
   } catch (err) {
     console.error("Update Grievance Error:", err.stack);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
