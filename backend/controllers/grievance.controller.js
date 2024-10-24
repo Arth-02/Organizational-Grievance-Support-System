@@ -177,7 +177,7 @@ const updateGrievance = async (req, res) => {
 
     const users = req.users;
 
-    if (reporterId.toString() === assigneeId.toString() && !isReporterUserSame) {
+    if (reporterId === assigneeId && !isReporterUserSame) {
       sendNotification(
         reporterId,
         {
