@@ -45,7 +45,7 @@ const createGrievance = async (req, res) => {
     const departmentExists = await Department.findOne({
       organization_id,
       _id: department_id,
-    });
+    }).session(session);
     if (!departmentExists) {
       await session.abortTransaction();
       return errorResponse(res, 400, "Invalid department");
@@ -174,7 +174,7 @@ const updateGrievance = async (req, res) => {
 
     const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
       new: true,
-    });
+    }).session(session);
     if (!updatedGrievance) {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");

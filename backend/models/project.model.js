@@ -25,8 +25,8 @@ const projectSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    incharge: {
-      type: [mongoose.Schema.Types.ObjectId],
+    manager: {
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     members: {

@@ -647,8 +647,12 @@ const getAllUsers = async (req, res) => {
     const canViewRoles = userPermissions.includes(VIEW_ROLE.slug);
     const canViewDepartments = userPermissions.includes(VIEW_DEPARTMENT.slug);
 
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
     const skip = (pageNumber - 1) * limitNumber;
     const query = { is_deleted: false, _id: { $ne: _id } };
     if (is_active === "true" || is_active === "false") {

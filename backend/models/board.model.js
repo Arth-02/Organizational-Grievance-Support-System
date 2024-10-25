@@ -61,6 +61,7 @@ const boardSchema = new mongoose.Schema(
     },
     tasks: {
       type: [taskSchema],
+      default: [],
     },
     is_active: {
       type: Boolean,
