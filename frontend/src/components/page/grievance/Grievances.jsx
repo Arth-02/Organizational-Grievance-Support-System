@@ -2,7 +2,10 @@ import MainLayout from "@/components/layout/MainLayout";
 import GeneralTable from "@/components/table/CustomTable";
 import StatusTag from "@/components/table/StatusTag";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
+import {
+  useGetAllGrievancesQuery,
+  useUpdateGrievanceMutation,
+} from "@/services/api.service";
 import { useEffect, useState } from "react";
 import GrievanceBoardView from "./GrievanceBoardView";
 import toast from "react-hot-toast";
@@ -13,13 +16,14 @@ const Grievances = () => {
   const [activeView, setActiveView] = useState("table");
   const [localGrievances, setLocalGrievances] = useState([]);
 
-  const { data, isLoading, isFetching, error,refetch } = useGetAllGrievancesQuery(filters);
+  const { data, isLoading, isFetching, error, refetch } =
+    useGetAllGrievancesQuery(filters);
   const [updateGrievance] = useUpdateGrievanceMutation();
 
   const handleGrievanceRefetch = () => {
     refetch();
   };
-  
+
   useSocket(handleGrievanceRefetch);
 
   useEffect(() => {
@@ -61,33 +65,58 @@ const Grievances = () => {
       sortable: true,
     },
     {
-        accessorKey: "department_id.name",
-        header: "Department",
-        sortable: true,
+      accessorKey: "department_id.name",
+      header: "Department",
+      sortable: true,
     },
     {
-        accessorKey: "priority",
-        header: "Priority",
-        sortable: true,
-        cell: ({ row }) => {
-            if (row.original.priority === "low") {
-                return <StatusTag value={row.original.priority} classNames={'bg-green-100 dark:bg-green-100/20 text-green-600 dark:text-green-400'} />;
-            } else if (row.original.priority === "medium") {
-                return <StatusTag value={row.original.priority} classNames={'bg-orange-100 dark:bg-orange-100/20 text-orange-600 dark:text-orange-400'} />;
-            } else {
-                return <StatusTag value={row.original.priority} classNames={'bg-red-100 dark:bg-red-100/20 text-red-600 dark:text-red-600'} />;
-            }
-        } 
-    }
+      accessorKey: "priority",
+      header: "Priority",
+      sortable: true,
+      cell: ({ row }) => {
+        if (row.original.priority === "low") {
+          return (
+            <StatusTag
+              value={row.original.priority}
+              classNames={
+                "bg-green-100 dark:bg-green-100/20 text-green-600 dark:text-green-400"
+              }
+            />
+          );
+        } else if (row.original.priority === "medium") {
+          return (
+            <StatusTag
+              value={row.original.priority}
+              classNames={
+                "bg-orange-100 dark:bg-orange-100/20 text-orange-600 dark:text-orange-400"
+              }
+            />
+          );
+        } else {
+          return (
+            <StatusTag
+              value={row.original.priority}
+              classNames={
+                "bg-red-100 dark:bg-red-100/20 text-red-600 dark:text-red-600"
+              }
+            />
+          );
+        }
+      },
+    },
   ];
 
   const customFilters = [
     {
       key: "status",
       label: "Status",
+      placeholder: "All",
       options: [
-        { label: "Pending", value: "pending" },
+        { label: "All", value: "all" },
+        { label: "Submitted", value: "submitted" },
+        { label: "In Progress", value: "in-progress" },
         { label: "Resolved", value: "resolved" },
+        { label: "Dismissed", value: "dismissed" },
       ],
     },
   ];
@@ -113,8 +142,8 @@ const Grievances = () => {
   const handleDragEnd = async (grievanceId, newStatus) => {
     try {
       // Update local state immediately for a responsive UI
-      setLocalGrievances(prevGrievances =>
-        prevGrievances.map(grievance =>
+      setLocalGrievances((prevGrievances) =>
+        prevGrievances.map((grievance) =>
           grievance._id.toString() === grievanceId
             ? { ...grievance, status: newStatus }
             : grievance
@@ -123,7 +152,7 @@ const Grievances = () => {
 
       const data = {
         status: newStatus,
-      }
+      };
 
       // Call the API to update the grievance status
       const test = await updateGrievance({ id: grievanceId, data });
@@ -131,7 +160,7 @@ const Grievances = () => {
       if (test.error) {
         throw new Error(test.error.data.message);
       }
-      
+
       // Optionally, you can refetch the data here if needed
       // refetch();
     } catch (error) {

@@ -388,7 +388,7 @@ const getAllGrievances = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      sort,
+      sort_by = "created_at",
       search,
       status,
       priority,
@@ -419,7 +419,7 @@ const getAllGrievances = async (req, res) => {
 
     const [grievances, totalGrievances] = await Promise.all([
       Grievance.find(query)
-        .sort(sort)
+        .sort(sort_by)
         .limit(limitNumber)
         .skip(skip)
         .populate({ path: "department_id", select: "name" })
