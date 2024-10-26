@@ -15,7 +15,8 @@ import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
 
 const Employees = () => {
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({
+  });
 
   const { data, isLoading, isFetching, error } = useGetAllUsersQuery(filters);
   const [deleteAllUsers] = useDeleteAllUsersMutation();

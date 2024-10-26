@@ -25,17 +25,9 @@ router.post(
   upload.array("attachments", 5),
   createGrievance
 );
-router.put(
-  "/update/:id",
-  checkPermission([
-    UPDATE_GRIEVANCE.slug,
-    UPDATE_GRIEVANCE_STATUS.slug,
-    UPDATE_GRIEVANCE_ASSIGNEE.slug,
-  ]),
-  updateGrievance
-);
+
 router.get("/details/:id", isLoggedIn, getGrievanceById);
-router.put(
+router.patch(
   "/update/attachment/:id",
   isLoggedIn,
   upload.array("attachments", 5),
@@ -48,14 +40,6 @@ router.delete(
 );
 
 router.get("/all", isLoggedIn, getAllGrievances);
-router.patch(
-  "/update/:id",
-  checkPermission([
-    UPDATE_GRIEVANCE.slug,
-    UPDATE_GRIEVANCE_ASSIGNEE.slug,
-    UPDATE_GRIEVANCE_STATUS.slug,
-  ]),
-  updateGrievance
-);
+router.patch("/update/:id", isLoggedIn, updateGrievance);
 
 module.exports = router;

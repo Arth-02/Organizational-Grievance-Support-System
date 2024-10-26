@@ -65,7 +65,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { Separator } from "../ui/separator";
 import { resetUserFilter, setUserFilter } from "@/features/userSlice";
 import { resetRoleFilter, setRoleFilter } from "@/features/roleSlice";
-import { resetDepartmentFilter, setDepartmentFilter } from "@/features/departmentSlice";
+import {
+  resetDepartmentFilter,
+  setDepartmentFilter,
+} from "@/features/departmentSlice";
+import {
+  resetGrievanceFilter,
+  setGrievanceFilter,
+} from "@/features/grievanceSlice";
 
 const GeneralTable = ({
   data,
@@ -85,7 +92,6 @@ const GeneralTable = ({
   canUpdate,
   canDelete,
 }) => {
-  
   let allColumns = [
     {
       accessorKey: "select",
@@ -153,6 +159,7 @@ const GeneralTable = ({
   const userFilter = useSelector((state) => state.user.filter);
   const roleFilter = useSelector((state) => state.role.filter);
   const departmentFilter = useSelector((state) => state.department.filter);
+  const grievanceFilter = useSelector((state) => state.grievance.filter);
 
   useEffect(() => {
     if (tableTitle === "Employees" && userFilter) {
@@ -164,7 +171,17 @@ const GeneralTable = ({
     if (tableTitle === "Departments" && departmentFilter) {
       setFilters(departmentFilter);
     }
-  }, [userFilter, tableTitle, roleFilter, departmentFilter, setFilters]);
+    if (tableTitle === "Grievances" && grievanceFilter) {
+      setFilters(grievanceFilter);
+    }
+  }, [
+    userFilter,
+    tableTitle,
+    roleFilter,
+    departmentFilter,
+    setFilters,
+    grievanceFilter,
+  ]);
 
   useEffect(() => {
     if (
@@ -183,6 +200,13 @@ const GeneralTable = ({
       Object.keys(filters).length > 0
     ) {
       dispatch(setDepartmentFilter(filters));
+    }
+    if (
+      tableTitle === "Grievances" &&
+      filters &&
+      Object.keys(filters).length > 0
+    ) {
+      dispatch(setGrievanceFilter(filters));
     }
   }, [filters, tableTitle, dispatch]);
 
@@ -307,7 +331,11 @@ const GeneralTable = ({
 
   const handleFilterChange = (filter, value) => {
     if (value === "all") {
-      setFilters((prev) => ({ ...prev, [filter]: "" }));
+      setFilters((prev) => {
+        const newFilters = { ...prev };
+        delete newFilters[filter];
+        return newFilters;
+      });
     } else {
       setFilters((prev) => ({ ...prev, [filter]: value }));
     }
@@ -404,6 +432,9 @@ const GeneralTable = ({
     }
     if (tableTitle === "Departments") {
       dispatch(resetDepartmentFilter());
+    }
+    if (tableTitle === "Grievances") {
+      dispatch(resetGrievanceFilter());
     }
   };
 
@@ -524,11 +555,12 @@ const GeneralTable = ({
                   </Popover>
                 ) : (
                   <Select
-                    value={filters[filter.key]}
+                    value={filters[filter.key] || "all"}
                     onValueChange={(value) =>
                       handleFilterChange(filter.key, value)
                     }
                   >
+                    {console.log("filter", filters[filter.key])}
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder={filter.placeholder || "All"} />
                     </SelectTrigger>
@@ -759,8 +791,10 @@ const GeneralTable = ({
           <>
             {selectedRows.length === 1 && (
               <Tooltip>
-                <TooltipTrigger className="h-8 px-2 border rounded-md border-input/50 bg-background dark:hover:bg-secondary/50 
-                hover:bg-accent hover:text-accent-foreground">
+                <TooltipTrigger
+                  className="h-8 px-2 border rounded-md border-input/50 bg-background dark:hover:bg-secondary/50 
+                hover:bg-accent hover:text-accent-foreground"
+                >
                   <Edit3 size={18} onClick={() => onEdit(selectedRows[0])} />
                 </TooltipTrigger>
                 <TooltipContent>

@@ -21,9 +21,7 @@ const Departments = () => {
   );
 
   const canCreate = userPermissions.includes("CREATE_DEPARTMENT");
-
   const canUpdate = userPermissions.includes("UPDATE_DEPARTMENT");
-
   const canDelete = userPermissions.includes("DELETE_DEPARTMENT");
 
   const columns = [

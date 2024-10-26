@@ -124,6 +124,15 @@ const updateGrievance = async (req, res) => {
     } = req.user;
     const permissions = [...role.permissions, ...special_permissions];
 
+    const grievance = await Grievance.findOne({
+      organization_id,
+      _id: id,
+    }).session(session);
+    if (!grievance) {
+      await session.abortTransaction();
+      return errorResponse(res, 404, "Grievance not found");
+    }
+
     // Check permissions for various grievance updates
     const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
     const canUpdateGrievanceStatus = permissions.includes(
@@ -133,7 +142,7 @@ const updateGrievance = async (req, res) => {
       UPDATE_GRIEVANCE_ASSIGNEE.slug
     );
     const canUpdateMyGrievance =
-      req.body.reported_by?.toString() === userId.toString();
+      grievance.reported_by?.toString() === userId.toString();
 
     // Initialize schema
     let schema = Joi.object();
@@ -265,6 +274,7 @@ const updateGrievanceAttachment = async (req, res) => {
       const errors = error.details.map((detail) => detail.message);
       return errorResponse(res, 400, errors);
     }
+
     const grievance = await Grievance.findOne({
       _id: id,
       organization_id,
@@ -388,7 +398,7 @@ const getAllGrievances = async (req, res) => {
     const {
       page = 1,
       limit = 10,
-      sort,
+      sort_by = "created_at",
       search,
       status,
       priority,
@@ -419,7 +429,7 @@ const getAllGrievances = async (req, res) => {
 
     const [grievances, totalGrievances] = await Promise.all([
       Grievance.find(query)
-        .sort(sort)
+        .sort(sort_by)
         .limit(limitNumber)
         .skip(skip)
         .populate({ path: "department_id", select: "name" })

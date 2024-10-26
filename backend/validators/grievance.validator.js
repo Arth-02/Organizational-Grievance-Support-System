@@ -18,8 +18,6 @@ const createGrievanceSchema = Joi.object({
 });
 
 const updateFullGrievanceSchema = Joi.object({
-  title: Joi.string().min(5).max(100),
-  description: Joi.string().min(10).max(1000),
   department_id: Joi.string(),
   priority: Joi.string().valid("low", "medium", "high"),
   status: Joi.string().valid(
