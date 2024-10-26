@@ -10,7 +10,7 @@ import useSocket from "@/utils/useSocket";
 
 const Grievances = () => {
   const [filters, setFilters] = useState({});
-  const [activeView, setActiveView] = useState("table");
+  const [activeView, setActiveView] = useState("board");
   const [localGrievances, setLocalGrievances] = useState([]);
 
   const { data, isLoading, isFetching, error,refetch } = useGetAllGrievancesQuery(filters);

@@ -57,7 +57,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CustomSearch from "@/components/ui/CustomSearch";
-import Modal from "@/components/ui/Model";
+import Modal from "@/components/ui/Modal";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";

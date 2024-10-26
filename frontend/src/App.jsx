@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
@@ -16,110 +16,118 @@ import Grievances from "./components/page/grievance/Grievances";
 import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 import useSocket from "./utils/useSocket";
 import { ThemeProvider } from "./components/ui/theme-provider";
+import { ModalProvider } from "./components/ui/RoutedModal";
+import GrievanceModal from "./components/page/grievance/GrievanceModal";
 
 function App() {
   useSocket();
 
+  const location = useLocation();
+  const background = location.state && location.state.background;
+
   return (
     <>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<RegisterOrg />} />
-          <Route
-            path="/organization/super-admin/create"
-            element={<SuperAdmin />}
-          />
-
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Layout />
-              </PrivateRoute>
-            }
-          >
-            <Route path="/grievances" element={<Grievances />} />
-            <Route path="/grievances/add" element={<AddUpdateGrievance />} />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <ModalProvider>
+          <Routes location={background || location}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterOrg />} />
             <Route
-              path="/employees"
-              element={
-                <PermissionGuard requiredPermissions={["VIEW_USER"]}>
-                  <Employees />
-                </PermissionGuard>
-              }
-            />
-
-            <Route
-              path="/employees/add"
-              element={
-                <PermissionGuard requiredPermissions={["CREATE_USER"]}>
-                  <AddUpdateEmployee />
-                </PermissionGuard>
-              }
+              path="/organization/super-admin/create"
+              element={<SuperAdmin />}
             />
             <Route
-              path="/employees/update/:id"
+              path="/"
               element={
-                <PermissionGuard requiredPermissions={["UPDATE_USER"]}>
-                  <AddUpdateEmployee />
-                </PermissionGuard>
+                <PrivateRoute>
+                  <Layout />
+                </PrivateRoute>
               }
-            />
-            <Route
-              path="/departments"
-              element={
-                <PermissionGuard requiredPermissions={["VIEW_DEPARTMENT"]}>
-                  <Departments />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/departments/add"
-              element={
-                <PermissionGuard requiredPermissions={["CREATE_DEPARTMENT"]}>
-                  <AddUpdateDepartment />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/departments/update/:id"
-              element={
-                <PermissionGuard requiredPermissions={["UPDATE_DEPARTMENT"]}>
-                  <AddUpdateDepartment />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/roles"
-              element={
-                <PermissionGuard requiredPermissions={["VIEW_ROLE"]}>
-                  <Roles />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/roles/add"
-              element={
-                <PermissionGuard requiredPermissions={["CREATE_ROLE"]}>
-                  <AddUpdateRole />
-                </PermissionGuard>
-              }
-            />
-            <Route
-              path="/roles/update/:id"
-              element={
-                <PermissionGuard requiredPermissions={["UPDATE_ROLE"]}>
-                  <AddUpdateRole />
-                </PermissionGuard>
-              }
-            />
-          </Route>
-          <Route path="*" element={<Unauthorized />} />
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+            >
+              <Route path="/grievances" element={<Grievances />} />
+              <Route path="/grievances/add" element={<AddUpdateGrievance />} />
+              <Route
+                path="/employees"
+                element={
+                  <PermissionGuard requiredPermissions={["VIEW_USER"]}>
+                    <Employees />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/employees/add"
+                element={
+                  <PermissionGuard requiredPermissions={["CREATE_USER"]}>
+                    <AddUpdateEmployee />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/employees/update/:id"
+                element={
+                  <PermissionGuard requiredPermissions={["UPDATE_USER"]}>
+                    <AddUpdateEmployee />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/departments"
+                element={
+                  <PermissionGuard requiredPermissions={["VIEW_DEPARTMENT"]}>
+                    <Departments />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/departments/add"
+                element={
+                  <PermissionGuard requiredPermissions={["CREATE_DEPARTMENT"]}>
+                    <AddUpdateDepartment />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/departments/update/:id"
+                element={
+                  <PermissionGuard requiredPermissions={["UPDATE_DEPARTMENT"]}>
+                    <AddUpdateDepartment />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/roles"
+                element={
+                  <PermissionGuard requiredPermissions={["VIEW_ROLE"]}>
+                    <Roles />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/roles/add"
+                element={
+                  <PermissionGuard requiredPermissions={["CREATE_ROLE"]}>
+                    <AddUpdateRole />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/roles/update/:id"
+                element={
+                  <PermissionGuard requiredPermissions={["UPDATE_ROLE"]}>
+                    <AddUpdateRole />
+                  </PermissionGuard>
+                }
+              />
+            </Route>
+            <Route path="*" element={<Unauthorized />} />
+          </Routes>
+          {background && (
+          <Routes>
+            <Route path="/grievances/:id" element={<PrivateRoute><GrievanceModal /></PrivateRoute>} />
+          </Routes>
+        )}
+        </ModalProvider>
+      </ThemeProvider>
     </>
   );
 }
