@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import Modal from "@/components/ui/Model";
+import Modal from "@/components/ui/Modal";
 import { useGetAllPermissionsQuery } from "@/services/api.service";
 import { ChevronsUpDown } from "lucide-react";
 import {

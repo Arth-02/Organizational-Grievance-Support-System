@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import Modal from "@/components/ui/Model";
+import Modal from "@/components/ui/Modal";
 
 const ViewPermissionsModal = ({
   isOpen,

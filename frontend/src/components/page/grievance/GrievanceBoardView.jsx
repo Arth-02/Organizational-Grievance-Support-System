@@ -1,8 +1,12 @@
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Link, useLocation } from "react-router-dom";
 
 const GrievanceBoardView = ({ grievances, onDragEnd }) => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
+
+  // const navigate = useNavigate();
+  const location = useLocation();
 
   const handleDragEnd = (result) => {
     if (!result.destination) {
@@ -61,6 +65,10 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                                 {...provided.dragHandleProps}
                                 className="transition-transform duration-200"
                               >
+                                <Link
+                                  to={`/grievances/${grievance._id}`}
+                                  state={{ background: location }}
+                                >
                                 <Card
                                   className={`border shadow-sm transition-all duration-200 ${
                                     snapshot.isDragging
@@ -83,6 +91,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                                     </p>
                                   </CardContent>
                                 </Card>
+                                </Link>
                               </div>
                             )}
                           </Draggable>
