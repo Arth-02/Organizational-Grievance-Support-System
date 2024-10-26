@@ -372,7 +372,17 @@ export const apiService = createApi({
         body: data,
       }),
       invalidatesTags: ["Grievances"],
-    })
+    }),
+    getGrievanceById: builder.query({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `grievances/details/${id}`,
+        method: "GET",
+      }),
+      
+    }),
   }),
 });
 
