@@ -18,16 +18,22 @@ const {
   checkPermission,
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
+const {
+  CREATE_USER,
+  VIEW_USER,
+  UPDATE_USER,
+  DELETE_USER,
+} = require("../utils/constant");
 
 router.post("/login", login);
-router.post("/create", checkPermission(["CREATE_USER"]), createUser);
+router.post("/create", checkPermission([CREATE_USER.slug]), createUser);
 router.get("/profile", isLoggedIn, getUser);
-router.get("/details/:id", checkPermission(["VIEW_USER"]), getUser);
-router.get("/all", checkPermission(["VIEW_USER"]), getAllUsers);
+router.get("/details/:id", checkPermission([VIEW_USER.slug]), getUser);
+router.get("/all", checkPermission([VIEW_USER.slug]), getAllUsers);
 router.patch("/profile/update", isLoggedIn, updateUser);
-router.patch("/update/:id", checkPermission(["UPDATE_USER"]), updateUser);
-router.delete("/delete/:id", checkPermission(["DELETE_USER"]), deleteUser);
-router.delete("/delete", checkPermission(["DELETE_USER"]), deleteAllUsers);
+router.patch("/update/:id", checkPermission([UPDATE_USER.slug]), updateUser);
+router.delete("/delete/:id", checkPermission([DELETE_USER.slug]), deleteUser);
+router.delete("/delete", checkPermission([DELETE_USER.slug]), deleteAllUsers);
 
 router.post("/create-super-admin", createSuperAdmin);
 router.post("/generate-otp", sendOTPEmail);

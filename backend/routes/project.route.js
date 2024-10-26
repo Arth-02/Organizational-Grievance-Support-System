@@ -1,6 +1,6 @@
 const { createProject, updateProject } = require("../controllers/project.controller");
 const { checkPermission, isLoggedIn } = require("../middlewares/auth.middleware");
-const { CREATE_PROJECT, UPDATE_PROJECT } = require("../utils/constant");
+const { CREATE_PROJECT } = require("../utils/constant");
 
 const router = require("express").Router();
 
