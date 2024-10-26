@@ -55,14 +55,16 @@ const PermissionsModal = ({
   };
   useEffect(() => {
     if (allPermissions?.data) {
-      const filterPermissions = [...new Set([...selectedPermissions, ...removePermissions])];
+      const filterPermissions = [
+        ...new Set([...selectedPermissions, ...removePermissions]),
+      ];
       setOptionPermissions(
         allPermissions.data.filter(
           (p) => !filterPermissions.some((sp) => sp.slug === p.slug)
         )
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allPermissions]);
 
   const handleRemovePermission = (permission) => {
@@ -78,7 +80,12 @@ const PermissionsModal = ({
   };
 
   const handleAllSelectPermission = () => {
-    setSelectedPermissions(allPermissions.data);
+    const seleteAllPermissions = allPermissions.data.filter(
+      (p) =>
+        !selectedPermissions.some((sp) => sp.slug === p.slug) &&
+        !removePermissions.some((rp) => rp.slug === p.slug)
+    );
+    setSelectedPermissions(seleteAllPermissions);
     setOptionPermissions([]);
   };
 
