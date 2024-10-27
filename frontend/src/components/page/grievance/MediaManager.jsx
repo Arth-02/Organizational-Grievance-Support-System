@@ -1,17 +1,24 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import {
-  X,
-  Upload,
-  File,
-  Image as ImageIcon,
-  Video,
-  Maximize2,
-  Paperclip,
-  Trash2,
-  Loader2,
-} from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+    X,
+    Upload,
+    File,
+    Image as ImageIcon,
+    Video,
+    Maximize2,
+    Paperclip,
+    Trash2,
+    Loader2,
+    FileText,
+    FileSpreadsheet,
+  } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -28,7 +35,53 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = {
   "image/*": [".png", ".jpg", ".jpeg", ".gif"],
   "video/*": [".mp4", ".webm"],
+  "application/pdf": [".pdf"],
+  "application/msword": [".doc"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.ms-powerpoint": [".ppt"],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+  "text/plain": [".txt"],
+  "text/markdown": [".md"],
 };
+
+// File type mapping for display purposes
+const FILE_TYPES = {
+    "application/pdf": {
+      icon: <FileText className="w-6 h-6 text-red-400" />,
+      color: "bg-red-500/10",
+      label: "PDF"
+    },
+    "application/msword": {
+      icon: <FileText className="w-6 h-6 text-blue-400" />,
+      color: "bg-blue-500/10",
+      label: "Word"
+    },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+      icon: <FileText className="w-6 h-6 text-blue-400" />,
+      color: "bg-blue-500/10",
+      label: "Word"
+    },
+    "application/vnd.ms-powerpoint": {
+      icon: <FileSpreadsheet className="w-6 h-6 text-orange-400" />,
+      color: "bg-orange-500/10",
+      label: "PowerPoint"
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+      icon: <FileSpreadsheet className="w-6 h-6 text-orange-400" />,
+      color: "bg-orange-500/10",
+      label: "PowerPoint"
+    },
+    "text/plain": {
+        icon: <FileText className="w-6 h-6 text-green-400" />,
+        color: "bg-green-500/10",
+        label: "Text"
+    },
+    "text/markdown": {
+        icon: <FileText className="w-6 h-6 text-purple-400" />,
+        color: "bg-purple-500/10",
+        label: "Markdown"
+    }
+  };
 
 const AttachmentManager = ({
   uploadModal,
@@ -85,17 +138,14 @@ const AttachmentManager = ({
     files.forEach(({ file }) => formData.append("files", file));
 
     try {
-      const response = await fetch(
-        `/update/attachment/${grievanceId}`,
-        {
-          method: "PUT",
-          body: formData,
-          onUploadProgress: (progressEvent) => {
-            const progress = (progressEvent.loaded / progressEvent.total) * 100;
-            setUploadProgress(progress);
-          },
-        }
-      );
+      const response = await fetch(`/update/attachment/${grievanceId}`, {
+        method: "PUT",
+        body: formData,
+        onUploadProgress: (progressEvent) => {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          setUploadProgress(progress);
+        },
+      });
 
       if (!response.ok) throw new Error("Upload failed");
 
@@ -141,6 +191,14 @@ const AttachmentManager = ({
   const getFileIcon = (type) => {
     if (type?.startsWith("image/")) return <ImageIcon className="w-5 h-5" />;
     if (type?.startsWith("video/")) return <Video className="w-5 h-5" />;
+    if (type?.startsWith("application/pdf")) return <FileText className="w-5 h-5" />;
+    if (type?.startsWith("application/msword")) return <FileText className="w-5 h-5" />;
+    if (type?.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) return <FileText className="w-5 h-5" />;
+    if (type?.startsWith("application/vnd.ms-powerpoint")) return <FileSpreadsheet className="w-5 h-5" />;
+    if (type?.startsWith("application/vnd.openxmlformats-officedocument.presentationml.presentation")) return <FileSpreadsheet className="w-5 h-5" />;
+    if (type?.startsWith("text/plain")) return <FileText className="w-5 h-5" />;
+    if (type?.startsWith("text/markdown")) return <FileText className="w-5 h-5" />;
+
     return <File className="w-5 h-5" />;
   };
 
@@ -182,9 +240,10 @@ const AttachmentManager = ({
         </div>
       );
     } else {
+        const fileType = FILE_TYPES[attachment.filetype];
       return (
         <div className="h-12 w-12 bg-slate-700 rounded flex items-center justify-center">
-          <File className="h-6 w-6 text-slate-400" />
+          {fileType?.icon || <File className="h-6 w-6 text-slate-400" />}
         </div>
       );
     }
@@ -195,7 +254,8 @@ const AttachmentManager = ({
       {/* Existing Attachments */}
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-          <Paperclip className="h-5 w-5" /> Attachments ({existingAttachments.length})
+          <Paperclip className="h-5 w-5" /> Attachments (
+          {existingAttachments.length})
         </h3>
 
         {existingAttachments.map((attachment) => (
@@ -244,9 +304,9 @@ const AttachmentManager = ({
 
       {/* Upload Modal */}
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
-        <DialogContent className="sm:max-w-md bg-gray-900">
-            <DialogTitle>Upload Attachments</DialogTitle>
-            <DialogDescription>Add Image, Video or file upto 5</DialogDescription>
+        <DialogContent className="max-w-xl bg-gray-900">
+          <DialogTitle>Upload Attachments</DialogTitle>
+          <DialogDescription>Add Image, Video or file upto 5 files</DialogDescription>
           <div className="space-y-4">
             <div
               {...getRootProps()}
@@ -272,12 +332,14 @@ const AttachmentManager = ({
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center gap-2 p-2 rounded bg-slate-800"
+                    className="flex items-center p-2 rounded bg-slate-800"
                   >
-                    {getFileIcon(file.type)}
-                    <span className="flex-1 truncate text-slate-300">
-                      {file.file.name}
-                    </span>
+                    <div className="flex-1 flex items-center gap-2">
+                        {getFileIcon(file.type)}
+                        <span className=" truncate text-slate-300">
+                        {file.file.name}
+                        </span>
+                    </div>
                     {file.preview && (
                       <Button
                         variant="ghost"
@@ -334,9 +396,7 @@ const AttachmentManager = ({
                 onClick={handleUpload}
                 disabled={files.length === 0 || uploading}
               >
-                {uploading && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
+                {uploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Upload
               </Button>
             </div>
@@ -367,8 +427,9 @@ const AttachmentManager = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deleteDialog.attachment?.filename}&quot;?
-              This action cannot be undone.
+              Are you sure you want to delete &quot;
+              {deleteDialog.attachment?.filename}&quot;? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
