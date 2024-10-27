@@ -381,7 +381,6 @@ export const apiService = createApi({
         url: `grievances/details/${id}`,
         method: "GET",
       }),
-      
     }),
   }),
 });

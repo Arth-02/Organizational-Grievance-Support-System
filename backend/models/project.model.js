@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
@@ -33,9 +34,10 @@ const projectSchema = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
     },
-    borad_id: {
+    board_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Board",
+      required: [true, "Board ID is required"],
     },
     is_active: {
       type: Boolean,

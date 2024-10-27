@@ -10,6 +10,7 @@ const {
   createProjectSchema,
   updateProjectSchema,
 } = require("../validators/project.validator");
+const { VIEW_PROJECT } = require("../utils/constant");
 
 // Create a new project
 
@@ -30,12 +31,12 @@ const createProject = async (req, res) => {
     const newBoard = new Board({ organization_id });
     const board = await newBoard.save({ session });
 
-    const project = new Project({
+    const newProject = new Project({
       ...value,
       organization_id,
       board_id: board._id,
     });
-    await project.save({ session });
+    const project = await newProject.save({ session });
 
     await session.commitTransaction();
     return successResponse(res, project, "Project created successfully");
@@ -90,4 +91,51 @@ const updateProject = async (req, res) => {
   }
 };
 
-module.exports = { createProject, updateProject };
+const getAllProjects = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      manager,
+      member,
+      is_active,
+      sort_by = "created_at",
+      order = "desc",
+    } = req.query;
+
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = {};
+
+    if (is_active === "true" || is_active === "false") {
+      query.is_active = is_active === "true";
+    }
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+    if (manager) {
+      query.manager = new ObjectId(manager);
+    }
+    
+    const projects = await Project.find({ organization_id }).populate(
+      "board_id"
+    );
+    return successResponse(res, projects, "Projects fetched successfully");
+  } catch (err) {
+    console.error("Get Projects Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+module.exports = { createProject, updateProject, getAllProjects };
