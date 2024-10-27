@@ -1,9 +1,8 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-// Modal Context
 const ModalContext = React.createContext(null);
 
 export const ModalProvider = ({ children }) => {
@@ -31,12 +30,13 @@ export const useModal = () => {
   return context;
 };
 
-// Routable Modal Container
 export const RoutableModal = ({
   children,
   className,
   backTo,
   width = "max-w-3xl", // Allow customizing modal width
+  title,
+  description,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,6 +62,12 @@ export const RoutableModal = ({
       <div className="fixed inset-0 bg-black/80 z-50" onClick={handleClose} />
       <Dialog open={true} onOpenChange={handleClose} modal={false}>
         <DialogContent className={cn("p-0 overflow-hidden", width, className)}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold leading-none tracking-tight">
+              {title}
+            </DialogTitle>
+            {description && <DialogDescription>{description}</DialogDescription>}
+          </DialogHeader>
           {children}
         </DialogContent>
       </Dialog>
