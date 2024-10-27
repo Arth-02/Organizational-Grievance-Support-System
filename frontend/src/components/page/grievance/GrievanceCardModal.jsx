@@ -139,7 +139,7 @@ function GrievanceModal() {
                         <User className="h-4 w-4" />
                       </div>
                       <span className="text-slate-300">
-                        {grievanceData?.data?.reported_by?.name || "User"}
+                        {grievanceData?.data?.reported_by?.username || "User"}
                       </span>
                     </div>
                   </div>
@@ -307,6 +307,13 @@ function GrievanceModal() {
                   >
                     <Users className="h-4 w-4 mr-2" />
                     Change Assignee
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Change Department
                   </Button>
                   {grievanceData?.data?.is_active && (
                     <Button
