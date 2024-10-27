@@ -417,5 +417,6 @@ export const {
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
   useGetAllGrievancesQuery,
-  useUpdateGrievanceMutation
+  useUpdateGrievanceMutation,
+  useGetGrievanceByIdQuery,
 } = apiService;

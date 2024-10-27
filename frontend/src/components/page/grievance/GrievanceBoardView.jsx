@@ -22,7 +22,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex items-start gap-4 overflow-x-auto p-4">
+      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-220px)] p-4 pb-0">
         {lists.map((list) => (
           <Droppable droppableId={list} key={list}>
             {(provided, snapshot) => {
@@ -32,7 +32,8 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
               return (
                 <div
                   key={list}
-                  className={`flex-shrink-0 w-80 bg-gray-100 dark:bg-gray-50/10 rounded-lg flex flex-col ${isDraggingOver ? "border border-white/50" : ""} transition-all duration-200 overflow-x-hidden`}
+                  className={`flex-shrink-0 w-80 bg-gray-100 dark:bg-gray-50/10 max-h-full rounded-lg flex flex-col border
+                  ${isDraggingOver ? "dark:border-white/35" : "border-white/0"} transition-all duration-200 overflow-x-hidden`}
                 >
                   <div className="p-4 pb-2">
                     <h3 className="font-semibold capitalize">{list}</h3>
@@ -40,10 +41,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`
-                      flex-1 overflow-y-auto p-4 pt-2 transition-all duration-200 min-h-[10px]
-                      ${isDraggingOver ? "min-h-[6rem]" : "min-h-0"}
-                    `}
+                    className={`flex-1 overflow-x-hidden overflow-y-auto max-h-full p-4 pt-2 transition-all duration-200`}
                   >
                     <div
                       className={`space-y-4 transition-all duration-200 ${
