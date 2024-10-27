@@ -10,6 +10,7 @@ const {
   createProjectSchema,
   updateProjectSchema,
 } = require("../validators/project.validator");
+const { VIEW_PROJECT } = require("../utils/constant");
 
 // Create a new project
 
@@ -30,12 +31,12 @@ const createProject = async (req, res) => {
     const newBoard = new Board({ organization_id });
     const board = await newBoard.save({ session });
 
-    const project = new Project({
+    const newProject = new Project({
       ...value,
       organization_id,
       board_id: board._id,
     });
-    await project.save({ session });
+    const project = await newProject.save({ session });
 
     await session.commitTransaction();
     return successResponse(res, project, "Project created successfully");
@@ -90,4 +91,15 @@ const updateProject = async (req, res) => {
   }
 };
 
-module.exports = { createProject, updateProject };
+const getAllProjects = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const projects = await Project.find({ organization_id }).populate("board_id");
+    return successResponse(res, projects, "Projects fetched successfully");
+  } catch (err) {
+    console.error("Get Projects Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+module.exports = { createProject, updateProject, getAllProjects };
