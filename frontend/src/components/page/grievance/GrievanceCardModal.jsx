@@ -262,13 +262,13 @@ function GrievanceModal() {
                       /* Handle status change */
                     }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark:bg-slate-900 dark:hover:bg-slate-900/50">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="dark:bg-slate-900">
                       {Object.entries(STATUS_BADGES).map(
                         ([value, { label, color }]) => (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem key={value} value={value} className="dark:hover:bg-slate-600/50">
                             <span
                               className={cn("px-2 py-1 rounded text-sm", color)}
                             >
@@ -289,13 +289,13 @@ function GrievanceModal() {
                       /* Handle priority change */
                     }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full dark:bg-slate-900 dark:hover:bg-slate-900/50">
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="dark:bg-slate-900">
                       {Object.entries(PRIORITY_BADGES).map(
                         ([value, { label, color }]) => (
-                          <SelectItem key={value} value={value}>
+                          <SelectItem key={value} value={value} className="dark:hover:bg-slate-600/50">
                             <span
                               className={cn("px-2 py-1 rounded text-sm", color)}
                             >
