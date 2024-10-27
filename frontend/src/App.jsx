@@ -17,7 +17,7 @@ import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 import useSocket from "./utils/useSocket";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
-import GrievanceModal from "./components/page/grievance/GrievanceModal";
+import GrievanceModal from "./components/page/grievance/GrievanceCardModal";
 
 function App() {
   useSocket();

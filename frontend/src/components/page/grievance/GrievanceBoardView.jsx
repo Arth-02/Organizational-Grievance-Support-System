@@ -1,6 +1,7 @@
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Link, useLocation } from "react-router-dom";
+// import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { useLocation } from "react-router-dom";
+import GrievanceCard from "./GrievanceCard";
 
 const GrievanceBoardView = ({ grievances, onDragEnd }) => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
@@ -32,7 +33,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
               return (
                 <div
                   key={list}
-                  className={`flex-shrink-0 w-80 bg-gray-100 dark:bg-gray-50/10 max-h-full rounded-lg flex flex-col border
+                  className={`flex-shrink-0 w-80 bg-gray-100 dark:bg-slate-900/50 max-h-full rounded-lg flex flex-col border
                   ${isDraggingOver ? "dark:border-white/35" : "border-white/0"} transition-all duration-200 overflow-x-hidden`}
                 >
                   <div className="p-4 pb-2">
@@ -57,40 +58,46 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                             index={index}
                           >
                             {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className="transition-transform duration-200"
-                              >
-                                <Link
-                                  to={`/grievances/${grievance._id}`}
-                                  state={{ background: location }}
-                                >
-                                <Card
-                                  className={`border shadow-sm transition-all duration-200 ${
-                                    snapshot.isDragging
-                                      ? "shadow-lg rotate-2"
-                                      : "hover:shadow-md"
-                                  }`}
-                                >
-                                  <CardHeader className="p-4 pb-2">
-                                    <h4 className="font-semibold">
-                                      {grievance.title}
-                                    </h4>
-                                  </CardHeader>
-                                  <CardContent className="p-4 pt-2">
-                                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                                      {grievance.description}
-                                    </p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                                      Reported by:{" "}
-                                      {grievance.reported_by.username}
-                                    </p>
-                                  </CardContent>
-                                </Card>
-                                </Link>
-                              </div>
+                              // <div
+                              //   ref={provided.innerRef}
+                              //   {...provided.draggableProps}
+                              //   {...provided.dragHandleProps}
+                              //   className="transition-transform duration-200"
+                              // >
+                              //   <Link
+                              //     to={`/grievances/${grievance._id}`}
+                              //     state={{ background: location }}
+                              //   >
+                              //   <Card
+                              //     className={`border shadow-sm transition-all duration-200 ${
+                              //       snapshot.isDragging
+                              //         ? "shadow-lg rotate-2"
+                              //         : "hover:shadow-md"
+                              //     }`}
+                              //   >
+                              //     <CardHeader className="p-4 pb-2">
+                              //       <h4 className="font-semibold">
+                              //         {grievance.title}
+                              //       </h4>
+                              //     </CardHeader>
+                              //     <CardContent className="p-4 pt-2">
+                              //       <p className="text-sm text-gray-600 dark:text-gray-300">
+                              //         {grievance.description}
+                              //       </p>
+                              //       <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                              //         Reported by:{" "}
+                              //         {grievance.reported_by.username}
+                              //       </p>
+                              //     </CardContent>
+                              //   </Card>
+                              //   </Link>
+                              // </div>
+                              <GrievanceCard
+                                grievance={grievance}
+                                provided={provided}
+                                snapshot={snapshot}
+                                location={location}
+                              />
                             )}
                           </Draggable>
                         ))}
