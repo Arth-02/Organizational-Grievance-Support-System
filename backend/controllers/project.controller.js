@@ -94,7 +94,43 @@ const updateProject = async (req, res) => {
 const getAllProjects = async (req, res) => {
   try {
     const { organization_id } = req.user;
-    const projects = await Project.find({ organization_id }).populate("board_id");
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      manager,
+      member,
+      is_active,
+      sort_by = "created_at",
+      order = "desc",
+    } = req.query;
+
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = {};
+
+    if (is_active === "true" || is_active === "false") {
+      query.is_active = is_active === "true";
+    }
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    if (name) {
+      query.name = { $regex: name, $options: "i" };
+    }
+    if (manager) {
+      query.manager = new ObjectId(manager);
+    }
+    
+    const projects = await Project.find({ organization_id }).populate(
+      "board_id"
+    );
     return successResponse(res, projects, "Projects fetched successfully");
   } catch (err) {
     console.error("Get Projects Error:", err.message);
