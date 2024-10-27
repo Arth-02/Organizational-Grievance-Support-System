@@ -871,6 +871,19 @@ const getAllPermissions = async (req, res) => {
   }
 };
 
+const getAllUsersId = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const users = await User.find({ organization_id }, "_id");
+    const userIds = users.map((user) => user._id);
+    return successResponse(res, userIds, "Users retrieved successfully");
+  }
+  catch (err) {
+    console.error("Get Users Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
 module.exports = {
   login,
   createUser,
@@ -885,4 +898,5 @@ module.exports = {
   checkEmployeeID,
   getAllUsers,
   getAllPermissions,
+  getAllUsersId,
 };

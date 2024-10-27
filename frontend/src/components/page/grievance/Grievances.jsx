@@ -16,15 +16,24 @@ const Grievances = () => {
   const [activeView, setActiveView] = useState("board");
   const [localGrievances, setLocalGrievances] = useState([]);
 
-  const { data, isLoading, isFetching, error, refetch } =
+  const { data, isLoading, isFetching, error } =
     useGetAllGrievancesQuery(filters);
   const [updateGrievance] = useUpdateGrievanceMutation();
 
-  const handleGrievanceRefetch = () => {
-    refetch();
-  };
+  // const handleGrievanceRefetch = () => {
+  //   refetch();
+  // };
 
-  useSocket(handleGrievanceRefetch);
+  // useSocket(handleGrievanceRefetch);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    socket.on("update_grievance", (msg) => {
+      console.log("Notification received:", msg);
+      setLocalGrievances([...msg.updatedData]);
+    });
+  }, [socket]);
 
   useEffect(() => {
     if (data?.data?.grievances) {

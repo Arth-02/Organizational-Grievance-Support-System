@@ -26,6 +26,7 @@ const {
   UPDATE_GRIEVANCE,
 } = require("../utils/constant");
 const { sendNotification } = require("../helpers/notification");
+const User = require("../models/user.model");
 
 // Create a grievance
 const createGrievance = async (req, res) => {
@@ -189,56 +190,26 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 404, "Grievance not found");
     }
 
-    const reporterId = updatedGrievance.reported_by;
-    const assigneeId = updatedGrievance.assigned_to;
+    const updatedGrievanceData = await Grievance.find().session(session);
 
-    const isReporterUserSame = reporterId.toString() === userId.toString();
-    const isAssigneeUserSame =
-      assigneeId && assigneeId.toString() === userId.toString();
+    const userData = await User.find(
+      { organization_id, _id: { $ne: userId } },
+      "_id"
+    );
+    const userIds = userData.map((user) => user._id);
 
-    const users = req.users;
+    sendNotification(
+      userIds,
+      {
+        type: "update_grievance",
+        message: `Your grievance with ID ${id} has been updated`,
+        grievanceId: id,
+        updatedData: updatedGrievanceData,
+      },
+      req.users,
+      req.io
+    );
 
-    if (reporterId === assigneeId && !isReporterUserSame) {
-      sendNotification(
-        reporterId,
-        {
-          type: "update_grievance",
-          message: `Your grievance with ID ${id} has been updated`,
-          grievanceId: id,
-          updatedData: updatedGrievance,
-        },
-        req.users,
-        req.io
-      );
-    } else {
-      if (reporterId && users[reporterId] && !isReporterUserSame) {
-        sendNotification(
-          reporterId,
-          {
-            type: "update_grievance",
-            message: `Your grievance with ID ${id} has been updated`,
-            grievanceId: id,
-            updatedData: updatedGrievance,
-          },
-          req.users,
-          req.io
-        );
-      }
-
-      if (assigneeId && users[assigneeId] && !isAssigneeUserSame) {
-        sendNotification(
-          assigneeId,
-          {
-            type: "update_grievance",
-            message: `Grievance with ID ${id} has been updated`,
-            grievanceId: id,
-            updatedData: updatedGrievance,
-          },
-          req.users,
-          req.io
-        );
-      }
-    }
     await session.commitTransaction();
     return successResponse(
       res,

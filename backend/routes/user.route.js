@@ -13,6 +13,7 @@ const {
   getAllUsers,
   deleteAllUsers,
   getAllPermissions,
+  getAllUsersId,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -41,6 +42,7 @@ router.post("/generate-otp", sendOTPEmail);
 router.post("/checkusername", checkUsername);
 router.post("/checkemail", checkEmail);
 router.post("/checkemployeeid", checkEmployeeID);
+router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
 
 router.get("/permissions", isLoggedIn, getAllPermissions);
 
