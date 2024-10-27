@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useUpdateAttachmentMutation } from "@/services/api.service";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = {
@@ -103,6 +104,8 @@ const AttachmentManager = ({
   });
   const [deleting, setDeleting] = useState(false);
 
+  const [updateAttachment] = useUpdateAttachmentMutation();
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -135,30 +138,19 @@ const AttachmentManager = ({
     setUploadProgress(0);
 
     const formData = new FormData();
-    files.forEach(({ file }) => formData.append("files", file));
+    files.forEach(({ file }) => formData.append("attachments", file));
 
     try {
-      const response = await fetch(`/update/attachment/${grievanceId}`, {
-        method: "PUT",
-        body: formData,
-        onUploadProgress: (progressEvent) => {
-          const progress = (progressEvent.loaded / progressEvent.total) * 100;
-          setUploadProgress(progress);
-        },
-      });
-
-      if (!response.ok) throw new Error("Upload failed");
-
-      const result = await response.json();
-      onUpdate(result.data);
-      setFiles([]);
-      setUploadModal(false);
-    } catch (error) {
-      console.error("Upload error:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
+        const response = await updateAttachment({ id: grievanceId, data: formData }).unwrap();
+        onUpdate(response.data);
+        setFiles([]);
+        setUploadModal(false);
+      } catch (error) {
+        console.error("Upload error:", error);
+      } finally {
+        setUploading(false);
+      }
+    };
 
   const handleDelete = async () => {
     if (!deleteDialog.attachment) return;
@@ -409,8 +401,8 @@ const AttachmentManager = ({
         open={previewModal.open}
         onOpenChange={() => setPreviewModal({ open: false, content: null })}
       >
-        <DialogContent className="sm:max-w-3xl">
-          <DialogTitle>Attachment Preview</DialogTitle>
+        <DialogContent shouldRemoveCloseIcon={true} className="sm:max-w-3xl w-fit dark:bg-transparent border-none">
+          <DialogTitle className="hidden">Attachment Preview</DialogTitle>
           <DialogDescription></DialogDescription>
           <div className="flex justify-center">{previewModal.content}</div>
         </DialogContent>
@@ -423,7 +415,7 @@ const AttachmentManager = ({
           setDeleteDialog({ open, attachment: deleteDialog.attachment })
         }
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
             <AlertDialogDescription>
@@ -433,7 +425,7 @@ const AttachmentManager = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="dark:bg-transparent dark:hover:bg-slate-800/50">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600"
