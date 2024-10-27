@@ -1,12 +1,9 @@
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-// import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useLocation } from "react-router-dom";
 import GrievanceCard from "./GrievanceCard";
 
 const GrievanceBoardView = ({ grievances, onDragEnd }) => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
-
-  // const navigate = useNavigate();
   const location = useLocation();
 
   const handleDragEnd = (result) => {
@@ -58,40 +55,6 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
                             index={index}
                           >
                             {(provided, snapshot) => (
-                              // <div
-                              //   ref={provided.innerRef}
-                              //   {...provided.draggableProps}
-                              //   {...provided.dragHandleProps}
-                              //   className="transition-transform duration-200"
-                              // >
-                              //   <Link
-                              //     to={`/grievances/${grievance._id}`}
-                              //     state={{ background: location }}
-                              //   >
-                              //   <Card
-                              //     className={`border shadow-sm transition-all duration-200 ${
-                              //       snapshot.isDragging
-                              //         ? "shadow-lg rotate-2"
-                              //         : "hover:shadow-md"
-                              //     }`}
-                              //   >
-                              //     <CardHeader className="p-4 pb-2">
-                              //       <h4 className="font-semibold">
-                              //         {grievance.title}
-                              //       </h4>
-                              //     </CardHeader>
-                              //     <CardContent className="p-4 pt-2">
-                              //       <p className="text-sm text-gray-600 dark:text-gray-300">
-                              //         {grievance.description}
-                              //       </p>
-                              //       <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                              //         Reported by:{" "}
-                              //         {grievance.reported_by.username}
-                              //       </p>
-                              //     </CardContent>
-                              //   </Card>
-                              //   </Link>
-                              // </div>
                               <GrievanceCard
                                 grievance={grievance}
                                 provided={provided}

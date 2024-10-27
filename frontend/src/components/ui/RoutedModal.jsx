@@ -60,7 +60,16 @@ export const RoutableModal = ({
     <>
       <div className="fixed inset-0 bg-black/80 z-50" onClick={handleClose} />
       <Dialog open={true} onOpenChange={handleClose} modal={false}>
-        <DialogContent shouldRemoveCloseIcon={shouldRemoveCloseIcon} className={cn("p-0 overflow-hidden", width, className)}>
+        <DialogContent
+          shouldRemoveCloseIcon={shouldRemoveCloseIcon}
+          className={cn(
+            "p-0 overflow-hidden focus:outline-none",
+            width,
+            className
+          )}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
           {children}
         </DialogContent>
       </Dialog>
