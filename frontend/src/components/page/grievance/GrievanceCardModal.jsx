@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import GrievanceModalSkeleton from "./GreievanceCardModalSkeleton";
+import AttachmentManager from "./MediaManager";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -57,6 +58,7 @@ const STATUS_BADGES = {
 function GrievanceModal() {
   const { id: grievanceId } = useParams();
   const [attachments, setAttachments] = useState([]);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   const navigate = useNavigate();
@@ -78,10 +80,10 @@ function GrievanceModal() {
   };
 
   return (
-    <RoutableModal backTo="/grievances" shouldRemoveCloseIcon={true}>
+    <RoutableModal backTo="/grievances" width="max-w-4xl" shouldRemoveCloseIcon={true}>
       {isLoading && <GrievanceModalSkeleton />}
       {!isLoading && (
-        <div className="bg-slate-800 rounded-lg w-[768px] max-h-[90vh] focus:border-red-700 focus-within:border-red-700 focus-visible:border-red-700 overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
+        <div className="bg-slate-800 rounded-lg w-full max-h-[90vh] focus:border-red-700 focus-within:border-red-700 focus-visible:border-red-700 overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="p-4 flex items-start justify-between border-slate-700">
               <div className="flex-1">
@@ -112,7 +114,7 @@ function GrievanceModal() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 dark:hover:text-white dark:hover:bg-slate-600/50"
                 onClick={handleClose}
               >
                 <X className="h-5 w-5" />
@@ -152,13 +154,13 @@ function GrievanceModal() {
                             <User className="h-4 w-4" />
                           </div>
                           <span className="text-slate-300">
-                            {grievanceData.data.assigned_to.name}
+                            {grievanceData.data.assigned_to.username}
                           </span>
                         </>
                       ) : (
                         <Button
                           variant="ghost"
-                          className="text-slate-400 hover:text-white"
+                          className="text-slate-400 dark:hover:text-white"
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Assign
@@ -213,43 +215,15 @@ function GrievanceModal() {
                 </div>
 
                 {/* Attachments */}
-                {(grievanceData?.data?.attachments?.length > 0 ||
-                  attachments.length > 0) && (
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-                      <Paperclip className="h-5 w-5" /> Attachments
-                    </h3>
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 p-2 rounded bg-slate-700/50"
-                        >
-                          <Paperclip className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-300 flex-1 truncate">
-                            {file.name}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-slate-400 hover:text-white"
-                            onClick={() => {
-                              /* Handle remove */
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {(grievanceData?.data?.attachments ||
-                  grievanceData?.data?.attachments?.length === 0) && (
-                  <div className="flex items-center gap-2 p-2 rounded">
-                    <span className="text-slate-300">No attachments</span>
-                  </div>
-                )}
+                <AttachmentManager 
+                  grievanceId={grievanceId}
+                  existingAttachments={grievanceData?.data?.attachments || []}
+                  uploadModal={attachmentModalOpen}
+                  setUploadModal={setAttachmentModalOpen}
+                  onUpdate={(updatedGrievance) => {
+                    // Handle the updated grievance data
+                  }}
+                />
               </div>
 
               {/* Right Column - Actions */}
@@ -258,6 +232,7 @@ function GrievanceModal() {
                   <h4 className="text-sm font-medium text-slate-400">Status</h4>
                   <Select
                     value={grievanceData?.data?.status}
+                    modal={false}
                     onValueChange={(value) => {
                       /* Handle status change */
                     }}
@@ -268,7 +243,7 @@ function GrievanceModal() {
                     <SelectContent className="dark:bg-slate-900">
                       {Object.entries(STATUS_BADGES).map(
                         ([value, { label, color }]) => (
-                          <SelectItem key={value} value={value} className="dark:hover:bg-slate-600/50">
+                          <SelectItem key={value} value={value} className="dark:hover:bg-slate-700/50">
                             <span
                               className={cn("px-2 py-1 rounded text-sm", color)}
                             >
@@ -314,19 +289,12 @@ function GrievanceModal() {
                   </h4>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
-                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full justify-start text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
+                    onClick={() => setAttachmentModalOpen(true)}
                   >
                     <Paperclip className="h-4 w-4 mr-2" />
                     Attachment
                   </Button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    multiple
-                    onChange={handleFileUpload}
-                  />
                 </div>
 
                 <div className="space-y-2">
@@ -335,7 +303,7 @@ function GrievanceModal() {
                   </h4>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700"
+                    className="w-full justify-start text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
                   >
                     <Users className="h-4 w-4 mr-2" />
                     Change Assignee
@@ -343,7 +311,7 @@ function GrievanceModal() {
                   {grievanceData?.data?.is_active && (
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      className="w-full justify-start dark:text-red-400 dark:hover:bg-red-500/10"
                     >
                       <AlertTriangle className="h-4 w-4 mr-2" />
                       Close Grievance

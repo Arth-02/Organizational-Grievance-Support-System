@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 
 const GrievanceModalSkeleton = () => {
   return (
-      <div className="bg-slate-800 rounded-lg w-[768px] max-h-[90vh] overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
+      <div className="bg-slate-800 rounded-lg max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
         <DialogHeader>
           <DialogTitle className="p-4 flex items-start justify-between border-slate-700">
             <div className="flex-1">
@@ -77,8 +77,9 @@ const GrievanceModalSkeleton = () => {
                       key={i}
                       className="flex items-center gap-2 p-2 rounded"
                     >
-                      <Skeleton className="h-6 w-6" />
-                      <Skeleton className="h-6 flex-1" />
+                      <Skeleton className="h-9 w-9" />
+                      <Skeleton className="h-9 flex-1" />
+                      <Skeleton className="h-9 w-9" />
                     </div>
                   ))}
                 </div>
@@ -86,9 +87,9 @@ const GrievanceModalSkeleton = () => {
             </div>
 
             {/* Right Column - Actions */}
-            <div className="w-48 space-y-4">
+            <div className="w-48 space-y-12">
               {/* Status */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <Skeleton className="h-4 w-16 mb-2" />
                 <Skeleton className="h-6 w-full" />
 
