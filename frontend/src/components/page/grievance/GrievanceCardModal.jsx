@@ -38,6 +38,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import GrievanceModalSkeleton from "./GreievanceCardModalSkeleton";
 import AttachmentManager from "./MediaManager";
+import TextEditor from "./TextEditor";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -188,30 +189,19 @@ function GrievanceModal() {
                   <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
                     <Menu className="h-5 w-5" /> Description
                   </h3>
-                  <div className="rounded-lg border border-slate-700 overflow-hidden">
-                    <div className="bg-slate-900/50 p-2 border-b border-slate-700 flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Bold className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Italic className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Link className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Image className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <textarea
-                      className="w-full min-h-[100px] p-3 bg-transparent text-slate-300 resize-none focus:outline-none"
-                      placeholder="Add a more detailed description..."
-                      defaultValue={grievanceData?.data?.description}
+                  <TextEditor
+                      initialContent={grievanceData?.data?.description || ''}
+                      onSave={async (newContent) => {
+                        try {
+                          // Implement your API call to save the description
+                          // await updateGrievanceDescription(grievanceId, newContent);
+                          // Show success toast if needed
+                        } catch (error) {
+                          console.error('Failed to update description:', error);
+                          // Show error toast if needed
+                        }
+                      }}
                     />
-                  </div>
                 </div>
 
                 {/* Attachments */}
