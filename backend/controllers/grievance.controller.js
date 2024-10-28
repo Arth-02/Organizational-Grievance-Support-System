@@ -24,6 +24,7 @@ const {
   UPDATE_GRIEVANCE_ASSIGNEE,
   UPDATE_GRIEVANCE_STATUS,
   UPDATE_GRIEVANCE,
+  SUPER_ADMIN,
 } = require("../utils/constant");
 const { sendNotification } = require("../helpers/notification");
 const User = require("../models/user.model");
@@ -403,7 +404,7 @@ const deleteGrievanceById = async (req, res) => {
 // get all grievances
 const getAllGrievances = async (req, res) => {
   try {
-    const { organization_id } = req.user;
+    const { organization_id, role } = req.user;
     const {
       page = 1,
       limit = 10,
@@ -413,13 +414,21 @@ const getAllGrievances = async (req, res) => {
       priority,
       department_id,
       employee_id,
+      is_active = "true",
     } = req.query;
 
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
+    const isSuperAdmin = role.name === SUPER_ADMIN;
+
     const query = { organization_id };
+    if (is_active && isSuperAdmin) {
+      query.is_active = is_active === "true";
+    } else {
+      query.is_active = true;
+    }
     if (status) {
       query.status = status;
     }

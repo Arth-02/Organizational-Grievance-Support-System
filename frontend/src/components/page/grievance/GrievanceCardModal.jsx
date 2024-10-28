@@ -20,12 +20,8 @@ import {
   Clock,
   Paperclip,
   X,
-  Bold,
-  Italic,
-  MoreHorizontal,
-  Link,
-  Image,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -44,6 +40,16 @@ import AttachmentManager from "./MediaManager";
 import TextEditor from "./TextEditor";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -63,10 +69,10 @@ const STATUS_BADGES = {
 
 function GrievanceModal() {
   const { id: grievanceId } = useParams();
-  const [attachments, setAttachments] = useState([]);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
-  const fileInputRef = useRef(null);
   const [grievance, setGrievance] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [updateGrievance, { isLoading: isUpdating }] =
     useUpdateGrievanceMutation();
@@ -112,9 +118,21 @@ function GrievanceModal() {
     }
   };
 
-  const handleFileUpload = (event) => {
-    const files = Array.from(event.target.files);
-    setAttachments((prev) => [...prev, ...files]);
+  const handleCloseGrievance = async () => {
+    setDeleting(true);
+    try {
+      const response = await updateGrievance({
+        id: grievanceId,
+        data: { is_active: false },
+      }).unwrap();
+      toast.success(response.message);
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to close grievance:", error);
+      toast.error("Failed to close grievance");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleClose = () => {
@@ -260,9 +278,7 @@ function GrievanceModal() {
               {/* Right Column - Actions */}
               <div className="w-48 space-y-4">
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-slate-400">
-                    Status
-                  </h4>
+                  <h4 className="text-sm font-medium text-slate-400">Status</h4>
                   {canEditStatus ? (
                     <>
                       <Select
@@ -295,13 +311,13 @@ function GrievanceModal() {
                       </Select>
                     </>
                   ) : (
-                      <div
-                        className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
-                          STATUS_BADGES[grievance?.data?.status]?.color
-                        }`}
-                      >
-                        {STATUS_BADGES[grievance?.data?.status]?.label}
-                      </div>
+                    <div
+                      className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
+                        STATUS_BADGES[grievance?.data?.status]?.color
+                      }`}
+                    >
+                      {STATUS_BADGES[grievance?.data?.status]?.label}
+                    </div>
                   )}
                   <h4 className="text-sm font-medium text-slate-400 mt-4">
                     Priority
@@ -337,13 +353,13 @@ function GrievanceModal() {
                       </Select>
                     </>
                   ) : (
-                      <div
-                        className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
-                          PRIORITY_BADGES[grievance?.data?.priority]?.color
-                        }`}
-                      >
-                        {PRIORITY_BADGES[grievance?.data?.priority]?.label}
-                      </div>
+                    <div
+                      className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
+                        PRIORITY_BADGES[grievance?.data?.priority]?.color
+                      }`}
+                    >
+                      {PRIORITY_BADGES[grievance?.data?.priority]?.label}
+                    </div>
                   )}
                 </div>
                 {canEditAttachments && (
@@ -388,6 +404,9 @@ function GrievanceModal() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start dark:text-red-400 dark:hover:bg-red-500/10"
+                            onClick={() => {
+                              setDeleteDialog(true);
+                            }}
                           >
                             <AlertTriangle className="h-4 w-4 mr-2" />
                             Close Grievance
@@ -412,6 +431,33 @@ function GrievanceModal() {
           </div>
         </div>
       )}
+      <AlertDialog
+        open={deleteDialog}
+        onOpenChange={(open) => setDeleteDialog(open ? true : false)}
+      >
+        <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Grievance</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to close &quot;
+              {grievance?.data?.title}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="dark:bg-transparent dark:hover:bg-slate-800/50">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseGrievance}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={deleting}
+            >
+              {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </RoutableModal>
   );
 }
