@@ -189,8 +189,12 @@ const updateGrievance = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
     }
-    
-    const updatedGrievanceData = await Grievance.find({organization_id}).session(session);
+
+    const updatedGrievanceData = await Grievance.findOne(query)
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" })
+      .populate({ path: "assigned_to", select: "username" })
+      .session(session);
 
     const userData = await User.find(
       { organization_id, _id: { $ne: userId } },
@@ -300,6 +304,33 @@ const updateGrievanceAttachment = async (req, res) => {
         grievance.attachments.push(savedAttachment._id);
       }
     }
+    const updatedGrievanceData = await Grievance.findOne({
+      _id: id,
+      organization_id,
+    })
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" })
+      .populate({ path: "assigned_to", select: "username" })
+      .session(session);
+
+    const userData = await User.find(
+      { organization_id, _id: { $ne: _id } },
+      "_id"
+    );
+    const userIds = userData.map((user) => user._id);
+
+    sendNotification(
+      userIds,
+      {
+        type: "update_grievance",
+        message: `Your grievance with ID ${id} has been updated`,
+        grievanceId: id,
+        updatedData: updatedGrievanceData,
+      },
+      req.users,
+      req.io
+    );
+
     await grievance.save({ session });
     await session.commitTransaction();
     return successResponse(res, grievance, "Grievance updated successfully");
@@ -324,7 +355,14 @@ const getGrievanceById = async (req, res) => {
     if (organization_id) {
       query.organization_id = organization_id;
     }
-    const grievance = await Grievance.findOne(query).populate({ path: "department_id", select: "name" }).populate({ path: "reported_by", select: "username" }).populate({ path: "assigned_to", select: "username" }).populate({ path: "attachments", select: "filename url filetype filesize" });
+    const grievance = await Grievance.findOne(query)
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" })
+      .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      });
     if (!grievance) {
       return errorResponse(res, 404, "Grievance not found");
     }

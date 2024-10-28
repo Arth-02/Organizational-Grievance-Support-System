@@ -24,8 +24,11 @@ const Grievances = () => {
 
   useEffect(() => {
     socket.on("update_grievance", (msg) => {
-      console.log("Notification received:", msg);
-      setLocalGrievances([...msg.updatedData]);
+      setLocalGrievances((prevGrievances) =>
+        prevGrievances.map((grievance) =>
+          grievance._id === msg.updatedData._id ? msg.updatedData : grievance
+        )
+      );
     });
   }, [socket]);
 
