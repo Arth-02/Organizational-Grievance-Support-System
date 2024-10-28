@@ -1,16 +1,12 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  AlertTriangle,
-  Paperclip,
-  User,
-} from "lucide-react";
+import { Clock, AlertTriangle, Paperclip, User } from "lucide-react";
 import cn from "classnames";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
 import { TooltipContent } from "@radix-ui/react-tooltip";
+import DOMPurify from "dompurify";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -59,9 +55,12 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
           </CardHeader>
 
           <CardContent className="p-4 space-y-4">
-            <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
-              {grievance.description}
-            </p>
+            <p
+              className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(grievance.description),
+              }}
+            ></p>
 
             <div className="flex items-center justify-between text-sm text-slate-500">
               <div className="flex items-center gap-3">
@@ -88,12 +87,19 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
               <div className="flex items-center gap-3">
                 <Tooltip>
                   <TooltipTrigger>
-                  <Avatar>
-                    <AvatarImage src={grievance.reported_by.avatar} alt={grievance.reported_by.username} />
-                    <AvatarFallback>{grievance.reported_by.username[0]}</AvatarFallback>
-                  </Avatar>
+                    <Avatar>
+                      <AvatarImage
+                        src={grievance.reported_by.avatar}
+                        alt={grievance.reported_by.username}
+                      />
+                      <AvatarFallback>
+                        {grievance.reported_by.username[0]}
+                      </AvatarFallback>
+                    </Avatar>
                   </TooltipTrigger>
-                  <TooltipContent>{grievance.reported_by.username}</TooltipContent>
+                  <TooltipContent>
+                    {grievance.reported_by.username}
+                  </TooltipContent>
                 </Tooltip>
                 {grievance.is_urgent && (
                   <AlertTriangle className="h-3 w-3 text-red-500" />

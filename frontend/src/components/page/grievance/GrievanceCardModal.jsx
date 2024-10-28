@@ -133,7 +133,10 @@ function GrievanceModal() {
           <DialogHeader>
             <DialogTitle className="p-4 flex items-start justify-between border-slate-700">
               <div className="flex-1">
-                <EditableTitle grievance={grievance} />
+                <EditableTitle
+                  grievance={grievance}
+                  handleUpdateGrievance={handleUpdateGrievance}
+                />
                 <div className="flex items-center gap-2 mt-3">
                   {grievance?.data?.priority && (
                     <Badge
@@ -235,15 +238,8 @@ function GrievanceModal() {
                   </h3>
                   <TextEditor
                     initialContent={grievance?.data?.description || ""}
-                    onSave={async (newContent) => {
-                      try {
-                        // Implement your API call to save the description
-                        // await updateGrievanceDescription(grievanceId, newContent);
-                        // Show success toast if needed
-                      } catch (error) {
-                        console.error("Failed to update description:", error);
-                        // Show error toast if needed
-                      }
+                    onSave={(content) => {
+                      handleUpdateGrievance({ description: content });
                     }}
                   />
                 </div>
@@ -426,13 +422,15 @@ function GrievanceModal() {
   );
 }
 
-const EditableTitle = ({ grievance }) => {
+const EditableTitle = ({ grievance, handleUpdateGrievance }) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef(null);
+  const [updateGrievance, { isLoading: isUpdating }] =
+    useUpdateGrievanceMutation();
 
   const handleTitleChange = async (newTitle) => {
     try {
-      // Implement title update
+      await handleUpdateGrievance({ title: newTitle });
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update title:", error);
