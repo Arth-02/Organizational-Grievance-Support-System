@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -36,6 +36,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
   const [originalContent, setOriginalContent] = useState(initialContent);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+
   
   const editor = useEditor({
     extensions: [
@@ -143,7 +144,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
     }
   }, [editor]);
 
-  if (!editor) return null;
+  
 
   const ToolbarButton = ({ onClick, isActive, icon: Icon, title, disabled }) => (
     <Button
@@ -269,6 +270,14 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
       title: 'Redo (Ctrl+Shift+Z)'
     },
   ];
+
+  useEffect(() => {
+    if (editor) {
+      editor.commands.setContent(initialContent);
+    }
+  }, [editor, initialContent]);
+
+  if (!editor) return null;
 
   return (
     <>
