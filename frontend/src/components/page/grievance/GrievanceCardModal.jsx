@@ -264,11 +264,11 @@ function GrievanceModal() {
               {/* Right Column - Actions */}
               <div className="w-48 space-y-4">
                 <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-slate-400">
+                    Status
+                  </h4>
                   {canEditStatus ? (
                     <>
-                      <h4 className="text-sm font-medium text-slate-400">
-                        Status
-                      </h4>
                       <Select
                         value={grievance?.data?.status}
                         modal={false}
@@ -299,22 +299,19 @@ function GrievanceModal() {
                       </Select>
                     </>
                   ) : (
-                    <div className="text-sm font-medium text-slate-400">
-                      Status:
-                      <span
-                        className={`px-2 py-1 ml-2 rounded ${
+                      <div
+                        className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
                           STATUS_BADGES[grievance?.data?.status]?.color
                         }`}
                       >
                         {STATUS_BADGES[grievance?.data?.status]?.label}
-                      </span>
-                    </div>
+                      </div>
                   )}
+                  <h4 className="text-sm font-medium text-slate-400 mt-4">
+                    Priority
+                  </h4>
                   {canEditPriority ? (
                     <>
-                      <h4 className="text-sm font-medium text-slate-400 mt-4">
-                        Priority
-                      </h4>
                       <Select
                         value={grievance?.data?.priority}
                         onValueChange={(value) => {
@@ -344,16 +341,13 @@ function GrievanceModal() {
                       </Select>
                     </>
                   ) : (
-                    <div className="text-sm font-medium text-slate-400 mt-4">
-                      Priority:
-                      <span
-                        className={`px-2 py-1 ml-2 rounded ${
+                      <div
+                        className={`px-2 py-2 rounded-md w-full text-sm dark:bg-slate-900 border dark:border-input/50 ${
                           PRIORITY_BADGES[grievance?.data?.priority]?.color
                         }`}
                       >
                         {PRIORITY_BADGES[grievance?.data?.priority]?.label}
-                      </span>
-                    </div>
+                      </div>
                   )}
                 </div>
                 {canEditAttachments && (
