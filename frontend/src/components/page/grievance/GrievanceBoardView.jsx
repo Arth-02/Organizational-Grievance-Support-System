@@ -30,7 +30,7 @@ const GrievanceBoardView = ({ grievances, onDragEnd }) => {
               return (
                 <div
                   key={list}
-                  className={`flex-shrink-0 w-80 bg-gray-100 dark:bg-slate-900/50 max-h-full rounded-lg flex flex-col border
+                  className={`flex-shrink-0 w-[370px] bg-gray-100 dark:bg-slate-900/50 max-h-full rounded-lg flex flex-col border
                   ${isDraggingOver ? "dark:border-white/35" : "border-white/0"} transition-all duration-200 overflow-x-hidden`}
                 >
                   <div className="p-4 pb-2">
