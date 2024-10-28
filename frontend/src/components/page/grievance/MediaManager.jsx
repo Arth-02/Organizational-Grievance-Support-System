@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUpdateAttachmentMutation } from "@/services/api.service";
+import toast from "react-hot-toast";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = {
@@ -49,40 +50,39 @@ const ACCEPTED_TYPES = {
   "text/markdown": [".md"],
 };
 
-// File type mapping for display purposes
 const FILE_TYPES = {
   "application/pdf": {
-    icon: <FileText className="w-6 h-6 text-red-400" />,
+    icon: <FileText className="w-6 h-6 text-red-600 dark:text-red-400" />,
     color: "bg-red-500/10",
     label: "PDF",
   },
   "application/msword": {
-    icon: <FileText className="w-6 h-6 text-blue-400" />,
+    icon: <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
     color: "bg-blue-500/10",
     label: "Word",
   },
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
-    icon: <FileText className="w-6 h-6 text-blue-400" />,
+    icon: <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />,
     color: "bg-blue-500/10",
     label: "Word",
   },
   "application/vnd.ms-powerpoint": {
-    icon: <FileSpreadsheet className="w-6 h-6 text-orange-400" />,
+    icon: <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />,
     color: "bg-orange-500/10",
     label: "PowerPoint",
   },
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
-    icon: <FileSpreadsheet className="w-6 h-6 text-orange-400" />,
+    icon: <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />,
     color: "bg-orange-500/10",
     label: "PowerPoint",
   },
   "text/plain": {
-    icon: <FileText className="w-6 h-6 text-green-400" />,
+    icon: <FileText className="w-6 h-6 text-green-600 dark:text-green-400" />,
     color: "bg-green-500/10",
     label: "Text",
   },
   "text/markdown": {
-    icon: <FileText className="w-6 h-6 text-purple-400" />,
+    icon: <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />,
     color: "bg-purple-500/10",
     label: "Markdown",
   },
@@ -153,8 +153,10 @@ const AttachmentManager = ({
       onUpdate(response.data);
       setFiles([]);
       setUploadModal(false);
+      toast.success("Attachments uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
+      toast.error(error.data.message);
     } finally {
       setUploading(false);
     }
@@ -165,7 +167,6 @@ const AttachmentManager = ({
 
     setDeleting(true);
     try {
-      console.log("Deleting attachment:", deleteDialog.attachment);
       const data = { delete_attachments: [deleteDialog.attachment._id] };
       const response = await updateAttachment({
         id: grievanceId,
@@ -245,15 +246,15 @@ const AttachmentManager = ({
       );
     } else if (attachment.filetype?.startsWith("video/")) {
       return (
-        <div className="h-12 w-12 bg-slate-700 rounded flex items-center justify-center">
-          <Video className="h-6 w-6 text-slate-400" />
+        <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
+          <Video className="h-6 w-6 text-gray-500 dark:text-slate-400" />
         </div>
       );
     } else {
       const fileType = FILE_TYPES[attachment.filetype];
       return (
-        <div className="h-12 w-12 bg-slate-700 rounded flex items-center justify-center">
-          {fileType?.icon || <File className="h-6 w-6 text-slate-400" />}
+        <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
+          {fileType?.icon || <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />}
         </div>
       );
     }
@@ -261,9 +262,8 @@ const AttachmentManager = ({
 
   return (
     <div className="space-y-4">
-      {/* Existing Attachments */}
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-2">
           <Paperclip className="h-5 w-5" /> Attachments (
           {existingAttachments.length})
         </h3>
@@ -271,7 +271,7 @@ const AttachmentManager = ({
         {existingAttachments.map((attachment) => (
           <div
             key={attachment._id}
-            className="flex items-center gap-3 p-2 rounded bg-slate-800"
+            className="flex items-center gap-3 p-2 rounded bg-white dark:bg-slate-800 border border-gray-200 dark:border-transparent"
           >
             <div
               className="cursor-pointer"
@@ -280,10 +280,10 @@ const AttachmentManager = ({
               {renderThumbnail(attachment)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-slate-300 truncate">
+              <div className="text-sm text-gray-700 dark:text-slate-300 truncate">
                 {attachment.filename}
               </div>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-gray-500 dark:text-slate-400">
                 {formatFileSize(attachment.filesize)}
               </div>
             </div>
@@ -294,7 +294,7 @@ const AttachmentManager = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePreview(attachment)}
-                  className="text-slate-400 hover:text-white dark:hover:bg-slate-700/50"
+                  className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </Button>
@@ -304,7 +304,7 @@ const AttachmentManager = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setDeleteDialog({ open: true, attachment })}
-                  className="dark:text-red-400 dark:hover:bg-red-500/10"
+                  className="text-red-500 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -314,11 +314,12 @@ const AttachmentManager = ({
         ))}
       </div>
 
-      {/* Upload Modal */}
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
-        <DialogContent className="max-w-xl bg-gray-900">
-          <DialogTitle>Upload Attachments</DialogTitle>
-          <DialogDescription>
+        <DialogContent className="bg-white dark:bg-gray-900">
+          <DialogTitle className="text-gray-900 dark:text-white">
+            Upload Attachments
+          </DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
             Add Image, Video or file upto 5 files
           </DialogDescription>
           <div className="space-y-4">
@@ -326,31 +327,30 @@ const AttachmentManager = ({
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg p-8 text-center ${
                 isDragActive
-                  ? "border-blue-500 bg-blue-500/10"
-                  : "border-slate-600"
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10"
+                  : "border-gray-300 dark:border-slate-600"
               }`}
             >
               <input {...getInputProps()} />
-              <Upload className="mx-auto h-12 w-12 text-slate-400" />
-              <p className="mt-2 text-slate-300">
+              <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400" />
+              <p className="mt-2 text-gray-700 dark:text-slate-300">
                 Drag & drop files here, or click to select files
               </p>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
                 Supports images and videos up to 5MB
               </p>
             </div>
 
-            {/* Selected Files */}
             {files.length > 0 && (
               <div className="space-y-2">
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center p-2 rounded bg-slate-800"
+                    className="flex items-center p-2 rounded bg-white dark:bg-slate-800 border border-gray-200 dark:border-transparent"
                   >
                     <div className="flex-1 flex items-center gap-2">
                       {getFileIcon(file.type)}
-                      <span className=" truncate text-slate-300">
+                      <span className="truncate text-gray-700 dark:text-slate-300">
                         {file.file.name}
                       </span>
                     </div>
@@ -370,7 +370,7 @@ const AttachmentManager = ({
                             ),
                           })
                         }
-                        className="text-slate-400 hover:text-white dark:hover:bg-slate-700/50"
+                        className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50"
                       >
                         <Maximize2 className="h-4 w-4" />
                       </Button>

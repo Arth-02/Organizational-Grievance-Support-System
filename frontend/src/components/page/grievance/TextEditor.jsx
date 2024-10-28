@@ -1,13 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import TextAlign from '@tiptap/extension-text-align';
-import { 
-  Bold, 
-  Italic, 
-  Link as LinkIcon, 
-  List, 
+import { useState, useCallback, useEffect } from "react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
+import {
+  Bold,
+  Italic,
+  Link as LinkIcon,
+  List,
   ListOrdered,
   Quote,
   Code,
@@ -20,7 +20,7 @@ import {
   AlignCenter,
   AlignRight,
   ExternalLink,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,61 +35,68 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalContent, setOriginalContent] = useState(initialContent);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState("");
 
-  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [1, 2]
+          levels: [1, 2],
         },
         bulletList: {
           HTMLAttributes: {
-            class: 'list-disc list-outside ml-4'
-          }
+            class: "list-disc list-outside ml-4",
+          },
         },
         orderedList: {
           HTMLAttributes: {
-            class: 'list-decimal list-outside ml-4'
-          }
+            class: "list-decimal list-outside ml-4",
+          },
         },
         listItem: {
           HTMLAttributes: {
-            class: 'pl-1'
-          }
+            class: "pl-1",
+          },
         },
         blockquote: {
           HTMLAttributes: {
-            class: 'border-l-4 border-slate-700 pl-4 my-4'
-          }
-        }
+            class:
+              "border-l-4 border-slate-700 dark:border-slate-700 pl-4 my-4",
+          },
+        },
       }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-400 hover:text-blue-500 underline cursor-pointer'
-        }
+          class:
+            "text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 underline cursor-pointer",
+        },
       }),
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'blockquote'],
+        types: ["heading", "paragraph", "blockquote"],
       }),
     ],
     content: initialContent,
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-invert min-h-[200px] p-3 focus:outline-none max-w-none',
-          'prose-p:text-slate-300 prose-headings:text-slate-200',
-          'prose-blockquote:border-l-slate-700 prose-blockquote:text-slate-300',
-          'prose-blockquote:font-normal prose-blockquote:not-italic',
-          'prose-blockquote:pl-4 prose-blockquote:my-4',
-          'prose-pre:bg-slate-800 prose-pre:text-slate-300',
-          'prose-ul:text-slate-300 prose-ol:text-slate-300',
-          'prose-ul:my-2 prose-ol:my-2',
-          'prose-li:my-0',
-          'prose-code:text-slate-300 prose-code:bg-slate-800/50 prose-code:rounded prose-code:px-1',
-          'prose-a:text-blue-400 prose-a:hover:text-blue-500',
+          "prose dark:prose-invert min-h-[200px] p-3 focus:outline-none max-w-none",
+          "prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-headings:text-slate-800 dark:prose-headings:text-slate-200",
+          "prose-blockquote:border-l-slate-300 dark:prose-blockquote:border-l-slate-700",
+          "prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300",
+          "prose-blockquote:font-normal prose-blockquote:not-italic",
+          "prose-blockquote:pl-4 prose-blockquote:my-4",
+          "prose-pre:bg-slate-100 dark:prose-pre:bg-slate-800",
+          "prose-pre:text-slate-700 dark:prose-pre:text-slate-300",
+          "prose-ul:text-slate-700 dark:prose-ul:text-slate-300",
+          "prose-ol:text-slate-700 dark:prose-ol:text-slate-300",
+          "prose-ul:my-2 prose-ol:my-2",
+          "prose-li:my-0",
+          "prose-code:text-slate-700 dark:prose-code:text-slate-300",
+          "prose-code:bg-slate-100/50 dark:prose-code:bg-slate-800/50",
+          "prose-code:rounded prose-code:px-1",
+          "prose-a:text-blue-600 dark:prose-a:text-blue-400",
+          "prose-a:hover:text-blue-700 dark:prose-a:hover:text-blue-500",
           className
         ),
       },
@@ -123,30 +130,26 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
         return;
       }
 
-      editor
-        .chain()
-        .focus()
-        .setLink({ href: linkUrl })
-        .run();
+      editor.chain().focus().setLink({ href: linkUrl }).run();
 
-      setLinkUrl('');
+      setLinkUrl("");
       setLinkDialogOpen(false);
     }
   }, [editor, linkUrl]);
 
   const removeLink = useCallback(() => {
     if (editor) {
-      editor
-        .chain()
-        .focus()
-        .unsetLink()
-        .run();
+      editor.chain().focus().unsetLink().run();
     }
   }, [editor]);
 
-  
-
-  const ToolbarButton = ({ onClick, isActive, icon: Icon, title, disabled }) => (
+  const ToolbarButton = ({
+    onClick,
+    isActive,
+    icon: Icon,
+    title,
+    disabled,
+  }) => (
     <Button
       type="button"
       variant="ghost"
@@ -172,102 +175,102 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
     {
       icon: Heading1,
       action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
-      isActive: () => editor.isActive('heading', { level: 1 }),
-      title: 'Heading 1'
+      isActive: () => editor.isActive("heading", { level: 1 }),
+      title: "Heading 1",
     },
     {
       icon: Heading2,
       action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
-      isActive: () => editor.isActive('heading', { level: 2 }),
-      title: 'Heading 2'
+      isActive: () => editor.isActive("heading", { level: 2 }),
+      title: "Heading 2",
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
       icon: Bold,
       action: () => editor.chain().focus().toggleBold().run(),
-      isActive: () => editor.isActive('bold'),
-      title: 'Bold (Ctrl+B)'
+      isActive: () => editor.isActive("bold"),
+      title: "Bold (Ctrl+B)",
     },
     {
       icon: Italic,
       action: () => editor.chain().focus().toggleItalic().run(),
-      isActive: () => editor.isActive('italic'),
-      title: 'Italic (Ctrl+I)'
+      isActive: () => editor.isActive("italic"),
+      title: "Italic (Ctrl+I)",
     },
     {
       icon: Code,
       action: () => editor.chain().focus().toggleCode().run(),
-      isActive: () => editor.isActive('code'),
-      title: 'Inline Code'
+      isActive: () => editor.isActive("code"),
+      title: "Inline Code",
     },
     {
       icon: LinkIcon,
       action: () => {
-        if (editor.isActive('link')) {
+        if (editor.isActive("link")) {
           removeLink();
         } else {
           setLinkDialogOpen(true);
         }
       },
-      isActive: () => editor.isActive('link'),
-      title: 'Add Link'
+      isActive: () => editor.isActive("link"),
+      title: "Add Link",
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
       icon: List,
       action: () => editor.chain().focus().toggleBulletList().run(),
-      isActive: () => editor.isActive('bulletList'),
-      title: 'Bullet List'
+      isActive: () => editor.isActive("bulletList"),
+      title: "Bullet List",
     },
     {
       icon: ListOrdered,
       action: () => editor.chain().focus().toggleOrderedList().run(),
-      isActive: () => editor.isActive('orderedList'),
-      title: 'Numbered List'
+      isActive: () => editor.isActive("orderedList"),
+      title: "Numbered List",
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
       icon: Quote,
       action: () => editor.chain().focus().toggleBlockquote().run(),
-      isActive: () => editor.isActive('blockquote'),
-      title: 'Quote'
+      isActive: () => editor.isActive("blockquote"),
+      title: "Quote",
     },
     {
       icon: MinusSquare,
       action: () => editor.chain().focus().setHorizontalRule().run(),
-      title: 'Horizontal Rule'
+      title: "Horizontal Rule",
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
       icon: AlignLeft,
-      action: () => editor.chain().focus().setTextAlign('left').run(),
-      isActive: () => editor.isActive({ textAlign: 'left' }),
-      title: 'Align Left'
+      action: () => editor.chain().focus().setTextAlign("left").run(),
+      isActive: () => editor.isActive({ textAlign: "left" }),
+      title: "Align Left",
     },
     {
       icon: AlignCenter,
-      action: () => editor.chain().focus().setTextAlign('center').run(),
-      isActive: () => editor.isActive({ textAlign: 'center' }),
-      title: 'Align Center'
+      action: () => editor.chain().focus().setTextAlign("center").run(),
+      isActive: () => editor.isActive({ textAlign: "center" }),
+      title: "Align Center",
     },
     {
       icon: AlignRight,
-      action: () => editor.chain().focus().setTextAlign('right').run(),
-      isActive: () => editor.isActive({ textAlign: 'right' }),
-      title: 'Align Right'
+      action: () => editor.chain().focus().setTextAlign("right").run(),
+      isActive: () => editor.isActive({ textAlign: "right" }),
+      title: "Align Right",
     },
-    { type: 'separator' },
+    { type: "separator" },
     {
       icon: Undo,
       action: () => editor.chain().focus().undo().run(),
       disabled: () => !editor.can().undo(),
-      title: 'Undo (Ctrl+Z)'
+      title: "Undo (Ctrl+Z)",
     },
     {
       icon: Redo,
       action: () => editor.chain().focus().redo().run(),
       disabled: () => !editor.can().redo(),
-      title: 'Redo (Ctrl+Shift+Z)'
+      title: "Redo (Ctrl+Shift+Z)",
     },
   ];
 
@@ -281,12 +284,15 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
 
   return (
     <>
-      <div className="rounded-lg border border-slate-700 overflow-hidden">
-        <div className="bg-slate-900/50 p-2 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-slate-200 dark:bg-slate-900/50 p-2 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center flex-wrap gap-1">
-            {toolbarItems.map((item, index) => 
-              item.type === 'separator' ? (
-                <div key={index} className="h-6 w-px bg-slate-700 mx-1" />
+            {toolbarItems.map((item, index) =>
+              item.type === "separator" ? (
+                <div
+                  key={index}
+                  className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"
+                />
               ) : (
                 <ToolbarButton
                   key={index}
@@ -299,7 +305,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
               )
             )}
           </div>
-          
+
           {isEditing && (
             <div className="flex items-center gap-2">
               <Button
@@ -307,7 +313,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
                 variant="ghost"
                 size="sm"
                 onClick={handleCancel}
-                className="text-slate-400 hover:text-slate-300"
+                className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
               >
                 Cancel
               </Button>
@@ -322,18 +328,21 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
             </div>
           )}
         </div>
-        
+
         {editor && (
-          <BubbleMenu 
-            editor={editor} 
+          <BubbleMenu
+            editor={editor}
             tippyOptions={{ duration: 100 }}
-            className="bg-slate-800 rounded-lg shadow-lg border border-slate-700 flex overflow-hidden"
+            className="bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 flex overflow-hidden"
           >
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className={cn("rounded-none", editor.isActive('bold') && "bg-slate-700")}
+              className={cn(
+                "rounded-none",
+                editor.isActive("bold") && "bg-slate-100 dark:bg-slate-700"
+              )}
               onClick={() => editor.chain().focus().toggleBold().run()}
             >
               <Bold className="h-4 w-4" />
@@ -342,7 +351,10 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
               type="button"
               variant="ghost"
               size="sm"
-              className={cn("rounded-none", editor.isActive('italic') && "bg-slate-700")}
+              className={cn(
+                "rounded-none",
+                editor.isActive("italic") && "bg-slate-100 dark:bg-slate-700"
+              )}
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
               <Italic className="h-4 w-4" />
@@ -351,7 +363,10 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
               type="button"
               variant="ghost"
               size="sm"
-              className={cn("rounded-none", editor.isActive('code') && "bg-slate-700")}
+              className={cn(
+                "rounded-none",
+                editor.isActive("code") && "bg-slate-100 dark:bg-slate-700"
+              )}
               onClick={() => editor.chain().focus().toggleCode().run()}
             >
               <Code className="h-4 w-4" />
@@ -360,9 +375,12 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
               type="button"
               variant="ghost"
               size="sm"
-              className={cn("rounded-none", editor.isActive('link') && "bg-slate-700")}
+              className={cn(
+                "rounded-none",
+                editor.isActive("link") && "bg-slate-100 dark:bg-slate-700"
+              )}
               onClick={() => {
-                if (editor.isActive('link')) {
+                if (editor.isActive("link")) {
                   removeLink();
                 } else {
                   setLinkDialogOpen(true);
@@ -373,7 +391,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
             </Button>
           </BubbleMenu>
         )}
-        
+
         <EditorContent editor={editor} />
       </div>
 
@@ -389,10 +407,10 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
                 placeholder="Paste a link"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                className="bg-slate-900 border-slate-700 text-slate-300"
+                className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-300"
               />
             </div>
-            <Button 
+            <Button
               type="button"
               size="sm"
               className="px-3 bg-blue-600 hover:bg-blue-700"
