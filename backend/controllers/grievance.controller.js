@@ -324,7 +324,7 @@ const getGrievanceById = async (req, res) => {
     if (organization_id) {
       query.organization_id = organization_id;
     }
-    const grievance = await Grievance.findOne(query);
+    const grievance = await Grievance.findOne(query).populate({ path: "department_id", select: "name" }).populate({ path: "reported_by", select: "username" }).populate({ path: "assigned_to", select: "username" }).populate({ path: "attachments", select: "filename url filetype filesize" });
     if (!grievance) {
       return errorResponse(res, 404, "Grievance not found");
     }

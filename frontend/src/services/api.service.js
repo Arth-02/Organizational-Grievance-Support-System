@@ -381,6 +381,20 @@ export const apiService = createApi({
         url: `grievances/details/${id}`,
         method: "GET",
       }),
+      providesTags: ["singleGrievance"],
+    }),
+    updateAttachment: builder.mutation({
+      query: ({ id, data }) => {
+        return {
+            headers: {
+              Authorization: `Bearer ${getFromLocalStorage("token")}`,
+            },
+            url: `grievances/update/attachment/${id}`,
+            method: "PATCH",
+            body: data,
+        }
+      },
+      invalidatesTags: ["singleGrievance", "Grievances"],
     }),
   }),
 });
@@ -419,4 +433,5 @@ export const {
   useGetAllGrievancesQuery,
   useUpdateGrievanceMutation,
   useGetGrievanceByIdQuery,
+  useUpdateAttachmentMutation,
 } = apiService;
