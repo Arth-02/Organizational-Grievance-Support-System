@@ -190,7 +190,7 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 404, "Grievance not found");
     }
 
-    const updatedGrievanceData = await Grievance.find().session(session);
+    const updatedGrievanceData = await Grievance.find({organization_id}).session(session);
 
     const userData = await User.find(
       { organization_id, _id: { $ne: userId } },
