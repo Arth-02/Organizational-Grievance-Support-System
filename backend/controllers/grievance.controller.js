@@ -189,7 +189,7 @@ const updateGrievance = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
     }
-
+    
     const updatedGrievanceData = await Grievance.find({organization_id}).session(session);
 
     const userData = await User.find(

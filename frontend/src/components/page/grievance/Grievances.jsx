@@ -20,12 +20,6 @@ const Grievances = () => {
     useGetAllGrievancesQuery(filters);
   const [updateGrievance] = useUpdateGrievanceMutation();
 
-  // const handleGrievanceRefetch = () => {
-  //   refetch();
-  // };
-
-  // useSocket(handleGrievanceRefetch);
-
   const socket = useSocket();
 
   useEffect(() => {
