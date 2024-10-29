@@ -91,6 +91,74 @@ const updateProject = async (req, res) => {
   }
 };
 
+// get by id
+const getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { organization_id, role, special_permissions, _id } = req.user;
+    if (!id) {
+      return errorResponse(res, 400, "Project ID is required");
+    }
+    if (!isValidObjectId(id)) {
+      return errorResponse(res, 400, "Invalid Project id");
+    }
+    const permissions = [...role.permissions, ...special_permissions];
+    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
+    const project = await Project.findOne({
+      _id: id,
+      organization_id,
+    }).populate("board_id");
+    const isProjectMember = project.members.includes(_id);
+    if (!hasPermission && !isProjectMember) {
+      return errorResponse(res, 403, "Permission denied");
+    }
+    if (!project) {
+      return errorResponse(res, 404, "Project not found");
+    }
+    return successResponse(res, project, "Project fetched successfully");
+  } catch (err) {
+    console.error("Get Project Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// Delete a project
+const deleteProject = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { id } = req.params;
+    const { organization_id } = req.user;
+    if (!id) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, "Project ID is required");
+    }
+    if (!isValidObjectId(id)) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, "Invalid Project id");
+    }
+    const project = await Project.findOne({_id:id,organization_id}).session(session);
+    if (!project) {
+      await session.abortTransaction();
+      return errorResponse(res, 404, "Project not found");
+    }
+    const deleteBoard = await Board.findByIdAndDelete(project.board_id).session(session);
+    const deletedProject = await Project.findByIdAndDelete(id).session(session);
+    if (!deletedProject) {
+      return errorResponse(res, 404, "Project not found");
+    }
+    await session.commitTransaction();
+    return successResponse(res, null, "Project deleted successfully");
+  } catch (err) {
+    console.error("Delete Project Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// get all projects
 const getAllProjects = async (req, res) => {
   try {
     const { organization_id } = req.user;
@@ -99,8 +167,8 @@ const getAllProjects = async (req, res) => {
       limit = 10,
       name,
       manager,
-      member,
-      is_active,
+      members,
+      is_active = "true",
       sort_by = "created_at",
       order = "desc",
     } = req.query;
@@ -127,15 +195,53 @@ const getAllProjects = async (req, res) => {
     if (manager) {
       query.manager = new ObjectId(manager);
     }
-    
-    const projects = await Project.find({ organization_id }).populate(
-      "board_id"
+    if (members) {
+      const membersArray = members
+        .split(",")
+        .map((member) => new ObjectId(member.trim()));
+      query.members = { $in: membersArray };
+    }
+    const [projects, totalProjects] = await Promise.all([
+      Project.find(query)
+        .sort({ [sort_by]: order })
+        .limit(limitNumber)
+        .skip(skip)
+        .populate("board_id"),
+      Project.countDocuments(query),
+    ]);
+    if (!projects) {
+      return errorResponse(res, 404, "Projects not found");
+    }
+    const totalPages = Math.ceil(totalProjects / limitNumber);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    const pagination = {
+      totalItems: totalProjects,
+      totalPages: totalPages,
+      currentPage: pageNumber,
+      limit: limitNumber,
+      hasNextPage: hasNextPage,
+      hasPrevPage: hasPrevPage,
+    };
+    return successResponse(
+      res,
+      {
+        projects,
+        pagination,
+      },
+      "Projects fetched successfully"
     );
-    return successResponse(res, projects, "Projects fetched successfully");
   } catch (err) {
     console.error("Get Projects Error:", err.message);
     return catchResponse(res);
   }
 };
 
-module.exports = { createProject, updateProject, getAllProjects };
+module.exports = {
+  createProject,
+  updateProject,
+  getProjectById,
+  deleteProject,
+  getAllProjects,
+};

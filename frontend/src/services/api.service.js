@@ -37,7 +37,6 @@ export const apiService = createApi({
         url: `users/details/${id}`,
         method: "GET",
       }),
-      
     }),
     getAllUsers: builder.query({
       query: (filters) => {
@@ -64,7 +63,7 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      
+
       providesTags: ["Users"],
     }),
     createOrganization: builder.mutation({
@@ -73,7 +72,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
     }),
     otpGenerate: builder.mutation({
       query: (body) => ({
@@ -97,7 +95,6 @@ export const apiService = createApi({
         url: `organizations/details/${body.organization_id}`,
         method: "GET",
       }),
-      
     }),
     createSuperAdmin: builder.mutation({
       query: (body) => ({
@@ -115,7 +112,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
+
       invalidatesTags: ["Departments"],
     }),
     getDepartmentById: builder.query({
@@ -126,7 +123,7 @@ export const apiService = createApi({
         url: `departments/details/${body}`,
         method: "GET",
       }),
-      
+
       providesTags: ["Departments"],
     }),
     getAllDepartmentName: builder.query({
@@ -150,7 +147,7 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      
+
       providesTags: ["Departments"],
     }),
     updateDepartment: builder.mutation({
@@ -162,7 +159,7 @@ export const apiService = createApi({
         method: "PATCH",
         body: body.data,
       }),
-      
+
       invalidatesTags: ["Departments"],
     }),
     deleteDepartment: builder.mutation({
@@ -173,7 +170,7 @@ export const apiService = createApi({
         url: `departments/delete/${body}`,
         method: "DELETE",
       }),
-      
+
       invalidatesTags: ["Departments"],
     }),
     createRole: builder.mutation({
@@ -185,7 +182,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
+
       invalidatesTags: ["Roles"],
     }),
     getRoleById: builder.query({
@@ -196,7 +193,7 @@ export const apiService = createApi({
         url: `roles/details/${body}`,
         method: "GET",
       }),
-      
+
       providesTags: ["Roles"],
     }),
     getAllRoleName: builder.query({
@@ -207,7 +204,7 @@ export const apiService = createApi({
         url: "roles/names",
         method: "GET",
       }),
-      
+
       providesTags: ["Roles"],
     }),
     getAllRoles: builder.query({
@@ -221,7 +218,7 @@ export const apiService = createApi({
           method: "GET",
         };
       },
-      
+
       providesTags: ["Roles"],
     }),
     updateRole: builder.mutation({
@@ -233,7 +230,7 @@ export const apiService = createApi({
         method: "PATCH",
         body: body.data,
       }),
-      
+
       invalidatesTags: ["Roles"],
     }),
     deleteRole: builder.mutation({
@@ -244,7 +241,7 @@ export const apiService = createApi({
         url: `roles/delete/${body}`,
         method: "DELETE",
       }),
-      
+
       invalidatesTags: ["Roles"],
     }),
     createUser: builder.mutation({
@@ -256,7 +253,7 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
+
       invalidatesTags: ["Users"],
     }),
     updateUser: builder.mutation({
@@ -268,7 +265,7 @@ export const apiService = createApi({
         method: "PATCH",
         body: data,
       }),
-      
+
       invalidatesTags: ["Users"],
     }),
     updateUserSelf: builder.mutation({
@@ -280,7 +277,7 @@ export const apiService = createApi({
         method: "PATCH",
         body,
       }),
-      
+
       invalidatesTags: ["Users"],
     }),
     deleteUser: builder.mutation({
@@ -291,7 +288,7 @@ export const apiService = createApi({
         url: `users/delete/${id}`,
         method: "DELETE",
       }),
-      
+
       invalidatesTags: ["Users"],
     }),
     deleteAllUsers: builder.mutation({
@@ -303,7 +300,7 @@ export const apiService = createApi({
         method: "DELETE",
         body,
       }),
-      
+
       invalidatesTags: ["Users"],
     }),
     checkUsername: builder.mutation({
@@ -315,7 +312,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
     }),
     checkEmail: builder.mutation({
       query: (body) => ({
@@ -326,7 +322,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
     }),
     checkEmployeeID: builder.mutation({
       query: (body) => ({
@@ -337,7 +332,6 @@ export const apiService = createApi({
         method: "POST",
         body,
       }),
-      
     }),
     getAllPermissions: builder.query({
       query: () => ({
@@ -347,7 +341,6 @@ export const apiService = createApi({
         url: "users/permissions",
         method: "GET",
       }),
-      
     }),
     getAllGrievances: builder.query({
       query: (filters) => {
@@ -386,15 +379,65 @@ export const apiService = createApi({
     updateAttachment: builder.mutation({
       query: ({ id, data }) => {
         return {
-            headers: {
-              Authorization: `Bearer ${getFromLocalStorage("token")}`,
-            },
-            url: `grievances/update/attachment/${id}`,
-            method: "PATCH",
-            body: data,
-        }
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `grievances/update/attachment/${id}`,
+          method: "PATCH",
+          body: data,
+        };
       },
       invalidatesTags: ["singleGrievance", "Grievances"],
+    }),
+    createProject: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: "projects/create",
+        method: "POST",
+        body,
+      }),
+    }),
+    updateProject: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    getProjectById: builder.query({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/details/${id}`,
+        method: "GET",
+      }),
+    }),
+    deleteProject: builder.mutation({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/delete/${id}`,
+        method: "DELETE",
+      }),
+    }),
+    getAllProjects: builder.query({
+      query: (filters) => {
+        const params = new URLSearchParams(filters).toString();
+        return {
+          headers: {
+            Authorization: `Bearer ${getFromLocalStorage("token")}`,
+          },
+          url: `projects/all?${params}`,
+          method: "GET",
+        };
+      },
     }),
   }),
 });
@@ -434,4 +477,9 @@ export const {
   useUpdateGrievanceMutation,
   useGetGrievanceByIdQuery,
   useUpdateAttachmentMutation,
+  useCreateProjectMutation,
+  useUpdateProjectMutation,
+  useGetProjectByIdQuery,
+  useDeleteProjectMutation,
+  useGetAllProjectsQuery,
 } = apiService;
