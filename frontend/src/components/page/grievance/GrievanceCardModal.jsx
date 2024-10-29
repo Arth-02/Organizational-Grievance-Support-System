@@ -114,7 +114,7 @@ function GrievanceModal() {
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update grievance:", error);
-      toast.error("Failed to update grievance");
+      toast.error(error.data.message);
     }
   };
 
