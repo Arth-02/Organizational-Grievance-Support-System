@@ -106,7 +106,11 @@ const grievanceService = require("../services/grievance.service");
 // };
 const createGrievance = async (req, res) => {
   try {
-    const result = await grievanceService.createGrievance(req.body, req.user, req.files);
+    const result = await grievanceService.createGrievance(
+      req.body,
+      req.user,
+      req.files
+    );
     return successResponse(res, result.data, result.message, result.statusCode);
   } catch (err) {
     console.error("Create Grievance Error:", err);
@@ -167,7 +171,7 @@ const updateGrievance = async (req, res) => {
         return errorResponse(res, 400, "Invalid department ID");
       }
     } else {
-      if (canUpdateMyGrievance) {
+      if (canUpdateMyGrievance && !req.body.status && !req.body.assigned_to) {
         schema = schema.concat(updateMyGrievanceSchema);
       }
       if (canUpdateGrievanceStatus && req.body.status) {

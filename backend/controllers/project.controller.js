@@ -92,6 +92,11 @@ const updateProject = async (req, res) => {
   }
 };
 
+// update a project Board
+const updateProjectBoard = async (req, res) => {
+  
+};
+
 // get by id
 const getProjectById = async (req, res) => {
   try {
