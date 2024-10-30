@@ -2,7 +2,7 @@ const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
 const Attachment = require("../models/attachment.model");
 const mongoose = require("mongoose");
-const uploadFiles = require("../helpers/cloudinary");
+const uploadFiles = require("../utils/cloudinary");
 const { isValidObjectId } = require("mongoose");
 
 const {
@@ -26,7 +26,7 @@ const {
   UPDATE_GRIEVANCE,
   SUPER_ADMIN,
 } = require("../utils/constant");
-const { sendNotification } = require("../helpers/notification");
+const { sendNotification } = require("../utils/notification");
 const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
 

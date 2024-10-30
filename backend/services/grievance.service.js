@@ -4,13 +4,14 @@ const { createGrievanceSchema } = require('../validators/grievance.validator');
 const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
 const Attachment = require("../models/attachment.model");
-const uploadFiles = require("../helpers/cloudinary");
+const uploadFiles = require("../utils/cloudinary");
 const {
     successResponse,
     errorResponse,
     catchResponse,
   } = require("../utils/response");
 
+// Create a new grievance
 const createGrievance = async (body, user, files) => {
   const session = await mongoose.startSession();
   session.startTransaction();

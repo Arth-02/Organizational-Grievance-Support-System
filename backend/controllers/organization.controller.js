@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { isValidObjectId } = require("mongoose");
-const uploadFiles = require("../helpers/cloudinary");
+const uploadFiles = require("../utils/cloudinary");
 const Organization = require("../models/organization.model");
 const {
   errorResponse,

@@ -11,6 +11,8 @@ const {
   updateProjectSchema,
 } = require("../validators/project.validator");
 const { VIEW_PROJECT } = require("../utils/constant");
+const { createBoard } = require("../services/board.service");
+const { ObjectId } = mongoose.Types;
 
 // Create a new project
 
@@ -28,8 +30,7 @@ const createProject = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-    const newBoard = new Board({ organization_id });
-    const board = await newBoard.save({ session });
+    const board = await createBoard(organization_id);
 
     const newProject = new Project({
       ...value,

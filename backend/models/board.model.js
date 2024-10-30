@@ -77,4 +77,8 @@ const boardSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Board", boardSchema);
+const Board = mongoose.model("Board", boardSchema);
+
+module.exports = Board;
+
+

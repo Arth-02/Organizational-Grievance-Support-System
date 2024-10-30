@@ -3,7 +3,7 @@ const {
   updateOrganization,
   getOrganizationById,
 } = require("../controllers/organization.controller");
-const upload = require("../helpers/multer");
+const upload = require("../utils/multer");
 const {
   isLoggedIn,
   checkPermission,

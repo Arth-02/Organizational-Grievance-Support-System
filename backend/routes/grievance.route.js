@@ -6,7 +6,7 @@ const {
   deleteGrievanceById,
   getAllGrievances,
 } = require("../controllers/grievance.controller");
-const upload = require("../helpers/multer");
+const upload = require("../utils/multer");
 const {
   checkPermission,
   isLoggedIn,
