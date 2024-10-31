@@ -3,13 +3,22 @@ const Board = require("../models/board.model");
 const {
   updateBoardTagSchema,
   addAndDeleteBoardTagSchema,
+  createBoardSchema,
 } = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
 
 // Create a new board
-const createBoard = async (organization_id) => {
+const createBoard = async (organization_id,body) => {
   try {
-    const newBoard = new Board({ organization_id });
+    const {error,value} = createBoardSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors };
+    }
+    const { name } = value;
+    const newBoard = new Board({ organization_id, name });
     const board = await newBoard.save();
     return { board, isSuccess: true };
   } catch (err) {

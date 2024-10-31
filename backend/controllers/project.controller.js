@@ -30,8 +30,8 @@ const createProject = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 400, errors);
     }
-
-    const response = await boardService.createBoard(organization_id);
+    const boardBody = {name: value.name};
+    const response = await boardService.createBoard(organization_id, boardBody);
     if (!response.isSuccess) {
       await session.abortTransaction();
       return errorResponse(res, 500, "Error creating project board");
@@ -156,12 +156,12 @@ const getProjectById = async (req, res) => {
       _id: id,
       organization_id,
     }).populate("board_id");
+    if (!project) {
+      return errorResponse(res, 404, "Project not found");
+    }
     const isProjectMember = project.members.includes(_id);
     if (!hasPermission && !isProjectMember) {
       return errorResponse(res, 403, "Permission denied");
-    }
-    if (!project) {
-      return errorResponse(res, 404, "Project not found");
     }
     return successResponse(res, project, "Project fetched successfully");
   } catch (err) {

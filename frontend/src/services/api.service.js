@@ -280,6 +280,46 @@ export const apiService = createApi({
 
       invalidatesTags: ["Users"],
     }),
+    addBoard: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: "users/add-board",
+        method: "POST",
+        body,
+      }),
+    }),
+    addBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/add-board-tag/${id}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/update-board-tag/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    deleteBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/delete-board-tag/${id}`,
+        method: "DELETE",
+        body: data,
+      }),
+    }),
     deleteUser: builder.mutation({
       query: (id) => ({
         headers: {
@@ -409,6 +449,36 @@ export const apiService = createApi({
         body: data,
       }),
     }),
+    addProjectBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/add-board-tag/${id}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateProjectBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/update-board-tag/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    deleteProjectBoardTag: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/delete-board-tag/${id}`,
+        method: "DELETE",
+        body: data,
+      }),
+    }),
     getProjectById: builder.query({
       query: (id) => ({
         headers: {
@@ -467,6 +537,10 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useUpdateUserSelfMutation,
+  useAddBoardMutation,
+  useAddBoardTagMutation,
+  useUpdateBoardTagMutation,
+  useDeleteBoardTagMutation,
   useDeleteUserMutation,
   useDeleteAllUsersMutation,
   useCheckUsernameMutation,
@@ -479,6 +553,9 @@ export const {
   useUpdateAttachmentMutation,
   useCreateProjectMutation,
   useUpdateProjectMutation,
+  useAddProjectBoardTagMutation,
+  useUpdateProjectBoardTagMutation,
+  useDeleteProjectBoardTagMutation,
   useGetProjectByIdQuery,
   useDeleteProjectMutation,
   useGetAllProjectsQuery,

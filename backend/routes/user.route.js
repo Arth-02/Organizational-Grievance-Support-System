@@ -14,6 +14,10 @@ const {
   deleteAllUsers,
   getAllPermissions,
   getAllUsersId,
+  addBoard,
+  addBoardTag,
+  updateBoardTag,
+  deleteBoardTag,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -45,5 +49,10 @@ router.post("/checkemployeeid", checkEmployeeID);
 router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
 
 router.get("/permissions", isLoggedIn, getAllPermissions);
+
+router.post("/add-board", isLoggedIn, addBoard);
+router.post("/add-board-tag/:id", isLoggedIn, addBoardTag);
+router.patch("/update-board-tag/:id", isLoggedIn, updateBoardTag);
+router.delete("/delete-board-tag/:id", isLoggedIn, deleteBoardTag);
 
 module.exports = router;

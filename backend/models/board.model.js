@@ -55,6 +55,11 @@ const boardSchema = new mongoose.Schema(
       ref: "Organization",
       required: [true, "Organization ID is required"],
     },
+    name: {
+      type: String,
+      required: [true, "Name is required"],
+      trim: true,
+    },
     tags: {
       type: [String],
       default: ["todo", "in-progress", "done"],
@@ -80,5 +85,3 @@ const boardSchema = new mongoose.Schema(
 const Board = mongoose.model("Board", boardSchema);
 
 module.exports = Board;
-
-

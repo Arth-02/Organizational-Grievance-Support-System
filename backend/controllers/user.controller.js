@@ -30,6 +30,7 @@ const {
   updateFullUserSchema,
   superAdminSchema,
 } = require("../validators/user.validator");
+const boardService = require("../services/board.service");
 
 // Login user
 const login = async (req, res) => {
@@ -884,6 +885,71 @@ const getAllUsersId = async (req, res) => {
   }
 }
 
+// Add board
+const addBoard = async (req, res) => {
+  try {
+    const { organization_id,id:userId } = req.user;
+    const response = await boardService.createBoard(organization_id, req.body);
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, "Error creating project board");
+    }
+    const board = response.board;
+    const user = await User.findByIdAndUpdate(userId, { $push: { board_id: board._id } });
+    if (!user) {
+      return errorResponse(res, 404, "User not found");
+    }
+    return successResponse(res, board, "Board created successfully");
+  } catch (err) {
+    console.error("Create Board Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+const addBoardTag = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const { id } = req.params;
+    const response = await boardService.updateBoardTag(id, organization_id, req.body, "add", req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
+    }
+    return successResponse(res, response.updatedBoard, "Board tag added successfully");
+  } catch (err) {
+    console.error("Add Board Tag Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
+const updateBoardTag = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const { id } = req.params;
+    const response = await boardService.updateBoardTag(id, organization_id, req.body, "update", req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
+    }
+    return successResponse(res, response.updatedBoard, "Board tag updated successfully");
+  } catch (err) {
+    console.error("Update Board Tag Error:", err.message);
+    return catchResponse(res);
+  }
+}
+const deleteBoardTag = async (req, res) => {
+  try {
+    const { organization_id } = req.user;
+    const { id } = req.params;
+    const response = await boardService.updateBoardTag(id, organization_id, req.body, "delete", req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
+    }
+    return successResponse(res, response.updatedBoard, "Board tag deleted successfully");
+  } catch (err) {
+    console.error("Delete Board Tag Error:", err.message);
+    return catchResponse(res);
+  }
+}
+
 module.exports = {
   login,
   createUser,
@@ -899,4 +965,8 @@ module.exports = {
   getAllUsers,
   getAllPermissions,
   getAllUsersId,
+  addBoard,
+  addBoardTag,
+  updateBoardTag,
+  deleteBoardTag,
 };
