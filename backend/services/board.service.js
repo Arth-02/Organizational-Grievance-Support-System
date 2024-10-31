@@ -1,61 +1,119 @@
 const mongoose = require("mongoose");
 const Board = require("../models/board.model");
-const { updateBoardSchema } = require("../validators/board.validator");
+const {
+  updateBoardTagSchema,
+  addAndDeleteBoardTagSchema,
+} = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
 
 // Create a new board
 const createBoard = async (organization_id) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
     const newBoard = new Board({ organization_id });
-    const board = await newBoard.save({ session });
-    await session.commitTransaction();
-    return board;
+    const board = await newBoard.save();
+    return { board, isSuccess: true };
   } catch (err) {
     console.error("Create Board Error:", err.message);
-    await session.abortTransaction();
-    throw new Error("Error creating board");
-  } finally {
-    session.endSession();
+    return { isSuccess: false };
   }
 };
 
 // Update a board
-const updateBoard = async (id, body, user) => {
+const updateBoardTag = async (
+  id,
+  organization_id,
+  body,
+  request,
+  user = null
+) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { organization_id, _id: userId } = user;
     if (!id) {
       await session.abortTransaction();
-      return errorResponse(res, 400, "Board ID is required");
+      return { isSuccess: false, message: "Board ID is required" };
     }
     if (!isValidObjectId(id)) {
       await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid Board ID");
+      return { isSuccess: false, message: "Invalid Board ID" };
     }
-    const board = await Board.findOne({ _id: id, organization_id });
-    if (!board) {
-      return errorResponse(res, 404, "Board not found");
+    let schema;
+    if (request === "add" || request === "delete") {
+      schema = addAndDeleteBoardTagSchema;
+    } else if (request === "update") {
+      schema = updateBoardTagSchema;
     }
-    if (!board.users.includes(userId)) {
-      return errorResponse(res, 403, "Unauthorized");
-    }
-    const { error, value } = updateBoardSchema.validate(body, {
+    const { error, value } = schema.validate(body, {
       abortEarly: false,
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
+      return { isSuccess: false, message: errors };
     }
+    const board = await Board.findOne({ _id: id, organization_id }).session(
+      session
+    );
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    if (user && id === user.board_id) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    if (request === "add") {
+      const { tag } = value;
+      if (board.tags.includes(tag)) {
+        await session.abortTransaction();
+        return { isSuccess: false, message: "Tag already exists" };
+      }
+      board.tags.push(tag);
+    } else if (request === "update") {
+      const { oldtag, newtag } = body;
+      const tagIndex = board.tags.indexOf(oldtag);
+      if (tagIndex === -1) {
+        await session.abortTransaction();
+        return { isSuccess: false, message: "old Tag not found" };
+      }
+      if (board.tags.includes(newtag)) {
+        await session.abortTransaction();
+        return { isSuccess: false, message: "new Tag already exists" };
+      }
+      board.tags[tagIndex] = newtag;
+      for (let i = 0; i < board.tasks.length; i++) {
+        if (board.tasks[i].tag === oldtag) {
+          board.tasks[i].tag = newtag;
+        }
+      }
+    } else if (request === "delete") {
+      const { tag } = value;
+      const tagIndex = board.tags.indexOf(tag);
+      if (tagIndex === -1) {
+        await session.abortTransaction();
+        return { isSuccess: false, message: "Tag not found" };
+      }
+      board.tags.splice(tagIndex, 1);
+      for (let i = 0; i < board.tasks.length; i++) {
+        if (board.tasks[i].tag === tag) {
+          board.tasks.splice(i, 1);
+          i--;
+        }
+      }
+    }
+    const updatedBoard = await board.save({ session });
 
     await session.commitTransaction();
-    return board;
+    return { updatedBoard, isSuccess: true };
   } catch (err) {
-    console.error("Update Board Error:", err.message);
+    if (request === "add") {
+      console.error("Add Board Tag Error:", err.message);
+    } else if (request === "update") {
+      console.error("Update Board Error:", err.message);
+    } else if (request === "delete") {
+      console.error("Delete Board Tag Error:", err.message);
+    } else {
+      console.error("Board Error:", err.message);
+    }
     await session.abortTransaction();
-    throw new Error("Error updating board");
+    return { isSuccess: false, message: err.message };
   } finally {
     session.endSession();
   }
@@ -63,4 +121,5 @@ const updateBoard = async (id, body, user) => {
 
 module.exports = {
   createBoard,
+  updateBoardTag,
 };

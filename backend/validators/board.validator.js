@@ -13,11 +13,15 @@ const taskUpdateSchema = Joi.object({
   is_active: Joi.boolean(),
 });
 
-// Define validation schema for Board updates
-const updateBoardSchema = Joi.object({
-  tags: Joi.array().items(Joi.string()),
-  tasks: Joi.array().items(taskUpdateSchema),
-  is_active: Joi.boolean(),
+const addAndDeleteBoardTagSchema = Joi.object({
+  tag: Joi.string().required(),
 });
 
-module.exports = { updateBoardSchema };
+// Define validation schema for Board updates
+const updateBoardTagSchema = Joi.object({
+  oldtag: Joi.string().required(),
+  newtag: Joi.string().required(),
+});
+
+
+module.exports = { addAndDeleteBoardTagSchema, updateBoardTagSchema };

@@ -11,8 +11,9 @@ const {
   updateProjectSchema,
 } = require("../validators/project.validator");
 const { VIEW_PROJECT } = require("../utils/constant");
-const { createBoard } = require("../services/board.service");
+const boardService = require("../services/board.service");
 const { ObjectId } = mongoose.Types;
+const projectService = require("../services/project.service");
 
 // Create a new project
 
@@ -30,8 +31,12 @@ const createProject = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-    const board = await createBoard(organization_id);
-
+    const response = await boardService.createBoard(organization_id);
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, "Error creating project board");
+    }
+    const board = response.board;
     const newProject = new Project({
       ...value,
       organization_id,
@@ -92,9 +97,46 @@ const updateProject = async (req, res) => {
   }
 };
 
-// update a project Board
-const updateProjectBoard = async (req, res) => {
-  
+// Add a Project Board Tag
+const addProjectBoardTag = async (req, res) => {
+  try{
+    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"add");
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
+    }
+    return successResponse(res, response.board, "Project board updated successfully");
+  } catch (err) {
+    console.error("Add Project Board Tag Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// update a project Board Tag
+const updateProjectBoardTag = async (req, res) => {
+  try{
+    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"update");
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
+    }
+    return successResponse(res, response.board, "Project board updated successfully");
+  } catch (err) {
+    console.error("Update Project Board Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// delete a project Board Tag
+const deleteProjectBoardTag = async (req, res) => {
+  try{
+    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"delete");
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
+    }
+    return successResponse(res, response.board, "Project board updated successfully");
+  } catch (err) {
+    console.error("Delete Project Board Error:", err.message);
+    return catchResponse(res);
+  }
 };
 
 // get by id
@@ -143,12 +185,16 @@ const deleteProject = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 400, "Invalid Project id");
     }
-    const project = await Project.findOne({_id:id,organization_id}).session(session);
+    const project = await Project.findOne({ _id: id, organization_id }).session(
+      session
+    );
     if (!project) {
       await session.abortTransaction();
       return errorResponse(res, 404, "Project not found");
     }
-    const deleteBoard = await Board.findByIdAndDelete(project.board_id).session(session);
+    const deleteBoard = await Board.findByIdAndDelete(project.board_id).session(
+      session
+    );
     const deletedProject = await Project.findByIdAndDelete(id).session(session);
     if (!deletedProject) {
       return errorResponse(res, 404, "Project not found");
@@ -247,6 +293,9 @@ const getAllProjects = async (req, res) => {
 module.exports = {
   createProject,
   updateProject,
+  addProjectBoardTag,
+  updateProjectBoardTag,
+  deleteProjectBoardTag,
   getProjectById,
   deleteProject,
   getAllProjects,
