@@ -30,8 +30,12 @@ const createProject = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 400, errors);
     }
-    const boardBody = {name: value.name};
-    const response = await boardService.createBoard(organization_id, boardBody);
+    const boardBody = { name: value.name };
+    const response = await boardService.createBoard(
+      session,
+      organization_id,
+      boardBody
+    );
     if (!response.isSuccess) {
       await session.abortTransaction();
       return errorResponse(res, 500, "Error creating project board");
@@ -99,43 +103,94 @@ const updateProject = async (req, res) => {
 
 // Add a Project Board Tag
 const addProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"add");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "add"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Add Project Board Tag Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
 // update a project Board Tag
 const updateProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"update");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "update"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Update Project Board Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
 // delete a project Board Tag
 const deleteProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"delete");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "delete"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Delete Project Board Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 

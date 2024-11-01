@@ -8,9 +8,9 @@ const {
 const { isValidObjectId } = mongoose;
 
 // Create a new board
-const createBoard = async (organization_id,body) => {
+const createBoard = async (session, organization_id, body) => {
   try {
-    const {error,value} = createBoardSchema.validate(body, {
+    const { error, value } = createBoardSchema.validate(body, {
       abortEarly: false,
     });
     if (error) {
@@ -19,7 +19,7 @@ const createBoard = async (organization_id,body) => {
     }
     const { name } = value;
     const newBoard = new Board({ organization_id, name });
-    const board = await newBoard.save();
+    const board = await newBoard.save({ session });
     return { board, isSuccess: true };
   } catch (err) {
     console.error("Create Board Error:", err.message);
@@ -29,21 +29,18 @@ const createBoard = async (organization_id,body) => {
 
 // Update a board
 const updateBoardTag = async (
+  session,
   id,
   organization_id,
   body,
   request,
   user = null
 ) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
     if (!id) {
-      await session.abortTransaction();
       return { isSuccess: false, message: "Board ID is required" };
     }
     if (!isValidObjectId(id)) {
-      await session.abortTransaction();
       return { isSuccess: false, message: "Invalid Board ID" };
     }
     let schema;
@@ -71,7 +68,6 @@ const updateBoardTag = async (
     if (request === "add") {
       const { tag } = value;
       if (board.tags.includes(tag)) {
-        await session.abortTransaction();
         return { isSuccess: false, message: "Tag already exists" };
       }
       board.tags.push(tag);
@@ -79,11 +75,9 @@ const updateBoardTag = async (
       const { oldtag, newtag } = body;
       const tagIndex = board.tags.indexOf(oldtag);
       if (tagIndex === -1) {
-        await session.abortTransaction();
         return { isSuccess: false, message: "old Tag not found" };
       }
       if (board.tags.includes(newtag)) {
-        await session.abortTransaction();
         return { isSuccess: false, message: "new Tag already exists" };
       }
       board.tags[tagIndex] = newtag;
@@ -96,7 +90,6 @@ const updateBoardTag = async (
       const { tag } = value;
       const tagIndex = board.tags.indexOf(tag);
       if (tagIndex === -1) {
-        await session.abortTransaction();
         return { isSuccess: false, message: "Tag not found" };
       }
       board.tags.splice(tagIndex, 1);
@@ -108,8 +101,6 @@ const updateBoardTag = async (
       }
     }
     const updatedBoard = await board.save({ session });
-
-    await session.commitTransaction();
     return { updatedBoard, isSuccess: true };
   } catch (err) {
     if (request === "add") {
@@ -121,10 +112,7 @@ const updateBoardTag = async (
     } else {
       console.error("Board Error:", err.message);
     }
-    await session.abortTransaction();
     return { isSuccess: false, message: err.message };
-  } finally {
-    session.endSession();
   }
 };
 
