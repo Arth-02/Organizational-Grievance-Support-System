@@ -210,7 +210,7 @@ const updateGrievance = async (req, res) => {
       .session(session);
 
     const userData = await User.find(
-      { organization_id, _id: { $ne: userId } },
+      { organization_id },
       "_id"
     );
     const userIds = userData.map((user) => user._id);
