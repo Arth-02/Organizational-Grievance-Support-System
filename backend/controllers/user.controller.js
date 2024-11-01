@@ -919,10 +919,13 @@ const addBoard = async (req, res) => {
 };
 
 const addBoardTag = async (req, res) => {
+  const session = await mongoose.startSession();
+  await session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
     const response = await boardService.updateBoardTag(
+      session,
       id,
       organization_id,
       req.body,
@@ -930,8 +933,10 @@ const addBoardTag = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 500, response.message);
     }
+    await session.commitTransaction();
     return successResponse(
       res,
       response.updatedBoard,
@@ -939,7 +944,10 @@ const addBoardTag = async (req, res) => {
     );
   } catch (err) {
     console.error("Add Board Tag Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 

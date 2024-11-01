@@ -103,6 +103,7 @@ const updateBoardTag = async (
     const updatedBoard = await board.save({ session });
     return { updatedBoard, isSuccess: true };
   } catch (err) {
+    
     if (request === "add") {
       console.error("Add Board Tag Error:", err.message);
     } else if (request === "update") {
