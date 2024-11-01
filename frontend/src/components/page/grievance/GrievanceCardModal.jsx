@@ -95,7 +95,9 @@ function GrievanceModal() {
   const userPermissions = useSelector((state) => state.user.permissions);
   const user = useSelector((state) => state.user.user);
 
-  const canEditStatus = user._id === grievance?.data?.assigned_to?._id;
+  const canEditStatus =
+    user._id === userPermissions.includes("UPDATE_GRIEVANCE") ||
+    grievance?.data?.assigned_to?._id;
   const canEditPriority =
     userPermissions.includes("UPDATE_GRIEVANCE") ||
     user._id === grievance?.data?.reported_by?._id;
