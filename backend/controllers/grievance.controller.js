@@ -22,7 +22,6 @@ const {
 const Joi = require("joi");
 const {
   UPDATE_GRIEVANCE_ASSIGNEE,
-  UPDATE_GRIEVANCE_STATUS,
   UPDATE_GRIEVANCE,
   SUPER_ADMIN,
 } = require("../utils/constant");
@@ -151,9 +150,8 @@ const updateGrievance = async (req, res) => {
 
     // Check permissions for various grievance updates
     const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
-    const canUpdateGrievanceStatus = permissions.includes(
-      UPDATE_GRIEVANCE_STATUS.slug
-    );
+    const canUpdateGrievanceStatus =
+      grievance.assigned_to?.toString() === userId.toString();
     const canUpdateGrievanceAssignee = permissions.includes(
       UPDATE_GRIEVANCE_ASSIGNEE.slug
     );

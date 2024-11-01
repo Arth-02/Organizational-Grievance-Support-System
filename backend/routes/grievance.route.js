@@ -12,9 +12,6 @@ const {
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
 const {
-  UPDATE_GRIEVANCE,
-  UPDATE_GRIEVANCE_ASSIGNEE,
-  UPDATE_GRIEVANCE_STATUS,
   DELETE_GRIEVANCE,
 } = require("../utils/constant");
 const router = require("express").Router();
