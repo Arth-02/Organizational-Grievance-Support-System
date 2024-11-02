@@ -64,34 +64,22 @@ const updateProject = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
-    if (!id) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Project ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const { error, value } = updateProjectSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
-    }
-
-    const updatedProject = await Project.findByIdAndUpdate(
-      id,
-      { ...value },
-      { new: true, session }
+    const response = await projectService.updateProject(
+      session,
+      req.params.id,
+      req.body,
+      req.user
     );
-
-    if (!updatedProject) {
-      return errorResponse(res, 404, "Project not found");
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
     }
     await session.commitTransaction();
-    return successResponse(res, updatedProject, "Project updated successfully");
+    return successResponse(
+      res,
+      response.project,
+      "Project updated successfully"
+    );
   } catch (err) {
     console.error("Update Project Error:", err.message);
     await session.abortTransaction();
@@ -197,28 +185,18 @@ const deleteProjectBoardTag = async (req, res) => {
 // get by id
 const getProjectById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { organization_id, role, special_permissions, _id } = req.user;
-    if (!id) {
-      return errorResponse(res, 400, "Project ID is required");
+    const response = await projectService.getProjectById(
+      req.params.id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const permissions = [...role.permissions, ...special_permissions];
-    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
-    const project = await Project.findOne({
-      _id: id,
-      organization_id,
-    }).populate("board_id");
-    if (!project) {
-      return errorResponse(res, 404, "Project not found");
-    }
-    const isProjectMember = project.members.includes(_id);
-    if (!hasPermission && !isProjectMember) {
-      return errorResponse(res, 403, "Permission denied");
-    }
-    return successResponse(res, project, "Project fetched successfully");
+    return successResponse(
+      res,
+      response.project,
+      "Project fetched successfully"
+    );
   } catch (err) {
     console.error("Get Project Error:", err.message);
     return catchResponse(res);

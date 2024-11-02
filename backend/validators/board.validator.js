@@ -17,6 +17,11 @@ const createBoardSchema = Joi.object({
   name: Joi.string().required(),
 });
 
+const updateBoardSchema = Joi.object({
+  name: Joi.string(),
+  is_active: Joi.boolean(),
+});
+
 const addAndDeleteBoardTagSchema = Joi.object({
   tag: Joi.string().required(),
 });
@@ -27,5 +32,10 @@ const updateBoardTagSchema = Joi.object({
   newtag: Joi.string().required(),
 });
 
-
-module.exports = { createBoardSchema, addAndDeleteBoardTagSchema, updateBoardTagSchema };
+module.exports = {
+  createBoardSchema,
+  updateBoardSchema,
+  addAndDeleteBoardTagSchema,
+  updateBoardTagSchema,
+  taskUpdateSchema,
+};

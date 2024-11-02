@@ -4,6 +4,7 @@ const {
   updateBoardTagSchema,
   addAndDeleteBoardTagSchema,
   createBoardSchema,
+  updateBoardSchema,
 } = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
 
@@ -24,6 +25,42 @@ const createBoard = async (session, organization_id, body) => {
   } catch (err) {
     console.error("Create Board Error:", err.message);
     return { isSuccess: false };
+  }
+};
+
+const updateBoard = async (session, id, organization_id, body, user = null) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Board ID is required" };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Board ID" };
+    }
+    const { error, value } = updateBoardSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors };
+    }
+    const board = await Board.findOne({ _id: id, organization_id }).session(
+      session
+    );
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    if (user && id === user.board_id) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const updatedBoard = await Board.findByIdAndUpdate(
+      id,
+      { ...value },
+      { new: true, session }
+    );
+    return { updatedBoard, isSuccess: true };
+  } catch (err) {
+    console.error("Update Board Error:", err.message);
+    return { isSuccess: false, message: err.message };
   }
 };
 
@@ -103,7 +140,6 @@ const updateBoardTag = async (
     const updatedBoard = await board.save({ session });
     return { updatedBoard, isSuccess: true };
   } catch (err) {
-    
     if (request === "add") {
       console.error("Add Board Tag Error:", err.message);
     } else if (request === "update") {
@@ -119,5 +155,6 @@ const updateBoardTag = async (
 
 module.exports = {
   createBoard,
+  updateBoard,
   updateBoardTag,
 };
