@@ -1044,6 +1044,66 @@ const deleteBoardTag = async (req, res) => {
   }
 };
 
+// add board task
+const addBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.addBoardTask(
+      session,
+      req.params.id,
+      req.user.organization_id,
+      req.body,
+      req.files,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task added successfully"
+    );
+  } catch (err) {
+    console.error("Add Board Task Error:", err.message);
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// Update a board task
+const updateBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.updateBoardTask(
+      session,
+      req.params.board_id,
+      req.params.task_id,
+      req.user.organization_id,
+      req.body,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task updated successfully"
+    );
+  } catch (err) {
+    console.error("Update Board Task Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -1064,4 +1124,6 @@ module.exports = {
   addBoardTag,
   updateBoardTag,
   deleteBoardTag,
+  addBoardTask,
+  updateBoardTask,
 };

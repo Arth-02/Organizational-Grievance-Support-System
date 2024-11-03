@@ -19,6 +19,8 @@ const {
   updateBoardTag,
   deleteBoardTag,
   deleteBoard,
+  addBoardTask,
+  updateBoardTask,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -30,6 +32,7 @@ const {
   UPDATE_USER,
   DELETE_USER,
 } = require("../utils/constant");
+const upload = require("../utils/multer");
 
 router.post("/login", login);
 router.post("/create", checkPermission([CREATE_USER.slug]), createUser);
@@ -53,8 +56,21 @@ router.get("/permissions", isLoggedIn, getAllPermissions);
 
 router.post("/add-board", isLoggedIn, addBoard);
 router.delete("/delete-board/:id", isLoggedIn, deleteBoard);
+
 router.post("/add-board-tag/:id", isLoggedIn, addBoardTag);
 router.patch("/update-board-tag/:id", isLoggedIn, updateBoardTag);
 router.delete("/delete-board-tag/:id", isLoggedIn, deleteBoardTag);
+
+router.post(
+  "/add-board-task/:id",
+  isLoggedIn,
+  upload.array("attachments", 5),
+  addBoardTask
+);
+router.patch(
+  "/update-board-task/:board_id/task/:task_id",
+  isLoggedIn,
+  updateBoardTask
+);
 
 module.exports = router;
