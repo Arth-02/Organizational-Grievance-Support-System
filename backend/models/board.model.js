@@ -34,10 +34,6 @@ const taskSchema = new mongoose.Schema(
       type: String,
       enum: ["low", "medium", "high"],
     },
-    is_active: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: {
@@ -67,10 +63,6 @@ const boardSchema = new mongoose.Schema(
     tasks: {
       type: [taskSchema],
       default: [],
-    },
-    is_active: {
-      type: Boolean,
-      default: true,
     },
   },
   {

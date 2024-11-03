@@ -5,6 +5,7 @@ const { updateProjectSchema } = require("../validators/project.validator");
 const { UPDATE_PROJECT, VIEW_PROJECT } = require("../utils/constant");
 const { isValidObjectId } = mongoose;
 
+// Update a project
 const updateProject = async (session, id, body, user) => {
   try {
     const { _id: userId, organization_id, role, special_permissions } = user;
@@ -59,7 +60,7 @@ const updateProject = async (session, id, body, user) => {
   }
 };
 
-// Update a project board
+// Add, Update and Delete a project board tag
 const updateProjectBoardTag = async (session, id, body, user, request) => {
   try {
     const { organization_id, _id: userId } = user;
@@ -104,6 +105,82 @@ const updateProjectBoardTag = async (session, id, body, user, request) => {
   }
 };
 
+// Add a project board task
+const addProjectBoardTask = async (session, id, body, user,files) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Project ID is required" };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Project id" };
+    }
+    const { organization_id, _id: userId } = user;
+    const project = await Project.findOne({ _id: id, organization_id }).session(
+      session
+    );
+    if (!project) {
+      return { isSuccess: false, message: "Project not found" };
+    }
+    if (!project.members.includes(userId)) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const response = await boardService.addBoardTask(
+      session,
+      project.board_id,
+      organization_id,
+      body,
+      files,
+      user
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message };
+    }
+    const board = response.board;
+    return { board, isSuccess: true };
+  } catch (err) {
+    console.error("Add Project Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+// Update a project board task
+const updateProjectBoardTask = async (session, project_id, task_id, body, user) => {
+  try{
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required" };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id" };
+    }
+    const { organization_id, _id: userId } = user;
+    const project = await Project.findOne({ _id: project_id, organization_id }).session(
+      session
+    );
+    if (!project) {
+      return { isSuccess: false, message: "Project not found" };
+    }
+    if (!project.members.includes(userId)) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const response = await boardService.updateBoardTask(
+      session,
+      project.board_id,
+      task_id,
+      organization_id,
+      body,
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message };
+    }
+    const board = response.board;
+    return { board, isSuccess: true };
+  } catch (err) {
+    console.error("Update Project Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+// Get a project by ID
 const getProjectById = async (id, user) => {
   try {
     const { organization_id, role, special_permissions, _id } = user;
@@ -133,6 +210,7 @@ const getProjectById = async (id, user) => {
   }
 };
 
+// Delete a project
 const deleteProject = async (session, id, organization_id) => {
   try {
     if (!id) {
@@ -163,4 +241,11 @@ const deleteProject = async (session, id, organization_id) => {
   }
 };
 
-module.exports = { updateProjectBoardTag, updateProject, getProjectById, deleteProject };
+module.exports = {
+  updateProjectBoardTag,
+  updateProject,
+  addProjectBoardTask,
+  updateProjectBoardTask,
+  getProjectById,
+  deleteProject,
+};

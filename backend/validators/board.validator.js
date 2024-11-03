@@ -1,16 +1,25 @@
 const Joi = require("joi");
 
 // Define validation schema for Task updates
-const taskUpdateSchema = Joi.object({
+const updateBoardTaskSchema = Joi.object({
   tag: Joi.string(),
   title: Joi.string(),
   description: Joi.string(),
-  due_date: Joi.date().allow(null),
+  due_date: Joi.date(),
   assignee_to: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
-  attachments: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
   created_by: Joi.string().pattern(/^[0-9a-fA-F]{24}$/),
   priority: Joi.string().valid("low", "medium", "high"),
-  is_active: Joi.boolean(),
+});
+
+const addBoardTaskSchema = Joi.object({
+  tag: Joi.string().required(),
+  title: Joi.string().required(),
+  description: Joi.string().required(),
+  due_date: Joi.date(),
+  assignee_to: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
+  attachments: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
+  created_by: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
+  priority: Joi.string().valid("low", "medium", "high").required(),
 });
 
 const createBoardSchema = Joi.object({
@@ -19,7 +28,6 @@ const createBoardSchema = Joi.object({
 
 const updateBoardSchema = Joi.object({
   name: Joi.string(),
-  is_active: Joi.boolean(),
 });
 
 const addAndDeleteBoardTagSchema = Joi.object({
@@ -37,5 +45,6 @@ module.exports = {
   updateBoardSchema,
   addAndDeleteBoardTagSchema,
   updateBoardTagSchema,
-  taskUpdateSchema,
+  addBoardTaskSchema,
+  updateBoardTaskSchema,
 };

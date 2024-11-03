@@ -182,6 +182,67 @@ const deleteProjectBoardTag = async (req, res) => {
   }
 };
 
+const addProjectBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.addProjectBoardTask(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      req.files
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Added task to project board successfully"
+    );
+  } catch (err) {
+    console.error("Add Project Board Task Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// update a project Board Task
+const updateProjectBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTask(
+      session,
+      req.params.project_id,
+      req.params.task_id,
+      req.body,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Updated task in project board successfully"
+    );
+  } catch (err) {
+    console.error("Update Project Board Task Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
 // get by id
 const getProjectById = async (req, res) => {
   try {
@@ -314,6 +375,8 @@ module.exports = {
   addProjectBoardTag,
   updateProjectBoardTag,
   deleteProjectBoardTag,
+  addProjectBoardTask,
+  updateProjectBoardTask,
   getProjectById,
   deleteProject,
   getAllProjects,

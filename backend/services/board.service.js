@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 const Board = require("../models/board.model");
+const attachmentService = require("./attachment.service");
 const {
   updateBoardTagSchema,
   addAndDeleteBoardTagSchema,
   createBoardSchema,
   updateBoardSchema,
+  addBoardTaskSchema,
+  updateBoardTaskSchema,
 } = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
 
@@ -28,6 +31,7 @@ const createBoard = async (session, organization_id, body) => {
   }
 };
 
+// Update a board
 const updateBoard = async (session, id, organization_id, body, user = null) => {
   try {
     if (!id) {
@@ -64,7 +68,7 @@ const updateBoard = async (session, id, organization_id, body, user = null) => {
   }
 };
 
-// Update a board
+// Add, Update and Delete a board tag
 const updateBoardTag = async (
   session,
   id,
@@ -153,6 +157,122 @@ const updateBoardTag = async (
   }
 };
 
+// Update a board task
+const addBoardTask = async (
+  session,
+  id,
+  organization_id,
+  body,
+  files,
+  user = null
+) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Board ID is required" };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Board ID" };
+    }
+    const { error, value } = addBoardTaskSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors };
+    }
+    const board = await Board.findOne({ _id: id, organization_id }).session(
+      session
+    );
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    if (user && id === user.board_id) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    if (board.tags.indexOf(value.tag) === -1) {
+      return { isSuccess: false, message: "Tag not found" };
+    }
+    let response;
+    if(files && files.length > 0){
+      response = await attachmentService.createAttachment(session, user._id, organization_id, files);
+      if(!response.isSuccess){
+        return { isSuccess: false, message: response.message };
+      }
+    }
+    const attachmentIds = response.attachmentIds;
+    value.attachments = attachmentIds;
+    const newTask = { ...value };
+    board.tasks.push(newTask);
+    const updatedBoard = await board.save({ session });
+    return { updatedBoard, isSuccess: true };
+  } catch (err) {
+    console.error("Add Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+const updateBoardTask = async (
+  session,
+  board_id,
+  task_id,
+  organization_id,
+  body,
+  user = null
+) => {
+  try{
+    if (!board_id) {
+      return { isSuccess: false, message: "Board ID is required" };
+    }
+    if (!isValidObjectId(board_id)) {
+      return { isSuccess: false, message: "Invalid Board ID" };
+    }
+    if (!task_id) {
+      return { isSuccess: false, message: "Task ID is required" };
+    }
+    if (!isValidObjectId(task_id)) {
+      return { isSuccess: false, message: "Invalid Task ID" };
+    }
+    const board = await Board.findOne({ _id: board_id, organization_id }).session(
+      session
+    );
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    if (user && board_id === user.board_id) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    console.log(task_id);
+    console.log("board.tasks",board.tasks);
+    const taskIndex = board.tasks.findIndex(task => task._id.toString() === task_id);
+    if(taskIndex === -1){
+      return { isSuccess: false, message: "Task not found" };
+    }
+    const { error, value } = updateBoardTaskSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors };
+    }
+    if(value.tag && board.tags.indexOf(value.tag) === -1){
+      return { isSuccess: false, message: "Tag not found" };
+    }
+    const task = board.tasks[taskIndex];
+    task.tag = value.tag || task.tag;
+    task.title = value.title || task.title;
+    task.description = value.description || task.description;
+    task.due_date = value.due_date || task.due_date;
+    task.assignee_to = value.assignee_to || task.assignee_to;
+    task.priority = value.priority || task.priority;
+    const updatedBoard = await board.save({ session });
+    return { updatedBoard, isSuccess: true };
+  } catch (err) {
+    console.error("Update Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+// Delete a board
 const deleteBoard = async (session, id, organization_id, user = null) => {
   try {
     if (!id) {
@@ -182,5 +302,7 @@ module.exports = {
   createBoard,
   updateBoard,
   updateBoardTag,
+  addBoardTask,
+  updateBoardTask,
   deleteBoard,
 };

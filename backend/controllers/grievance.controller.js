@@ -12,7 +12,6 @@ const {
 } = require("../utils/response");
 const Role = require("../models/role.model");
 const {
-  createGrievanceSchema,
   updateStatusGrievanceSchema,
   updateAssignedGrievanceSchema,
   updateFullGrievanceSchema,
@@ -30,80 +29,6 @@ const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
 const attachmentService = require("../services/attachment.service");
 
-// Create a grievance
-// const createGrievance = async (req, res) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     const { error, value } = createGrievanceSchema.validate(req.body);
-//     if (error) {
-//       await session.abortTransaction();
-//       return errorResponse(res, 400, error.details[0].message);
-//     }
-
-//     const { title, description, priority, status, department_id } = value;
-//     const { organization_id, employee_id } = req.user;
-//     const reported_by = req.user._id;
-
-//     const departmentExists = await Department.findOne({
-//       organization_id,
-//       _id: department_id,
-//     }).session(session);
-//     if (!departmentExists) {
-//       await session.abortTransaction();
-//       return errorResponse(res, 400, "Invalid department");
-//     }
-
-//     let newGrievance = new Grievance({
-//       organization_id,
-//       title,
-//       description,
-//       department_id,
-//       priority,
-//       status,
-//       reported_by,
-//       employee_id,
-//     });
-//     let attachmentIds = [];
-//     if (req.files && req.files.length > 0) {
-//       for (let file of req.files) {
-//         const result = await uploadFiles(file, organization_id);
-//         if (!result) {
-//           await session.abortTransaction();
-//           return errorResponse(res, 400, "Error uploading attachments");
-//         }
-//         const newAttachment = new Attachment({
-//           filename: file.originalname,
-//           public_id: result.public_id,
-//           filetype: file.mimetype,
-//           filesize: file.size,
-//           url: result.secure_url,
-//           grievance_id: newGrievance._id,
-//           organization_id,
-//           uploaded_by: req.user._id,
-//         });
-//         const savedAttachment = await newAttachment.save({ session });
-//         attachmentIds.push(savedAttachment._id);
-//       }
-//     }
-
-//     newGrievance.attachments = attachmentIds;
-//     await newGrievance.save({ session });
-//     session.commitTransaction();
-//     return successResponse(
-//       res,
-//       newGrievance,
-//       "Grievance created successfully",
-//       201
-//     );
-//   } catch (err) {
-//     console.error("Create Grievance Error:", err);
-//     await session.abortTransaction();
-//     return catchResponse(res);
-//   } finally {
-//     session.endSession();
-//   }
-// };
 const createGrievance = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();

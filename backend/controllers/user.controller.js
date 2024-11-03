@@ -872,6 +872,7 @@ const getAllPermissions = async (req, res) => {
   }
 };
 
+// get all users id
 const getAllUsersId = async (req, res) => {
   try {
     const { organization_id } = req.user;
@@ -941,9 +942,10 @@ const deleteBoard = async (req, res) => {
   }
 };
 
+// add board tag
 const addBoardTag = async (req, res) => {
   const session = await mongoose.startSession();
-  await session.startTransaction();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
@@ -974,9 +976,10 @@ const addBoardTag = async (req, res) => {
   }
 };
 
+// update board tag
 const updateBoardTag = async (req, res) => {
   const session = await mongoose.startSession();
-  await session.startTransaction();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
@@ -1006,9 +1009,11 @@ const updateBoardTag = async (req, res) => {
     session.endSession();
   }
 };
+
+// delete board tag
 const deleteBoardTag = async (req, res) => {
   const session = await mongoose.startSession();
-  await session.startTransaction();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;

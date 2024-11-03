@@ -41,16 +41,17 @@ const createGrievance = async (session, body, user, files) => {
       reported_by,
       employee_id,
     });
-
-    const response = await attachmentService.createAttachment(
-      session,
-      newGrievance._id,
-      user._id,
-      organization_id,
-      files
-    );
-    if (!response.isSuccess) {
-      return { isSuccess: false, message: response.message };
+    let response;
+    if (files && files.length > 0) {
+      response = await attachmentService.createAttachment(
+        session,
+        user._id,
+        organization_id,
+        files
+      );
+      if (!response.isSuccess) {
+        return { isSuccess: false, message: response.message };
+      }
     }
     const attachmentIds = response.attachmentIds;
     newGrievance.attachments = attachmentIds;
