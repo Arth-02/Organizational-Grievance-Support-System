@@ -9,6 +9,7 @@ const {
   deleteProjectBoardTag,
   addProjectBoardTask,
   updateProjectBoardTask,
+  deleteProjectBoardTask,
 } = require("../controllers/project.controller");
 const {
   checkPermission,
@@ -47,6 +48,11 @@ router.patch(
   "/update-board-task/:project_id/task/:task_id",
   isLoggedIn,
   updateProjectBoardTask
+);
+router.delete(
+  "/delete-board-task/:project_id/task/:task_id",
+  isLoggedIn,
+  deleteProjectBoardTask
 );
 
 module.exports = router;

@@ -180,6 +180,42 @@ const updateProjectBoardTask = async (session, project_id, task_id, body, user) 
   }
 };
 
+// Delete a project board task
+const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
+  try{
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required" };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id" };
+    }
+    const { organization_id, _id: userId } = user;
+    const project = await Project.findOne({ _id: project_id, organization_id }).session(
+      session
+    );
+    if (!project) {
+      return { isSuccess: false, message: "Project not found" };
+    }
+    if (!project.members.includes(userId)) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const response = await boardService.deleteBoardTask(
+      session,
+      project.board_id,
+      task_id,
+      organization_id,
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message };
+    }
+    const board = response.board;
+    return { board, isSuccess: true };
+  } catch (err) {
+    console.error("Delete Project Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
 // Get a project by ID
 const getProjectById = async (id, user) => {
   try {
@@ -246,6 +282,7 @@ module.exports = {
   updateProject,
   addProjectBoardTask,
   updateProjectBoardTask,
+  deleteProjectBoardTask,
   getProjectById,
   deleteProject,
 };

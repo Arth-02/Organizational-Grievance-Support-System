@@ -1104,6 +1104,34 @@ const updateBoardTask = async (req, res) => {
   }
 };
 
+// Delete a board task
+const deleteBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.deleteBoardTask(
+      session,
+      req.params.board_id,
+      req.params.task_id,
+      req.user.organization_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task deleted successfully"
+    );
+  } catch (err) {
+    console.error("Delete Board Task Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -1126,4 +1154,5 @@ module.exports = {
   deleteBoardTag,
   addBoardTask,
   updateBoardTask,
+  deleteBoardTask,
 };

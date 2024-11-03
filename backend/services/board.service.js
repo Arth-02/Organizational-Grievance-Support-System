@@ -211,6 +211,7 @@ const addBoardTask = async (
   }
 };
 
+// Update a board task
 const updateBoardTask = async (
   session,
   board_id,
@@ -272,6 +273,43 @@ const updateBoardTask = async (
   }
 };
 
+// Delete a board task
+const deleteBoardTask = async (session, board_id, task_id, organization_id, user = null) => {
+  try{
+    if (!board_id) {
+      return { isSuccess: false, message: "Board ID is required" };
+    }
+    if (!isValidObjectId(board_id)) {
+      return { isSuccess: false, message: "Invalid Board ID" };
+    }
+    if (!task_id) {
+      return { isSuccess: false, message: "Task ID is required" };
+    }
+    if (!isValidObjectId(task_id)) {
+      return { isSuccess: false, message: "Invalid Task ID" };
+    }
+    const board = await Board.findOne({ _id: board_id, organization_id }).session(
+      session
+    );
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    if (user && board_id === user.board_id) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const taskIndex = board.tasks.findIndex(task => task._id.toString() === task_id);
+    if(taskIndex === -1){
+      return { isSuccess: false, message: "Task not found" };
+    }
+    board.tasks.splice(taskIndex, 1);
+    const updatedBoard = await board.save({ session });
+    return { updatedBoard, isSuccess: true };
+  } catch (err) {
+    console.error("Delete Board Task Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
 // Delete a board
 const deleteBoard = async (session, id, organization_id, user = null) => {
   try {
@@ -298,11 +336,14 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
   }
 };
 
+
+
 module.exports = {
   createBoard,
   updateBoard,
   updateBoardTag,
   addBoardTask,
   updateBoardTask,
+  deleteBoardTask,
   deleteBoard,
 };
