@@ -3,12 +3,7 @@ const uploadFiles = require("../utils/cloudinary");
 const mongoose = require("mongoose");
 
 // Create a new attachment
-const createAttachment = async (
-  session,
-  user_id,
-  organization_id,
-  files
-) => {
+const createAttachment = async (session, user_id, organization_id, files) => {
   try {
     let attachmentIds = [];
     for (let file of files) {
@@ -41,4 +36,27 @@ const createAttachment = async (
   }
 };
 
-module.exports = { createAttachment };
+// Delete an attachment
+const deleteAttachment = async (session, attachment_id) => {
+  try {
+    const attachment = await Attachment.updateMany(
+      { _id: { $in: attachment_id } },
+      { is_active: false }
+    ).session(session);
+    if (!attachment) {
+      console.error(
+        "Error deleting attachment in Attachment Service deleteAttachment"
+      );
+      return { isSuccess: false, message: "Error deleting attachment" };
+    }
+    return { isSuccess: true };
+  } catch (error) {
+    console.error(
+      "Error deleting attachment in Attachment Service deleteAttachment:",
+      error.message
+    );
+    return { isSuccess: false, message: error.message };
+  }
+};
+
+module.exports = { createAttachment, deleteAttachment };

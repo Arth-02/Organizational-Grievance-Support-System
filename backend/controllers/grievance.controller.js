@@ -228,10 +228,14 @@ const updateGrievanceAttachment = async (req, res) => {
     }
     if (value?.delete_attachments && value?.delete_attachments.length > 0) {
       const { delete_attachments } = value;
-      await Attachment.updateMany(
-        { _id: { $in: delete_attachments } },
-        { is_active: false }
+      const response = await attachmentService.deleteAttachment(
+        session,
+        delete_attachments
       );
+      if (!response.isSuccess) {
+        await session.abortTransaction();
+        return errorResponse(res, 400, response.message);
+      }
       grievance.attachments = grievance.attachments.filter(
         (attachment) => !delete_attachments.includes(attachment._id.toString())
       );

@@ -106,7 +106,7 @@ const updateProjectBoardTag = async (session, id, body, user, request) => {
 };
 
 // Add a project board task
-const addProjectBoardTask = async (session, id, body, user,files) => {
+const addProjectBoardTask = async (session, id, body, user, files) => {
   try {
     if (!id) {
       return { isSuccess: false, message: "Project ID is required" };
@@ -144,8 +144,14 @@ const addProjectBoardTask = async (session, id, body, user,files) => {
 };
 
 // Update a project board task
-const updateProjectBoardTask = async (session, project_id, task_id, body, user) => {
-  try{
+const updateProjectBoardTask = async (
+  session,
+  project_id,
+  task_id,
+  body,
+  user
+) => {
+  try {
     if (!project_id) {
       return { isSuccess: false, message: "Project ID is required" };
     }
@@ -153,9 +159,10 @@ const updateProjectBoardTask = async (session, project_id, task_id, body, user) 
       return { isSuccess: false, message: "Invalid Project id" };
     }
     const { organization_id, _id: userId } = user;
-    const project = await Project.findOne({ _id: project_id, organization_id }).session(
-      session
-    );
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    }).session(session);
     if (!project) {
       return { isSuccess: false, message: "Project not found" };
     }
@@ -167,7 +174,7 @@ const updateProjectBoardTask = async (session, project_id, task_id, body, user) 
       project.board_id,
       task_id,
       organization_id,
-      body,
+      body
     );
     if (!response.isSuccess) {
       return { isSuccess: false, message: response.message };
@@ -180,9 +187,16 @@ const updateProjectBoardTask = async (session, project_id, task_id, body, user) 
   }
 };
 
-// Delete a project board task
-const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
-  try{
+// Update a project board task attachment
+const updateProjectBoardTaskAttachment = async (
+  session,
+  project_id,
+  task_id,
+  body,
+  files,
+  user
+) => {
+  try {
     if (!project_id) {
       return { isSuccess: false, message: "Project ID is required" };
     }
@@ -190,9 +204,50 @@ const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
       return { isSuccess: false, message: "Invalid Project id" };
     }
     const { organization_id, _id: userId } = user;
-    const project = await Project.findOne({ _id: project_id, organization_id }).session(
-      session
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    }).session(session);
+    if (!project) {
+      return { isSuccess: false, message: "Project not found" };
+    }
+    if (!project.members.includes(userId)) {
+      return { isSuccess: false, message: "Permission denied" };
+    }
+    const response = await boardService.updateBoardTaskAttachment(
+      session,
+      project.board_id,
+      task_id,
+      organization_id,
+      body,
+      files,
+      user
     );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message };
+    }
+    const board = response.board;
+    return { board, isSuccess: true };
+  } catch (err) {
+    console.error("Update Project Board Task Attachment Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+// Delete a project board task
+const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
+  try {
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required" };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id" };
+    }
+    const { organization_id, _id: userId } = user;
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    }).session(session);
     if (!project) {
       return { isSuccess: false, message: "Project not found" };
     }
@@ -203,7 +258,7 @@ const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
       session,
       project.board_id,
       task_id,
-      organization_id,
+      organization_id
     );
     if (!response.isSuccess) {
       return { isSuccess: false, message: response.message };
@@ -282,6 +337,7 @@ module.exports = {
   updateProject,
   addProjectBoardTask,
   updateProjectBoardTask,
+  updateProjectBoardTaskAttachment,
   deleteProjectBoardTask,
   getProjectById,
   deleteProject,

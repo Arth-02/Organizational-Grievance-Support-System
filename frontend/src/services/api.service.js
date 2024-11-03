@@ -349,6 +349,16 @@ export const apiService = createApi({
         body: data,
       }),
     }),
+    updateBoardTaskAttachment: builder.mutation({
+      query: ({ board_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/update-board-task-attachment/${board_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
     deleteBoardTask: builder.mutation({
       query: ({ board_id, task_id }) => ({
         headers: {
@@ -537,6 +547,16 @@ export const apiService = createApi({
         body: data,
       }),
     }),
+    updateProjectBoardTaskAttachment: builder.mutation({
+      query: ({ project_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/update-board-task-attachment/${project_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
     deleteProjectBoardTask: builder.mutation({
       query: ({ project_id, task_id }) => ({
         headers: {
@@ -611,6 +631,7 @@ export const {
   useDeleteBoardTagMutation,
   useAddBoardTaskMutation,
   useUpdateBoardTaskMutation,
+  useUpdateBoardTaskAttachmentMutation,
   useDeleteBoardTaskMutation,
   useDeleteUserMutation,
   useDeleteAllUsersMutation,
@@ -629,6 +650,7 @@ export const {
   useDeleteProjectBoardTagMutation,
   useAddProjectBoardTaskMutation,
   useUpdateProjectBoardTaskMutation,
+  useUpdateProjectBoardTaskAttachmentMutation,
   useDeleteProjectBoardTaskMutation,
   useGetProjectByIdQuery,
   useDeleteProjectMutation,

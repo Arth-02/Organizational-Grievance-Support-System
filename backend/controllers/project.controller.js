@@ -243,6 +243,38 @@ const updateProjectBoardTask = async (req, res) => {
   }
 };
 
+// update a project Board Task Attachment
+const updateProjectBoardTaskAttachment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTaskAttachment(
+      session,
+      req.params.project_id,
+      req.params.task_id,
+      req.body,
+      req.files,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Updated task attachment in project board successfully"
+    );
+  } catch (err) {
+    console.error("Update Project Board Task Attachment Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
 // delete a project Board Task
 const deleteProjectBoardTask = async (req, res) => {
   const session = await mongoose.startSession();
@@ -407,6 +439,7 @@ module.exports = {
   deleteProjectBoardTag,
   addProjectBoardTask,
   updateProjectBoardTask,
+  updateProjectBoardTaskAttachment,
   deleteProjectBoardTask,
   getProjectById,
   deleteProject,
