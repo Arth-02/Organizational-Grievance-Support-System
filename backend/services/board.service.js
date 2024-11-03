@@ -69,6 +69,26 @@ const updateBoard = async (session, id, organization_id, body, user = null) => {
   }
 };
 
+// Get a board by ID
+const getBoardById = async (id, organization_id) => {
+  try{
+    if (!id) {
+      return { isSuccess: false, message: "Board ID is required" };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Board ID" };
+    }
+    const board = await Board.findOne({ _id: id, organization_id });
+    if (!board) {
+      return { isSuccess: false, message: "Board not found" };
+    }
+    return { board, isSuccess: true };
+  } catch (err) {
+    console.error("Get Board By ID Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
 // Add, Update and Delete a board tag
 const updateBoardTag = async (
   session,
@@ -449,6 +469,7 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
 module.exports = {
   createBoard,
   updateBoard,
+  getBoardById,
   updateBoardTag,
   addBoardTask,
   updateBoardTask,

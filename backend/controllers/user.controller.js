@@ -976,6 +976,20 @@ const addBoardTag = async (req, res) => {
   }
 };
 
+// Get board by id
+const getBoardById = async (req, res) => {
+  try {
+    const response = await boardService.getBoardById(req.params.id, req.user.organization_id);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
+    }
+    return successResponse(res, response.board, "Board retrieved successfully");
+  } catch (err) {
+    console.error("Get Board Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 // update board tag
 const updateBoardTag = async (req, res) => {
   const session = await mongoose.startSession();
@@ -1178,6 +1192,7 @@ module.exports = {
   getAllPermissions,
   getAllUsersId,
   addBoard,
+  getBoardById,
   deleteBoard,
   addBoardTag,
   updateBoardTag,

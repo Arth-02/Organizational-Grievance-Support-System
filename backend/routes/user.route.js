@@ -23,6 +23,7 @@ const {
   updateBoardTask,
   deleteBoardTask,
   updateBoardTaskAttachment,
+  getBoardById,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -57,6 +58,7 @@ router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
 router.get("/permissions", isLoggedIn, getAllPermissions);
 
 router.post("/add-board", isLoggedIn, addBoard);
+router.get("/board/:id", isLoggedIn, getBoardById);
 router.delete("/delete-board/:id", isLoggedIn, deleteBoard);
 
 router.post("/add-board-tag/:id", isLoggedIn, addBoardTag);
