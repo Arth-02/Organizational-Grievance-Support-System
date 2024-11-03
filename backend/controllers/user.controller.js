@@ -918,6 +918,29 @@ const addBoard = async (req, res) => {
   }
 };
 
+// delete board
+const deleteBoard = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.deleteBoard(
+      session,
+      req.params.id,
+      req.user.organization_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(res, {}, "Board deleted successfully");
+  } catch (err) {
+    console.error("Delete Board Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 const addBoardTag = async (req, res) => {
   const session = await mongoose.startSession();
   await session.startTransaction();
@@ -1032,6 +1055,7 @@ module.exports = {
   getAllPermissions,
   getAllUsersId,
   addBoard,
+  deleteBoard,
   addBoardTag,
   updateBoardTag,
   deleteBoardTag,

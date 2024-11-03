@@ -290,6 +290,15 @@ export const apiService = createApi({
         body,
       }),
     }),
+    deleteBoard: builder.mutation({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/delete-board/${id}`,
+        method: "DELETE",
+      }),
+    }),
     addBoardTag: builder.mutation({
       query: ({ id, data }) => ({
         headers: {

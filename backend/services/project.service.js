@@ -133,4 +133,34 @@ const getProjectById = async (id, user) => {
   }
 };
 
-module.exports = { updateProjectBoardTag, updateProject, getProjectById };
+const deleteProject = async (session, id, organization_id) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Project ID is required" };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Project id" };
+    }
+    const project = await Project.findOne({ _id: id, organization_id }).session(
+      session
+    );
+    if (!project) {
+      return { isSuccess: false, message: "Project not found" };
+    }
+    const boardResponse = await boardService.deleteBoard(
+      session,
+      project.board_id,
+      organization_id
+    );
+    if (!boardResponse.isSuccess) {
+      return { isSuccess: false, message: boardResponse.message };
+    }
+    await Project.findByIdAndDelete(id).session(session);
+    return { isSuccess: true };
+  } catch (err) {
+    console.error("Delete Project Error:", err.message);
+    return { isSuccess: false, message: err.message };
+  }
+};
+
+module.exports = { updateProjectBoardTag, updateProject, getProjectById, deleteProject };

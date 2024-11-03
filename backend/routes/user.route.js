@@ -18,6 +18,7 @@ const {
   addBoardTag,
   updateBoardTag,
   deleteBoardTag,
+  deleteBoard,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -51,6 +52,7 @@ router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
 router.get("/permissions", isLoggedIn, getAllPermissions);
 
 router.post("/add-board", isLoggedIn, addBoard);
+router.delete("/delete-board/:id", isLoggedIn, deleteBoard);
 router.post("/add-board-tag/:id", isLoggedIn, addBoardTag);
 router.patch("/update-board-tag/:id", isLoggedIn, updateBoardTag);
 router.delete("/delete-board-tag/:id", isLoggedIn, deleteBoardTag);

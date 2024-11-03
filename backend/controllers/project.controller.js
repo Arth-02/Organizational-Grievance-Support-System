@@ -208,29 +208,14 @@ const deleteProject = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
-    const { organization_id } = req.user;
-    if (!id) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Project ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const project = await Project.findOne({ _id: id, organization_id }).session(
-      session
+    const response = await projectService.deleteProject(
+      session,
+      req.params.id,
+      req.user.organization_id
     );
-    if (!project) {
+    if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 404, "Project not found");
-    }
-    const deleteBoard = await Board.findByIdAndDelete(project.board_id).session(
-      session
-    );
-    const deletedProject = await Project.findByIdAndDelete(id).session(session);
-    if (!deletedProject) {
-      return errorResponse(res, 404, "Project not found");
+      return errorResponse(res, 400, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, null, "Project deleted successfully");
