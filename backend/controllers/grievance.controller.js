@@ -28,6 +28,7 @@ const {
 const { sendNotification } = require("../utils/notification");
 const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
+const LexoRank = require("../services/lexorank.service");
 
 // Create a grievance
 // const createGrievance = async (req, res) => {
@@ -192,10 +193,37 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
+     // Handle rank updates if status or position is changing
+     const { status, prevRank, nextRank } = value;
+     let newRank = grievance.rank; // Default to current rank
+ 
+     if (status && status !== grievance.status) {
+       // Status is changing, get rank for new status
+       const lastGrievanceInStatus = await Grievance.findOne({
+         organization_id,
+         status,
+       })
+         .sort({ rank: -1 })
+         .session(session);
+ 
+       newRank = lastGrievanceInStatus
+         ? LexoRank.generateNearestRank(lastGrievanceInStatus.rank, 'after')
+         : LexoRank.getInitialRank();
+     } else if (prevRank || nextRank) {
+       // Position is changing within same status
+       newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
+     }
+ 
+     // Update value object with new rank
+     const updateData = {
+       ...value,
+       rank: newRank,
+     };
+
     // Prepare query to find and update grievance
     const query = { _id: id, organization_id };
 
-    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
+    const updatedGrievance = await Grievance.findOneAndUpdate(query, updateData, {
       new: true,
     }).session(session);
     if (!updatedGrievance) {
@@ -460,7 +488,7 @@ const getAllGrievances = async (req, res) => {
 
     const [grievances, totalGrievances] = await Promise.all([
       Grievance.find(query)
-        .sort({ [sort_by]: order })
+        .sort({ rank: 1 })
         .limit(limitNumber)
         .skip(skip)
         .populate({ path: "department_id", select: "name" })

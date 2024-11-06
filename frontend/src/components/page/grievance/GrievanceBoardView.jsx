@@ -99,68 +99,105 @@ const GrievanceBoardView = () => {
       [status]: hasNextPageStatus,
     }));
   };
-
-  const onDragEnd = async (grievanceId, newStatus) => {
+  const onDragEnd = async (grievanceId, newStatus, sourceDraggableProps, destinationDraggableProps) => {
     let originalGrievances;
   
     try {
-      // Save the original state of grievances before making any changes
-      originalGrievances = { ...grievances };
+      // Create a deep copy of the original state for backup
+      originalGrievances = JSON.parse(JSON.stringify(grievances));
   
-      // Update the state optimistically for a responsive UI
-      const updatedGrievances = { ...grievances };
+      // Get the previous and next grievance ranks in the destination list
+      const destinationGrievances = [...grievances[newStatus]];
+      const destinationIndex = destinationDraggableProps.index;
+      
+      const prevRank = destinationIndex > 0 
+        ? destinationGrievances[destinationIndex - 1].rank 
+        : null;
+      
+      const nextRank = destinationIndex < destinationGrievances.length 
+        ? destinationGrievances[destinationIndex].rank 
+        : null;
+  
+      // Create a new copy of the grievances object
+      const updatedGrievances = Object.keys(grievances).reduce((acc, status) => {
+        acc[status] = [...grievances[status]];
+        return acc;
+      }, {});
+  
+      // Find the old status
       const oldStatus = Object.keys(updatedGrievances).find((status) =>
-        updatedGrievances[status].some((grievance) => grievance._id.toString() === grievanceId)
+        updatedGrievances[status].some((grievance) => grievance._id === grievanceId)
       );
   
       if (!oldStatus) {
         throw new Error("Grievance not found in any list.");
       }
   
-      // Find the grievance to maintain its properties and rank
-      const grievanceToMove = originalGrievances[oldStatus].find(
-        (grievance) => grievance._id.toString() === grievanceId
+      // Find the grievance to move
+      const grievanceToMove = updatedGrievances[oldStatus].find(
+        (grievance) => grievance._id === grievanceId
       );
   
-      // Remove the grievance from the old status list
+      if (!grievanceToMove) {
+        throw new Error("Grievance not found.");
+      }
+  
+      // Remove from old status
       updatedGrievances[oldStatus] = updatedGrievances[oldStatus].filter(
-        (grievance) => grievance._id.toString() !== grievanceId
+        (grievance) => grievance._id !== grievanceId
       );
   
-      // Add the grievance to the new status list at the end (or maintain a position/rank)
-      updatedGrievances[newStatus] = [
-        ...updatedGrievances[newStatus],
-        { ...grievanceToMove, status: newStatus }
-      ];
+      // Create new array for destination status if it doesn't exist
+      if (!updatedGrievances[newStatus]) {
+        updatedGrievances[newStatus] = [];
+      }
   
-      // Update the state
+      // Create a new array with the inserted item
+      const updatedDestinationArray = [...updatedGrievances[newStatus]];
+      updatedDestinationArray.splice(destinationIndex, 0, {
+        ...grievanceToMove,
+        status: newStatus
+      });
+      
+      // Update the destination array
+      updatedGrievances[newStatus] = updatedDestinationArray;
+  
+      // Update state with the new structure
       setGrievances(updatedGrievances);
   
-      // Prepare data for API call
-      const data = { status: newStatus };
-  
-      // Call the API to update the grievance status
-      const response = await updateGrievance({ id: grievanceId, data });
+      // Call API to update status and rank
+      const response = await updateGrievance({ 
+        id: grievanceId, 
+        data: { 
+          status: newStatus,
+          prevRank,
+          nextRank
+        } 
+      });
   
       if (response.error) {
         throw new Error(response.error.data.message);
       }
   
     } catch (error) {
-      console.log("Error updating grievance status:", error.message);
-      toast.error(error.message);
-  
-      // Revert the state if the API call fails
+      console.error("Error updating grievance:", error);
+      toast.error(error.message || "An error occurred while updating the grievance");
+      // Restore the original state
       setGrievances(originalGrievances);
     }
   };
-  
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     const { source, destination, draggableId } = result;
-    if (source.droppableId !== destination.droppableId) {
-      onDragEnd(draggableId, destination.droppableId);
+    
+    if (source.droppableId !== destination.droppableId || source.index !== destination.index) {
+      onDragEnd(
+        draggableId, 
+        destination.droppableId,
+        source,
+        destination
+      );
     }
   };
 

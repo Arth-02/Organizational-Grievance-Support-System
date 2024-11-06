@@ -36,6 +36,19 @@ const createGrievance = async (body, user, files) => {
       throw new Error("Invalid department");
     }
 
+    // Get the last grievance in the same status to determine rank
+    const lastGrievance = await Grievance.findOne({
+      organization_id,
+      status,
+    })
+    .sort({ rank: -1 })
+    .session(session);
+
+    // Generate rank for new grievance
+    const rank = lastGrievance 
+      ? LexoRank.generateNearestRank(lastGrievance.rank, 'after')
+      : LexoRank.getInitialRank();
+
     let newGrievance = new Grievance({
       organization_id,
       title,
@@ -45,6 +58,7 @@ const createGrievance = async (body, user, files) => {
       status,
       reported_by,
       employee_id,
+      rank
     });
 
     let attachmentIds = [];
