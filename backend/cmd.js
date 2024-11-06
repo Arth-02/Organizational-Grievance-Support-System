@@ -7,7 +7,7 @@ require("dotenv").config();
 const MONGO_URI = process.env.MONGO_URI;
 const MONGO_DB = process.env.MONGO_DB;
 
-async function resatAllRanks() {
+async function resetRanks() {
   try {
     await mongoose.connect(MONGO_URI, {
       dbName: MONGO_DB,
@@ -15,7 +15,7 @@ async function resatAllRanks() {
 
     const result = await resetAllRanks({
       model: Grievance,
-      orderBy: "createdAt",
+      orderBy: "date_reported",
     });
 
     console.log("Migration complete:", result);
@@ -49,7 +49,7 @@ async function migrateOldGrivances() {
 
 switch (process.argv[2]) {
   case "reset-ranks":
-    resatAllRanks();
+    resetRanks();
     break;
   case "migrate-old-grievances":
     migrateOldGrivances();

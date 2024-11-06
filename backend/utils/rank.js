@@ -1,16 +1,5 @@
 const LexoRank = require("../services/lexorank.service");
 
-
-/**
- * Updates ranks for documents in a Mongoose model
- * @param {Object} options Configuration options
- * @param {Model} options.model Mongoose model
- * @param {string} options.orderBy Field to order by when generating ranks (default: 'createdAt')
- * @param {string} options.rankField Field to store the rank (default: 'rank')
- * @param {Object} options.query Additional query conditions (default: {})
- * @param {number} options.batchSize Number of documents to process at once (default: 1000)
- * @returns {Promise<Object>} Result object with success status and processing details
- */
 async function updateModelRanks({
   model,
   orderBy = 'createdAt',
@@ -106,16 +95,6 @@ async function updateModelRanks({
   }
 }
 
-/**
- * Resets all ranks in a collection based on a specified order
- * @param {Object} options Configuration options
- * @param {Model} options.model Mongoose model
- * @param {string} options.orderBy Field to order by when generating ranks
- * @param {string} options.rankField Field to store the rank
- * @param {Object} options.query Additional query conditions
- * @param {number} options.batchSize Number of documents to process at once
- * @returns {Promise<Object>} Result object with success status and processing details
- */
 async function resetAllRanks({
   model,
   orderBy = 'createdAt',
