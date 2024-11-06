@@ -22,11 +22,6 @@ const AttachmentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    grievance_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Grievance",
-      required: true,
-    },
     organization_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",

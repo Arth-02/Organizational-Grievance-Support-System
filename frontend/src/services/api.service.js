@@ -290,6 +290,15 @@ export const apiService = createApi({
         body,
       }),
     }),
+    deleteBoard: builder.mutation({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/delete-board/${id}`,
+        method: "DELETE",
+      }),
+    }),
     addBoardTag: builder.mutation({
       query: ({ id, data }) => ({
         headers: {
@@ -318,6 +327,45 @@ export const apiService = createApi({
         url: `users/delete-board-tag/${id}`,
         method: "DELETE",
         body: data,
+      }),
+    }),
+    addBoardTask: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/add-board-task/${id}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateBoardTask: builder.mutation({
+      query: ({ board_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/update-board-task/${board_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    updateBoardTaskAttachment: builder.mutation({
+      query: ({ board_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/update-board-task-attachment/${board_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    deleteBoardTask: builder.mutation({
+      query: ({ board_id, task_id }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `users/delete-board-task/${board_id}/task/${task_id}`,
+        method: "DELETE",
       }),
     }),
     deleteUser: builder.mutation({
@@ -479,6 +527,45 @@ export const apiService = createApi({
         body: data,
       }),
     }),
+    addProjectBoardTask: builder.mutation({
+      query: ({ id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/add-board-task/${id}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateProjectBoardTask: builder.mutation({
+      query: ({ project_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/update-board-task/${project_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    updateProjectBoardTaskAttachment: builder.mutation({
+      query: ({ project_id, task_id, data }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/update-board-task-attachment/${project_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    deleteProjectBoardTask: builder.mutation({
+      query: ({ project_id, task_id }) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `projects/delete-board-task/${project_id}/task/${task_id}`,
+        method: "DELETE",
+      }),
+    }),
     getProjectById: builder.query({
       query: (id) => ({
         headers: {
@@ -538,9 +625,14 @@ export const {
   useUpdateUserMutation,
   useUpdateUserSelfMutation,
   useAddBoardMutation,
+  useDeleteBoardMutation,
   useAddBoardTagMutation,
   useUpdateBoardTagMutation,
   useDeleteBoardTagMutation,
+  useAddBoardTaskMutation,
+  useUpdateBoardTaskMutation,
+  useUpdateBoardTaskAttachmentMutation,
+  useDeleteBoardTaskMutation,
   useDeleteUserMutation,
   useDeleteAllUsersMutation,
   useCheckUsernameMutation,
@@ -556,6 +648,10 @@ export const {
   useAddProjectBoardTagMutation,
   useUpdateProjectBoardTagMutation,
   useDeleteProjectBoardTagMutation,
+  useAddProjectBoardTaskMutation,
+  useUpdateProjectBoardTaskMutation,
+  useUpdateProjectBoardTaskAttachmentMutation,
+  useDeleteProjectBoardTaskMutation,
   useGetProjectByIdQuery,
   useDeleteProjectMutation,
   useGetAllProjectsQuery,

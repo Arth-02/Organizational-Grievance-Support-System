@@ -18,7 +18,7 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    assignee: {
+    assignee_to: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
     },
@@ -33,10 +33,6 @@ const taskSchema = new mongoose.Schema(
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
-    },
-    is_active: {
-      type: Boolean,
-      default: true,
     },
   },
   {
@@ -67,10 +63,6 @@ const boardSchema = new mongoose.Schema(
     tasks: {
       type: [taskSchema],
       default: [],
-    },
-    is_active: {
-      type: Boolean,
-      default: true,
     },
   },
   {

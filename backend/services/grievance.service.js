@@ -1,26 +1,19 @@
 // grievanceService.js
-const mongoose = require('mongoose');
-const { createGrievanceSchema } = require('../validators/grievance.validator');
+const mongoose = require("mongoose");
+const { createGrievanceSchema } = require("../validators/grievance.validator");
 const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
-const Attachment = require("../models/attachment.model");
-const uploadFiles = require("../utils/cloudinary");
-const {
-    successResponse,
-    errorResponse,
-    catchResponse,
-  } = require("../utils/response");
+const attachmentService = require("./attachment.service");
 
 // Create a new grievance
-const createGrievance = async (body, user, files) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+const createGrievance = async (session, body, user, files) => {
   try {
-    const { error, value } = createGrievanceSchema.validate(body);
+    const { error, value } = createGrievanceSchema.validate(body, {
+      abortEarly: false,
+    });
     if (error) {
-      await session.abortTransaction();
-      throw new Error(error.details[0].message);
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors };
     }
 
     const { title, description, priority, status, department_id } = value;
@@ -32,8 +25,10 @@ const createGrievance = async (body, user, files) => {
       _id: department_id,
     }).session(session);
     if (!departmentExists) {
-      await session.abortTransaction();
-      throw new Error("Invalid department");
+      return {
+        isSuccess: false,
+        message: "Department does not exist in this organization",
+      };
     }
 
     // Get the last grievance in the same status to determine rank
@@ -60,44 +55,24 @@ const createGrievance = async (body, user, files) => {
       employee_id,
       rank
     });
-
-    let attachmentIds = [];
+    let response;
     if (files && files.length > 0) {
-      for (let file of files) {
-        const result = await uploadFiles(file, organization_id);
-        if (!result) {
-          await session.abortTransaction();
-          throw new Error("Error uploading attachments");
-        }
-        const newAttachment = new Attachment({
-          filename: file.originalname,
-          public_id: result.public_id,
-          filetype: file.mimetype,
-          filesize: file.size,
-          url: result.secure_url,
-          grievance_id: newGrievance._id,
-          organization_id,
-          uploaded_by: user._id,
-        });
-        const savedAttachment = await newAttachment.save({ session });
-        attachmentIds.push(savedAttachment._id);
+      response = await attachmentService.createAttachment(
+        session,
+        user._id,
+        organization_id,
+        files
+      );
+      if (!response.isSuccess) {
+        return { isSuccess: false, message: response.message };
       }
     }
-
+    const attachmentIds = response.attachmentIds;
     newGrievance.attachments = attachmentIds;
     await newGrievance.save({ session });
-    await session.commitTransaction();
-
-    return {
-      data: newGrievance,
-      message: "Grievance created successfully",
-      statusCode: 201,
-    };
+    return { isSuccess: true, grievance: newGrievance };
   } catch (err) {
-    await session.abortTransaction();
-    throw err;
-  } finally {
-    session.endSession();
+    return { isSuccess: false, message: err.message };
   }
 };
 

@@ -872,83 +872,309 @@ const getAllPermissions = async (req, res) => {
   }
 };
 
+// get all users id
 const getAllUsersId = async (req, res) => {
   try {
     const { organization_id } = req.user;
     const users = await User.find({ organization_id }, "_id");
     const userIds = users.map((user) => user._id);
     return successResponse(res, userIds, "Users retrieved successfully");
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Get Users Error:", err.message);
     return catchResponse(res);
   }
-}
+};
 
 // Add board
 const addBoard = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { organization_id,id:userId } = req.user;
-    const response = await boardService.createBoard(organization_id, req.body);
+    const { organization_id, id: userId } = req.user;
+    const response = await boardService.createBoard(
+      session,
+      organization_id,
+      req.body
+    );
     if (!response.isSuccess) {
       await session.abortTransaction();
       return errorResponse(res, 500, "Error creating project board");
     }
     const board = response.board;
-    const user = await User.findByIdAndUpdate(userId, { $push: { board_id: board._id } });
+    const user = await User.findByIdAndUpdate(userId, {
+      $push: { board_id: board._id },
+    }).session(session);
     if (!user) {
+      await session.abortTransaction();
       return errorResponse(res, 404, "User not found");
     }
+    await session.commitTransaction();
     return successResponse(res, board, "Board created successfully");
   } catch (err) {
     console.error("Create Board Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// delete board
+const deleteBoard = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.deleteBoard(
+      session,
+      req.params.id,
+      req.user.organization_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(res, {}, "Board deleted successfully");
+  } catch (err) {
+    console.error("Delete Board Error:", err.message);
     return catchResponse(res);
   }
 };
 
+// add board tag
 const addBoardTag = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
-    const response = await boardService.updateBoardTag(id, organization_id, req.body, "add", req.user);
+    const response = await boardService.updateBoardTag(
+      session,
+      id,
+      organization_id,
+      req.body,
+      "add",
+      req.user
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 500, response.message);
     }
-    return successResponse(res, response.updatedBoard, "Board tag added successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board tag added successfully"
+    );
   } catch (err) {
     console.error("Add Board Tag Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
-}
+};
 
-const updateBoardTag = async (req, res) => {
+// Get board by id
+const getBoardById = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    const { id } = req.params;
-    const response = await boardService.updateBoardTag(id, organization_id, req.body, "update", req.user);
+    const response = await boardService.getBoardById(req.params.id, req.user.organization_id);
     if (!response.isSuccess) {
       return errorResponse(res, 500, response.message);
     }
-    return successResponse(res, response.updatedBoard, "Board tag updated successfully");
+    return successResponse(res, response.board, "Board retrieved successfully");
+  } catch (err) {
+    console.error("Get Board Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// update board tag
+const updateBoardTag = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { organization_id } = req.user;
+    const { id } = req.params;
+    const response = await boardService.updateBoardTag(
+      session,
+      id,
+      organization_id,
+      req.body,
+      "update",
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board tag updated successfully"
+    );
   } catch (err) {
     console.error("Update Board Tag Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
-}
+};
+
+// delete board tag
 const deleteBoardTag = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     const { id } = req.params;
-    const response = await boardService.updateBoardTag(id, organization_id, req.body, "delete", req.user);
+    const response = await boardService.updateBoardTag(
+      session,
+      id,
+      organization_id,
+      req.body,
+      "delete",
+      req.user
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 500, response.message);
     }
-    return successResponse(res, response.updatedBoard, "Board tag deleted successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board tag deleted successfully"
+    );
   } catch (err) {
     console.error("Delete Board Tag Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// add board task
+const addBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.addBoardTask(
+      session,
+      req.params.id,
+      req.user.organization_id,
+      req.body,
+      req.files,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task added successfully"
+    );
+  } catch (err) {
+    console.error("Add Board Task Error:", err.message);
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// Update a board task
+const updateBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.updateBoardTask(
+      session,
+      req.params.board_id,
+      req.params.task_id,
+      req.user.organization_id,
+      req.body,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task updated successfully"
+    );
+  } catch (err) {
+    console.error("Update Board Task Error:", err.message);
     return catchResponse(res);
   }
-}
+};
+
+// Update a board task Attachment
+const updateBoardTaskAttachment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.updateBoardTaskAttachment(
+      session,
+      req.params.board_id,
+      req.params.task_id,
+      req.user.organization_id,
+      req.body,
+      req.files,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Board task updated successfully"
+    );
+  } catch (err) {
+    console.error("Update Board Task Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// Delete a board task
+const deleteBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await boardService.deleteBoardTask(
+      session,
+      req.params.board_id,
+      req.params.task_id,
+      req.user.organization_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.updatedBoard,
+      "Board task deleted successfully"
+    );
+  } catch (err) {
+    console.error("Delete Board Task Error:", err.message);
+    return catchResponse(res);
+  }
+};
 
 module.exports = {
   login,
@@ -966,7 +1192,13 @@ module.exports = {
   getAllPermissions,
   getAllUsersId,
   addBoard,
+  getBoardById,
+  deleteBoard,
   addBoardTag,
   updateBoardTag,
   deleteBoardTag,
+  addBoardTask,
+  updateBoardTask,
+  updateBoardTaskAttachment,
+  deleteBoardTask,
 };

@@ -30,8 +30,12 @@ const createProject = async (req, res) => {
       await session.abortTransaction();
       return errorResponse(res, 400, errors);
     }
-    const boardBody = {name: value.name};
-    const response = await boardService.createBoard(organization_id, boardBody);
+    const boardBody = { name: value.name };
+    const response = await boardService.createBoard(
+      session,
+      organization_id,
+      boardBody
+    );
     if (!response.isSuccess) {
       await session.abortTransaction();
       return errorResponse(res, 500, "Error creating project board");
@@ -60,34 +64,22 @@ const updateProject = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
-    if (!id) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Project ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const { error, value } = updateProjectSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
-    }
-
-    const updatedProject = await Project.findByIdAndUpdate(
-      id,
-      { ...value },
-      { new: true, session }
+    const response = await projectService.updateProject(
+      session,
+      req.params.id,
+      req.body,
+      req.user
     );
-
-    if (!updatedProject) {
-      return errorResponse(res, 404, "Project not found");
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
     }
     await session.commitTransaction();
-    return successResponse(res, updatedProject, "Project updated successfully");
+    return successResponse(
+      res,
+      response.project,
+      "Project updated successfully"
+    );
   } catch (err) {
     console.error("Update Project Error:", err.message);
     await session.abortTransaction();
@@ -99,71 +91,235 @@ const updateProject = async (req, res) => {
 
 // Add a Project Board Tag
 const addProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"add");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "add"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Add Project Board Tag Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
 // update a project Board Tag
 const updateProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"update");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "update"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Update Project Board Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
 // delete a project Board Tag
 const deleteProjectBoardTag = async (req, res) => {
-  try{
-    const response = await projectService.updateProjectBoardTag(req.params.id, req.body, req.user,"delete");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTag(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      "delete"
+    );
     if (!response.isSuccess) {
+      await session.abortTransaction();
       return errorResponse(res, 400, response.message);
     }
-    return successResponse(res, response.board, "Project board updated successfully");
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Project board updated successfully"
+    );
   } catch (err) {
     console.error("Delete Project Board Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+const addProjectBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.addProjectBoardTask(
+      session,
+      req.params.id,
+      req.body,
+      req.user,
+      req.files
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Added task to project board successfully"
+    );
+  } catch (err) {
+    console.error("Add Project Board Task Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// update a project Board Task
+const updateProjectBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTask(
+      session,
+      req.params.project_id,
+      req.params.task_id,
+      req.body,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Updated task in project board successfully"
+    );
+  } catch (err) {
+    console.error("Update Project Board Task Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// update a project Board Task Attachment
+const updateProjectBoardTaskAttachment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.updateProjectBoardTaskAttachment(
+      session,
+      req.params.project_id,
+      req.params.task_id,
+      req.body,
+      req.files,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Updated task attachment in project board successfully"
+    );
+  } catch (err) {
+    console.error("Update Project Board Task Attachment Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// delete a project Board Task
+const deleteProjectBoardTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await projectService.deleteProjectBoardTask(
+      session,
+      req.params.project_id,
+      req.params.task_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 400, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.board,
+      "Deleted task from project board successfully"
+    );
+  } catch (err) {
+    console.error("Delete Project Board Task Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
 // get by id
 const getProjectById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { organization_id, role, special_permissions, _id } = req.user;
-    if (!id) {
-      return errorResponse(res, 400, "Project ID is required");
+    const response = await projectService.getProjectById(
+      req.params.id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const permissions = [...role.permissions, ...special_permissions];
-    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
-    const project = await Project.findOne({
-      _id: id,
-      organization_id,
-    }).populate("board_id");
-    if (!project) {
-      return errorResponse(res, 404, "Project not found");
-    }
-    const isProjectMember = project.members.includes(_id);
-    if (!hasPermission && !isProjectMember) {
-      return errorResponse(res, 403, "Permission denied");
-    }
-    return successResponse(res, project, "Project fetched successfully");
+    return successResponse(
+      res,
+      response.project,
+      "Project fetched successfully"
+    );
   } catch (err) {
     console.error("Get Project Error:", err.message);
     return catchResponse(res);
@@ -175,29 +331,14 @@ const deleteProject = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
-    const { organization_id } = req.user;
-    if (!id) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Project ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid Project id");
-    }
-    const project = await Project.findOne({ _id: id, organization_id }).session(
-      session
+    const response = await projectService.deleteProject(
+      session,
+      req.params.id,
+      req.user.organization_id
     );
-    if (!project) {
+    if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 404, "Project not found");
-    }
-    const deleteBoard = await Board.findByIdAndDelete(project.board_id).session(
-      session
-    );
-    const deletedProject = await Project.findByIdAndDelete(id).session(session);
-    if (!deletedProject) {
-      return errorResponse(res, 404, "Project not found");
+      return errorResponse(res, 400, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, null, "Project deleted successfully");
@@ -296,6 +437,10 @@ module.exports = {
   addProjectBoardTag,
   updateProjectBoardTag,
   deleteProjectBoardTag,
+  addProjectBoardTask,
+  updateProjectBoardTask,
+  updateProjectBoardTaskAttachment,
+  deleteProjectBoardTask,
   getProjectById,
   deleteProject,
   getAllProjects,
