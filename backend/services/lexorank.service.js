@@ -27,6 +27,9 @@ class LexoRank {
       if (prevIndex + 1 === nextIndex || nextIndex + 1 === prevIndex) {
         carry = true;
       }
+      if (prev[i] === undefined || next[i] === undefined) {
+        break;
+      }
     }
 
     // If carry is set, add extra precision by appending a middle character
