@@ -1,8 +1,5 @@
 const Grievance = require("../models/grievance.model");
-const Department = require("../models/department.model");
-const Attachment = require("../models/attachment.model");
 const mongoose = require("mongoose");
-const uploadFiles = require("../utils/cloudinary");
 const { isValidObjectId } = require("mongoose");
 
 const {
@@ -10,7 +7,6 @@ const {
   errorResponse,
   catchResponse,
 } = require("../utils/response");
-const Role = require("../models/role.model");
 const {
   updateStatusGrievanceSchema,
   updateAssignedGrievanceSchema,

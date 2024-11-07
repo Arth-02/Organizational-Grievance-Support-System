@@ -1,16 +1,11 @@
-const { default: mongoose, isValidObjectId } = require("mongoose");
+const { default: mongoose } = require("mongoose");
 const Project = require("../models/project.model");
-const Board = require("../models/board.model");
 const {
   catchResponse,
   successResponse,
   errorResponse,
 } = require("../utils/response");
-const {
-  createProjectSchema,
-  updateProjectSchema,
-} = require("../validators/project.validator");
-const { VIEW_PROJECT } = require("../utils/constant");
+const { createProjectSchema } = require("../validators/project.validator");
 const boardService = require("../services/board.service");
 const { ObjectId } = mongoose.Types;
 const projectService = require("../services/project.service");
