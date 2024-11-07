@@ -4,6 +4,7 @@ const { createGrievanceSchema } = require("../validators/grievance.validator");
 const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
 const attachmentService = require("./attachment.service");
+const LexoRank = require("./lexorank.service");
 
 // Create a new grievance
 const createGrievance = async (session, body, user, files) => {
@@ -31,6 +32,19 @@ const createGrievance = async (session, body, user, files) => {
       };
     }
 
+    // Get the last grievance in the same status to determine rank
+    const lastGrievance = await Grievance.findOne({
+      organization_id,
+      status,
+    })
+    .sort({ rank: -1 })
+    .session(session);
+
+    // Generate rank for new grievance
+    const rank = lastGrievance 
+      ? LexoRank.generateNextRank(lastGrievance.rank)
+      : LexoRank.getInitialRank();
+
     let newGrievance = new Grievance({
       organization_id,
       title,
@@ -40,6 +54,7 @@ const createGrievance = async (session, body, user, files) => {
       status,
       reported_by,
       employee_id,
+      rank
     });
     let response;
     if (files && files.length > 0) {

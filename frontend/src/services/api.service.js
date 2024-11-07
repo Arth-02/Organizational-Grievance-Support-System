@@ -452,7 +452,7 @@ export const apiService = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["Grievances"],
+      // invalidatesTags: ["Grievances"],
     }),
     getGrievanceById: builder.query({
       query: (id) => ({

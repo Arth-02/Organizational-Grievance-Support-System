@@ -27,6 +27,7 @@ const {
 const { sendNotification } = require("../utils/notification");
 const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
+const LexoRank = require("../services/lexorank.service");
 const attachmentService = require("../services/attachment.service");
 
 const createGrievance = async (req, res) => {
@@ -102,7 +103,7 @@ const updateGrievance = async (req, res) => {
     let schema = Joi.object();
 
     // If user has full permission to update grievance
-    if (canUpdateGrievance) {
+    if (canUpdateGrievance && (!req.body.title && !req.body.description) ) {
       schema = updateFullGrievanceSchema;
       if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
         await session.abortTransaction();
@@ -132,12 +133,31 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
+    // Handle rank updates if status or position is changing
+    const { prevRank, nextRank } = value;
+    let newRank = grievance.rank; // Default to current rank
+    if (prevRank || nextRank) {
+      newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
+    }
+
+    // Update value object with new rank
+    const updateData = {
+      ...value,
+      rank: newRank,
+    };
+    delete updateData.prevRank;
+    delete updateData.nextRank;
+
     // Prepare query to find and update grievance
     const query = { _id: id, organization_id };
 
-    const updatedGrievance = await Grievance.findOneAndUpdate(query, value, {
-      new: true,
-    }).session(session);
+    const updatedGrievance = await Grievance.findOneAndUpdate(
+      query,
+      updateData,
+      {
+        new: true,
+      }
+    ).session(session);
     if (!updatedGrievance) {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
@@ -149,10 +169,7 @@ const updateGrievance = async (req, res) => {
       .populate({ path: "assigned_to", select: "username" })
       .session(session);
 
-    const userData = await User.find(
-      { organization_id, _id: { $ne: userId } },
-      "_id"
-    );
+    const userData = await User.find({ organization_id }, "_id");
     const userIds = userData.map((user) => user._id);
 
     sendNotification(
@@ -395,7 +412,7 @@ const getAllGrievances = async (req, res) => {
 
     const [grievances, totalGrievances] = await Promise.all([
       Grievance.find(query)
-        .sort({ [sort_by]: order })
+        .sort({ rank: 1 })
         .limit(limitNumber)
         .skip(skip)
         .populate({ path: "department_id", select: "name" })

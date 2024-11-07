@@ -28,6 +28,8 @@ const updateFullGrievanceSchema = Joi.object({
   ),
   is_active: Joi.boolean(),
   assigned_to: Joi.string().length(24),
+  prevRank: Joi.string().allow(null).optional(),
+  nextRank: Joi.string().allow(null).optional(),
 });
 
 const updateAssignedGrievanceSchema = Joi.object({
@@ -38,6 +40,8 @@ const updateStatusGrievanceSchema = Joi.object({
   status: Joi.string()
     .valid("submitted", "in-progress", "resolved", "dismissed")
     .required(),
+  prevRank: Joi.string().allow(null).optional(),
+  nextRank: Joi.string().allow(null).optional(),
 });
 
 const updateMyGrievanceSchema = Joi.object({

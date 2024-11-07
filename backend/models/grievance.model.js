@@ -55,6 +55,11 @@ const GrievanceSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    rank: {
+      type: String,
+      required: true,
+      index: true,
+    },
   },
   {
     timestamps: {
@@ -64,6 +69,8 @@ const GrievanceSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+GrievanceSchema.index({ status: 1, rank: 1 });
 
 const Grievance = mongoose.model("Grievance", GrievanceSchema);
 

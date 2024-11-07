@@ -1,76 +1,328 @@
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+import { DragDropContext } from "@hello-pangea/dnd";
 import { useLocation } from "react-router-dom";
-import GrievanceCard from "./GrievanceCard";
+import { useEffect, useState } from "react";
+import {
+  useGetAllGrievancesQuery,
+  useUpdateGrievanceMutation,
+} from "@/services/api.service";
+import GrievanceList from "./GrievanceList";
+import toast from "react-hot-toast";
+import useSocket from "@/utils/useSocket";
 
-const GrievanceBoardView = ({ grievances, onDragEnd }) => {
+const GrievanceBoardView = () => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
   const location = useLocation();
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) {
-      return;
+  const [updateGrievance] = useUpdateGrievanceMutation();
+
+  const socket = useSocket();
+
+  const [filters, setFilters] = useState({});
+  const [localGrievances, setLocalGrievances] = useState([]);
+
+  const [page, setPage] = useState({
+    submitted: 1,
+    "in-progress": 1,
+    resolved: 1,
+    dismissed: 1,
+  });
+  const [grievances, setGrievances] = useState({
+    submitted: [],
+    "in-progress": [],
+    resolved: [],
+    dismissed: [],
+  });
+  const [hasNextPage, setHasNextPage] = useState({
+    submitted: false,
+    "in-progress": false,
+    resolved: false,
+    dismissed: false,
+  });
+  const [isInitialized, setIsInitialized] = useState({
+    submitted: false,
+    "in-progress": false,
+    resolved: false,
+    dismissed: false,
+  });
+
+  const handlePageChange = (status, newPage) => {
+    setPage((prev) => ({
+      ...prev,
+      [status]: newPage,
+    }));
+  };
+
+  const { data: submittedGrievance } = useGetAllGrievancesQuery({
+    ...filters,
+    status: "submitted",
+    page: page.submitted,
+  });
+
+  const { data: inProgressGrievance } = useGetAllGrievancesQuery({
+    ...filters,
+    status: "in-progress",
+    page: page["in-progress"],
+  });
+
+  const { data: resolvedGrievance } = useGetAllGrievancesQuery({
+    ...filters,
+    status: "resolved",
+    page: page.resolved,
+  });
+
+  const { data: dismissedGrievance } = useGetAllGrievancesQuery({
+    ...filters,
+    status: "dismissed",
+    page: page.dismissed,
+  });
+
+  const updateGrievances = (status, newGrievances, hasNextPageStatus) => {
+    if (!isInitialized[status] && page[status] === 1) {
+      // Initial load
+      setGrievances((prev) => ({
+        ...prev,
+        [status]: newGrievances,
+      }));
+      setIsInitialized((prev) => ({
+        ...prev,
+        [status]: true,
+      }));
+    } else if (page[status] > 1) {
+      // Subsequent loads (pagination)
+      setGrievances((prev) => ({
+        ...prev,
+        [status]: [...prev[status], ...newGrievances],
+      }));
     }
 
-    const { source, destination, draggableId } = result;
+    setHasNextPage((prev) => ({
+      ...prev,
+      [status]: hasNextPageStatus,
+    }));
+  };
+  const onDragEnd = async (
+    grievanceId,
+    newStatus,
+    sourceDraggableProps,
+    destinationDraggableProps
+  ) => {
+    let originalGrievances;
 
-    if (source.droppableId !== destination.droppableId) {
-      onDragEnd(draggableId, destination.droppableId);
+    try {
+      // Create a deep copy of the original state for backup
+      originalGrievances = JSON.parse(JSON.stringify(grievances));
+
+      // Get the previous and next grievance ranks in the destination list
+      let destinationGrievances = [...grievances[newStatus]];
+      const destinationIndex = destinationDraggableProps.index;
+      destinationGrievances = destinationGrievances.filter(
+        (grievance) => grievance._id !== grievanceId
+      );
+      const prevRank =
+        destinationIndex > 0
+          ? destinationGrievances[destinationIndex - 1].rank
+          : null;
+
+      const nextRank =
+        destinationIndex < destinationGrievances.length
+          ? destinationGrievances[destinationIndex].rank
+          : null;
+
+      // Create a new copy of the grievances object
+      const updatedGrievances = Object.keys(grievances).reduce(
+        (acc, status) => {
+          acc[status] = [...grievances[status]];
+          return acc;
+        },
+        {}
+      );
+
+      // Find the old status
+      const oldStatus = Object.keys(updatedGrievances).find((status) =>
+        updatedGrievances[status].some(
+          (grievance) => grievance._id === grievanceId
+        )
+      );
+
+      if (!oldStatus) {
+        throw new Error("Grievance not found in any list.");
+      }
+
+      // Find the grievance to move
+      const grievanceToMove = updatedGrievances[oldStatus].find(
+        (grievance) => grievance._id === grievanceId
+      );
+
+      if (!grievanceToMove) {
+        throw new Error("Grievance not found.");
+      }
+
+      // Remove from old status
+      updatedGrievances[oldStatus] = updatedGrievances[oldStatus].filter(
+        (grievance) => grievance._id !== grievanceId
+      );
+
+      // Create new array for destination status if it doesn't exist
+      if (!updatedGrievances[newStatus]) {
+        updatedGrievances[newStatus] = [];
+      }
+
+      // Create a new array with the inserted item
+      const updatedDestinationArray = [...updatedGrievances[newStatus]];
+      updatedDestinationArray.splice(destinationIndex, 0, {
+        ...grievanceToMove,
+        status: newStatus,
+      });
+
+      // Update the destination array
+      updatedGrievances[newStatus] = updatedDestinationArray;
+
+      // Update state with the new structure
+      setGrievances(updatedGrievances);
+
+      // Call API to update status and rank
+      const response = await updateGrievance({
+        id: grievanceId,
+        data: {
+          status: newStatus,
+          prevRank,
+          nextRank,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.data.message);
+      }
+    } catch (error) {
+      console.error("Error updating grievance:", error);
+      toast.error(
+        error.message || "An error occurred while updating the grievance"
+      );
+      // Restore the original state
+      setGrievances(originalGrievances);
     }
   };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const { source, destination, draggableId } = result;
+
+    if (
+      source.droppableId !== destination.droppableId ||
+      source.index !== destination.index
+    ) {
+      onDragEnd(draggableId, destination.droppableId, source, destination);
+    }
+  };
+
+  useEffect(() => {
+    if (submittedGrievance?.data?.grievances) {
+      updateGrievances(
+        "submitted",
+        submittedGrievance.data.grievances,
+        submittedGrievance.data.pagination.hasNextPage
+      );
+    }
+  }, [submittedGrievance]);
+
+  useEffect(() => {
+    if (inProgressGrievance?.data?.grievances) {
+      updateGrievances(
+        "in-progress",
+        inProgressGrievance.data.grievances,
+        inProgressGrievance.data.pagination.hasNextPage
+      );
+    }
+  }, [inProgressGrievance]);
+
+  useEffect(() => {
+    if (resolvedGrievance?.data?.grievances) {
+      updateGrievances(
+        "resolved",
+        resolvedGrievance.data.grievances,
+        resolvedGrievance.data.pagination.hasNextPage
+      );
+    }
+  }, [resolvedGrievance]);
+
+  useEffect(() => {
+    if (dismissedGrievance?.data?.grievances) {
+      updateGrievances(
+        "dismissed",
+        dismissedGrievance.data.grievances,
+        dismissedGrievance.data.pagination.hasNextPage
+      );
+    }
+  }, [dismissedGrievance]);
+
+  useEffect(() => {
+    socket.on("update_grievance", (msg) => {
+      setGrievances((prevGrievances) => {
+        const updatedGrievance = msg.updatedData;
+        const newStatus = updatedGrievance.status;
+        if (!updatedGrievance.is_active) {
+          return {
+            ...prevGrievances,
+            [newStatus]: prevGrievances[newStatus].filter(
+              (grievance) => grievance._id !== updatedGrievance._id
+            ),
+          };
+        }
+
+        const oldStatus = Object.keys(prevGrievances).find((status) =>
+          prevGrievances[status].some(
+            (grievance) => grievance._id === updatedGrievance._id
+          )
+        );
+
+        if (!oldStatus) return prevGrievances;
+
+        // Remove from the old status list
+        const updatedOldList = prevGrievances[oldStatus].filter(
+          (grievance) => grievance._id !== updatedGrievance._id
+        );
+
+        // Add or update the grievance in the new status list
+        const updatedNewList = [
+          ...prevGrievances[newStatus].filter(
+            (grievance) => grievance._id !== updatedGrievance._id
+          ),
+          updatedGrievance,
+        ];
+
+        return {
+          ...prevGrievances,
+          [oldStatus]: updatedOldList,
+          [newStatus]: updatedNewList.sort((a, b) => {
+            return a.rank.localeCompare(b.rank, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
+          }),
+        };
+      });
+    });
+
+    return () => {
+      socket.off("update_grievance");
+    };
+  }, [socket]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-220px)] p-4 pb-0">
         {lists.map((list) => (
-          <Droppable droppableId={list} key={list}>
-            {(provided, snapshot) => {
-              const isDraggingOver = Boolean(snapshot.isDraggingOver);
-              const isDraggingFrom = Boolean(snapshot.draggingFromThisWith);
-
-              return (
-                <div
-                  key={list}
-                  className={`flex-shrink-0 w-[370px] bg-gray-100 dark:bg-slate-900/50 max-h-full rounded-lg flex flex-col border
-                  ${isDraggingOver ? "dark:border-white/35" : "border-white/0"} transition-all duration-200 overflow-x-hidden`}
-                >
-                  <div className="p-4 pb-2">
-                    <h3 className="font-semibold capitalize">{list}</h3>
-                  </div>
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={`flex-1 overflow-x-hidden overflow-y-auto max-h-full p-4 pt-2 transition-all duration-200`}
-                  >
-                    <div
-                      className={`space-y-4 transition-all duration-200 ${
-                        isDraggingFrom ? "opacity-50" : "opacity-100"
-                      }`}
-                    >
-                      {grievances
-                        .filter((grievance) => grievance.status === list)
-                        .map((grievance, index) => (
-                          <Draggable
-                            key={grievance._id}
-                            draggableId={grievance._id.toString()}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <GrievanceCard
-                                grievance={grievance}
-                                provided={provided}
-                                snapshot={snapshot}
-                                location={location}
-                              />
-                            )}
-                          </Draggable>
-                        ))}
-                    </div>
-                    {provided.placeholder}
-                  </div>
-                </div>
-              );
-            }}
-          </Droppable>
+          <GrievanceList
+            key={list}
+            list={list}
+            grievances={grievances[list]}
+            location={location}
+            hasNextPage={hasNextPage[list]}
+            page={page[list]}
+            onPageChange={handlePageChange}
+          />
         ))}
       </div>
     </DragDropContext>
