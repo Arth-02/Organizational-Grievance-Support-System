@@ -4,82 +4,69 @@ async function updateModelRanks({
   model,
   orderBy = 'createdAt',
   rankField = 'rank',
-  query = {},
-  batchSize = 1000
+  query = {}
 }) {
   const session = await model.db.startSession();
 
   try {
     await session.startTransaction();
 
-    // Count documents needing ranks
-    const total = await model.countDocuments({
-      ...query,
-      [rankField]: { $exists: false }
-    }).session(session);
+    // Find all documents needing ranks in a single operation
+    const unrankedDocs = await model
+      .find({
+        ...query,
+        [rankField]: { $exists: false }
+      })
+      .sort({ [orderBy]: 1 })
+      .session(session);
 
+    const total = unrankedDocs.length;
     console.log(`Found ${total} documents needing ranks`);
 
-    let processed = 0;
     let lastRank = null;
 
-    while (processed < total) {
-      // Get batch of unranked documents
-      const batch = await model
-        .find({
-          ...query,
-          [rankField]: { $exists: false }
-        })
-        .sort({ [orderBy]: 1 })
-        .limit(batchSize)
-        .session(session);
+    // Fetch the last existing rank if available
+    const lastRankedDoc = await model
+      .findOne({
+        ...query,
+        [rankField]: { $exists: true }
+      })
+      .sort({ [rankField]: -1 })
+      .session(session);
 
-      // If this is the first batch, get the last existing rank
-      if (!lastRank) {
-        const lastRankedDoc = await model
-          .findOne({
-            ...query,
-            [rankField]: { $exists: true }
-          })
-          .sort({ [rankField]: -1 })
-          .session(session);
-
-        if (lastRankedDoc) {
-          lastRank = lastRankedDoc[rankField];
-        }
-      }
-
-      // Process each document in the batch
-      const updateOperations = batch.map((doc) => {
-        const newRank = lastRank
-          ? LexoRank.generateNearestRank(lastRank, 'after')
-          : LexoRank.getInitialRank();
-        
-        lastRank = newRank;
-
-        return {
-          updateOne: {
-            filter: { _id: doc._id },
-            update: { $set: { [rankField]: newRank } }
-          }
-        };
-      });
-
-      // Bulk update the batch
-      if (updateOperations.length > 0) {
-        await model.bulkWrite(updateOperations, { session });
-      }
-
-      processed += batch.length;
-      console.log(`Processed ${processed} of ${total} documents`);
+    if (lastRankedDoc) {
+      lastRank = lastRankedDoc[rankField];
     }
+
+    // Update each unranked document in sequence with unique incremental ranks
+    const updateOperations = unrankedDocs.map((doc, index) => {
+      const newRank = lastRank
+        ? LexoRank.generateNextRank(lastRank)
+        : LexoRank.getInitialRank();
+
+      lastRank = newRank;
+
+      return {
+        updateOne: {
+          filter: { _id: doc._id },
+          update: { $set: { [rankField]: newRank } }
+        }
+      };
+    });
+
+    // Bulk update all unranked documents
+    if (updateOperations.length > 0) {
+      await model.bulkWrite(updateOperations, { session });
+    }
+
+    console.log(`Processed ${total} documents`);
 
     await session.commitTransaction();
     
     return {
       success: true,
-      totalProcessed: processed,
-      message: `Successfully updated ranks for ${processed} documents`
+      totalProcessed: total,
+      message: `Successfully updated ranks for ${total} documents`
     };
 
   } catch (error) {
@@ -99,8 +86,7 @@ async function resetAllRanks({
   model,
   orderBy = 'createdAt',
   rankField = 'rank',
-  query = {},
-  batchSize = 1000
+  query = {}
 }) {
   const session = await model.db.startSession();
 
@@ -119,8 +105,7 @@ async function resetAllRanks({
       model,
       orderBy,
       rankField,
-      query,
-      batchSize
+      query
     });
 
     await session.commitTransaction();

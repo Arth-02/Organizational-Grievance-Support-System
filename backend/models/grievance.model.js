@@ -58,7 +58,8 @@ const GrievanceSchema = new mongoose.Schema(
     rank: {
       type: String,
       required: true,
-      index: true
+      index: true,
+      unique: true,
     },
   },
   {

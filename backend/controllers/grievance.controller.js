@@ -147,7 +147,7 @@ const updateGrievance = async (req, res) => {
          .session(session);
  
        newRank = lastGrievanceInStatus
-         ? LexoRank.generateNearestRank(lastGrievanceInStatus.rank, 'after')
+         ? LexoRank.generateNextRank(lastGrievanceInStatus.rank)
          : LexoRank.getInitialRank();
      } else if (prevRank || nextRank) {
        // Position is changing within same status

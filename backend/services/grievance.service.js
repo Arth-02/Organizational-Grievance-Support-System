@@ -4,6 +4,7 @@ const { createGrievanceSchema } = require("../validators/grievance.validator");
 const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
 const attachmentService = require("./attachment.service");
+const LexoRank = require("./lexorank.service");
 
 // Create a new grievance
 const createGrievance = async (session, body, user, files) => {
@@ -41,7 +42,7 @@ const createGrievance = async (session, body, user, files) => {
 
     // Generate rank for new grievance
     const rank = lastGrievance 
-      ? LexoRank.generateNearestRank(lastGrievance.rank, 'after')
+      ? LexoRank.generateNextRank(lastGrievance.rank)
       : LexoRank.getInitialRank();
 
     let newGrievance = new Grievance({

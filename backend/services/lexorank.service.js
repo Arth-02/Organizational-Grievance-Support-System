@@ -1,74 +1,76 @@
-// utils/lexorank.js
-
-const ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MIN_CHAR = ALPHABET[0];
 const MAX_CHAR = ALPHABET[ALPHABET.length - 1];
 const BASE = ALPHABET.length;
 
 class LexoRank {
   static getMiddleRank(prev, next) {
-    if (!prev) prev = MIN_CHAR.repeat(6);
-    if (!next) next = MAX_CHAR.repeat(6);
-    
-    // Ensure minimum length of 6 characters
-    prev = prev.padEnd(6, MIN_CHAR);
-    next = next.padEnd(6, MIN_CHAR);
-    
-    let rank = '';
-    let i = 0;
+    let mid = "";
     let carry = false;
 
-    while (i < Math.max(prev.length, next.length)) {
-      const prevChar = i < prev.length ? prev[i] : MIN_CHAR;
-      const nextChar = i < next.length ? next[i] : MAX_CHAR;
-      
-      if (prevChar === nextChar && !carry) {
-        rank += prevChar;
-        i++;
-        continue;
-      }
+    for (let i = 0; i < Math.max(prev.length, next.length); i++) {
+      const prevChar = prev[i] || MIN_CHAR;
+      const nextChar = next[i] || MAX_CHAR;
 
       const prevIndex = ALPHABET.indexOf(prevChar);
       const nextIndex = ALPHABET.indexOf(nextChar);
-      
-      let midIndex;
-      if (carry) {
-        midIndex = Math.floor((prevIndex + BASE + nextIndex) / 2);
-        carry = false;
-      } else {
-        midIndex = Math.floor((prevIndex + nextIndex) / 2);
+
+      if (prevIndex === -1 || nextIndex === -1) {
+        throw new Error("Invalid character in input ranks.");
       }
-      
-      if (midIndex === prevIndex) {
-        rank += prevChar;
+
+      // Calculate middle index and carry if needed
+      let midIndex = Math.floor((prevIndex + nextIndex) / 2);
+      mid += ALPHABET[midIndex];
+
+      // Check for carry if characters are close in rank, e.g., "9" and "A"
+      if (prevIndex + 1 === nextIndex || nextIndex + 1 === prevIndex) {
         carry = true;
-      } else {
-        rank += ALPHABET[midIndex];
-        // Pad with middle character for remaining length
-        const midChar = ALPHABET[Math.floor(BASE / 2)];
-        rank = rank.padEnd(6, midChar);
-        break;
       }
-      
-      i++;
     }
 
-    return rank;
+    // If carry is set, add extra precision by appending a middle character
+    if (carry) {
+      mid += ALPHABET[Math.floor(BASE / 2)];
+    }
+
+    return mid;
   }
 
   static getInitialRank() {
-    // Returns a rank that would be in the middle of the possible range
     const midChar = ALPHABET[Math.floor(BASE / 2)];
-    return midChar.repeat(6);
+    console.log(`Initial rank: ${midChar}`);
+    return midChar;
   }
-  
-  static generateNearestRank(currentRank, direction = 'after') {
+
+  static generateNearestRank(currentRank, direction = "after") {
     if (!currentRank) return this.getInitialRank();
-    
-    if (direction === 'after') {
-      return this.getMiddleRank(currentRank, MAX_CHAR.repeat(6));
+    if (direction === "after") {
+      console.log(`After: ${currentRank} | ${MAX_CHAR}`);
+
+      const taste = this.getMiddleRank(currentRank, MAX_CHAR);
+      console.log(`Taste: ${taste}`);
+      return taste;
     } else {
-      return this.getMiddleRank(MIN_CHAR.repeat(6), currentRank);
+      console.log(`Before: ${MIN_CHAR} | ${currentRank}`);
+      const sawd = this.getMiddleRank(MIN_CHAR, currentRank);
+      console.log(`Sawd: ${sawd}`);
+      return sawd;
+    }
+  }
+
+  static generateNextRank(currentRank) {
+    if (!currentRank) return this.getInitialRank();
+    const nextChar =
+      ALPHABET[ALPHABET.indexOf(currentRank[currentRank.length - 1]) + 1];
+    if (nextChar) {
+      return currentRank.slice(0, -1) + nextChar;
+    } else {
+      if (currentRank.length === 1) {
+        return currentRank + MIN_CHAR;
+      } else {
+        return this.generateNextRank(currentRank.slice(0, -1)) + MIN_CHAR;
+      }
     }
   }
 }

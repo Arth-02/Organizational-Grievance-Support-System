@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Grievance = require("./models/grievance.model");
 const { updateModelRanks, resetAllRanks } = require("./utils/rank");
+const LexoRank = require("./services/lexorank.service");
 
 require("dotenv").config();
 
@@ -26,7 +27,7 @@ async function resetRanks() {
   }
 }
 
-async function migrateOldGrivances() {
+async function migrateOldGrievances() {
   try {
     await mongoose.connect(MONGO_URI, {
       dbName: MONGO_DB,
@@ -47,12 +48,25 @@ async function migrateOldGrivances() {
 
 // switch case to handle different cmd operations
 
-switch (process.argv[2]) {
+const command = process.argv[2];
+const arg1 = process.argv[3];
+const arg2 = process.argv[4];
+
+switch (command) {
   case "reset-ranks":
     resetRanks();
     break;
   case "migrate-old-grievances":
-    migrateOldGrivances();
+    migrateOldGrievances();
+    break;
+  case "get-middle-rank":
+    if (arg1 && arg2) {
+      const middleRank = LexoRank.getMiddleRank(arg1, arg2);
+      console.log(`Middle rank between "${arg1}" and "${arg2}": ${middleRank}`);
+    } else {
+      console.log("Please provide two ranks to get the middle rank.");
+      process.exit(1);
+    }
     break;
   default:
     console.log("Invalid command");
