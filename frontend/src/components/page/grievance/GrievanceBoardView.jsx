@@ -107,9 +107,9 @@ const GrievanceBoardView = () => {
       originalGrievances = JSON.parse(JSON.stringify(grievances));
   
       // Get the previous and next grievance ranks in the destination list
-      const destinationGrievances = [...grievances[newStatus]];
+      let destinationGrievances = [...grievances[newStatus]];
       const destinationIndex = destinationDraggableProps.index;
-      
+      destinationGrievances = destinationGrievances.filter((grievance) => grievance._id !== grievanceId);
       const prevRank = destinationIndex > 0 
         ? destinationGrievances[destinationIndex - 1].rank 
         : null;

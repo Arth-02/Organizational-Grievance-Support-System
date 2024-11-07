@@ -5,6 +5,30 @@ const BASE = ALPHABET.length;
 
 class LexoRank {
   static getMiddleRank(prev, next) {
+    if (prev === null && next === null) {
+      throw new Error("Please provide ranks to get the middle rank.");
+    }
+    if (prev === null) {
+      prev = "";
+      if (next[0] !== "0") {
+        prev = ALPHABET[ALPHABET.indexOf(next[0]) - 1];
+        return prev;
+      } else {
+        for (let i = 0; i < next.length; i++) {
+          if (next[i] === "0") {
+            prev = prev + "0";
+          } else {
+            prev = prev + ALPHABET[ALPHABET.indexOf(next[i]) - 1];
+            return prev;
+          }
+        }
+        prev = prev + this.getInitialRank();
+        return prev;
+      }
+    }
+    if (next === null) {
+      return this.generateNextRank(prev);
+    }
     let mid = "";
     let carry = false;
 
@@ -44,22 +68,6 @@ class LexoRank {
     const midChar = ALPHABET[Math.floor(BASE / 2)];
     console.log(`Initial rank: ${midChar}`);
     return midChar;
-  }
-
-  static generateNearestRank(currentRank, direction = "after") {
-    if (!currentRank) return this.getInitialRank();
-    if (direction === "after") {
-      console.log(`After: ${currentRank} | ${MAX_CHAR}`);
-
-      const taste = this.getMiddleRank(currentRank, MAX_CHAR);
-      console.log(`Taste: ${taste}`);
-      return taste;
-    } else {
-      console.log(`Before: ${MIN_CHAR} | ${currentRank}`);
-      const sawd = this.getMiddleRank(MIN_CHAR, currentRank);
-      console.log(`Sawd: ${sawd}`);
-      return sawd;
-    }
   }
 
   static generateNextRank(currentRank) {
