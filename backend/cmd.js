@@ -60,7 +60,8 @@ switch (command) {
     migrateOldGrievances();
     break;
   case "get-middle-rank":
-    if (arg1 && arg2) {
+    if (arg1 || arg2) {
+      console.log(`Middle rank between "${arg1}" and "${arg2}`);
       const middleRank = LexoRank.getMiddleRank(arg1, arg2);
       console.log(`Middle rank between "${arg1}" and "${arg2}": ${middleRank}`);
     } else {

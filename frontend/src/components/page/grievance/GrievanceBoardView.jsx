@@ -3,7 +3,10 @@
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
+import {
+  useGetAllGrievancesQuery,
+  useUpdateGrievanceMutation,
+} from "@/services/api.service";
 import GrievanceList from "./GrievanceList";
 import toast from "react-hot-toast";
 import useSocket from "@/utils/useSocket";
@@ -99,89 +102,104 @@ const GrievanceBoardView = () => {
       [status]: hasNextPageStatus,
     }));
   };
-  const onDragEnd = async (grievanceId, newStatus, sourceDraggableProps, destinationDraggableProps) => {
+  const onDragEnd = async (
+    grievanceId,
+    newStatus,
+    sourceDraggableProps,
+    destinationDraggableProps
+  ) => {
     let originalGrievances;
-  
+
     try {
       // Create a deep copy of the original state for backup
       originalGrievances = JSON.parse(JSON.stringify(grievances));
-  
+
       // Get the previous and next grievance ranks in the destination list
       let destinationGrievances = [...grievances[newStatus]];
       const destinationIndex = destinationDraggableProps.index;
-      destinationGrievances = destinationGrievances.filter((grievance) => grievance._id !== grievanceId);
-      const prevRank = destinationIndex > 0 
-        ? destinationGrievances[destinationIndex - 1].rank 
-        : null;
-      
-      const nextRank = destinationIndex < destinationGrievances.length 
-        ? destinationGrievances[destinationIndex].rank 
-        : null;
-  
+      destinationGrievances = destinationGrievances.filter(
+        (grievance) => grievance._id !== grievanceId
+      );
+      const prevRank =
+        destinationIndex > 0
+          ? destinationGrievances[destinationIndex - 1].rank
+          : null;
+
+      const nextRank =
+        destinationIndex < destinationGrievances.length
+          ? destinationGrievances[destinationIndex].rank
+          : null;
+
       // Create a new copy of the grievances object
-      const updatedGrievances = Object.keys(grievances).reduce((acc, status) => {
-        acc[status] = [...grievances[status]];
-        return acc;
-      }, {});
-  
+      const updatedGrievances = Object.keys(grievances).reduce(
+        (acc, status) => {
+          acc[status] = [...grievances[status]];
+          return acc;
+        },
+        {}
+      );
+
       // Find the old status
       const oldStatus = Object.keys(updatedGrievances).find((status) =>
-        updatedGrievances[status].some((grievance) => grievance._id === grievanceId)
+        updatedGrievances[status].some(
+          (grievance) => grievance._id === grievanceId
+        )
       );
-  
+
       if (!oldStatus) {
         throw new Error("Grievance not found in any list.");
       }
-  
+
       // Find the grievance to move
       const grievanceToMove = updatedGrievances[oldStatus].find(
         (grievance) => grievance._id === grievanceId
       );
-  
+
       if (!grievanceToMove) {
         throw new Error("Grievance not found.");
       }
-  
+
       // Remove from old status
       updatedGrievances[oldStatus] = updatedGrievances[oldStatus].filter(
         (grievance) => grievance._id !== grievanceId
       );
-  
+
       // Create new array for destination status if it doesn't exist
       if (!updatedGrievances[newStatus]) {
         updatedGrievances[newStatus] = [];
       }
-  
+
       // Create a new array with the inserted item
       const updatedDestinationArray = [...updatedGrievances[newStatus]];
       updatedDestinationArray.splice(destinationIndex, 0, {
         ...grievanceToMove,
-        status: newStatus
+        status: newStatus,
       });
-      
+
       // Update the destination array
       updatedGrievances[newStatus] = updatedDestinationArray;
-  
+
       // Update state with the new structure
       setGrievances(updatedGrievances);
-  
+
       // Call API to update status and rank
-      const response = await updateGrievance({ 
-        id: grievanceId, 
-        data: { 
+      const response = await updateGrievance({
+        id: grievanceId,
+        data: {
           status: newStatus,
           prevRank,
-          nextRank
-        } 
+          nextRank,
+        },
       });
-  
+
       if (response.error) {
         throw new Error(response.error.data.message);
       }
-  
     } catch (error) {
       console.error("Error updating grievance:", error);
-      toast.error(error.message || "An error occurred while updating the grievance");
+      toast.error(
+        error.message || "An error occurred while updating the grievance"
+      );
       // Restore the original state
       setGrievances(originalGrievances);
     }
@@ -190,14 +208,12 @@ const GrievanceBoardView = () => {
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     const { source, destination, draggableId } = result;
-    
-    if (source.droppableId !== destination.droppableId || source.index !== destination.index) {
-      onDragEnd(
-        draggableId, 
-        destination.droppableId,
-        source,
-        destination
-      );
+
+    if (
+      source.droppableId !== destination.droppableId ||
+      source.index !== destination.index
+    ) {
+      onDragEnd(draggableId, destination.droppableId, source, destination);
     }
   };
 
@@ -219,7 +235,7 @@ const GrievanceBoardView = () => {
         inProgressGrievance.data.pagination.hasNextPage
       );
     }
-  }, [inProgressGrievance])
+  }, [inProgressGrievance]);
 
   useEffect(() => {
     if (resolvedGrievance?.data?.grievances) {
@@ -229,7 +245,7 @@ const GrievanceBoardView = () => {
         resolvedGrievance.data.pagination.hasNextPage
       );
     }
-  }, [resolvedGrievance])
+  }, [resolvedGrievance]);
 
   useEffect(() => {
     if (dismissedGrievance?.data?.grievances) {
@@ -239,45 +255,52 @@ const GrievanceBoardView = () => {
         dismissedGrievance.data.pagination.hasNextPage
       );
     }
-  }, [dismissedGrievance])
+  }, [dismissedGrievance]);
 
   useEffect(() => {
     socket.on("update_grievance", (msg) => {
       setGrievances((prevGrievances) => {
         const updatedGrievance = msg.updatedData;
         const newStatus = updatedGrievance.status;
-  
+
         const oldStatus = Object.keys(prevGrievances).find((status) =>
-          prevGrievances[status].some((grievance) => grievance._id === updatedGrievance._id)
+          prevGrievances[status].some(
+            (grievance) => grievance._id === updatedGrievance._id
+          )
         );
-  
+
         if (!oldStatus) return prevGrievances;
-  
+
         // Remove from the old status list
         const updatedOldList = prevGrievances[oldStatus].filter(
           (grievance) => grievance._id !== updatedGrievance._id
         );
-  
+
         // Add or update the grievance in the new status list
-        const updatedNewList = [...prevGrievances[newStatus].filter(
-          (grievance) => grievance._id !== updatedGrievance._id
-        ), updatedGrievance];
-  
+        const updatedNewList = [
+          ...prevGrievances[newStatus].filter(
+            (grievance) => grievance._id !== updatedGrievance._id
+          ),
+          updatedGrievance,
+        ];
+
         return {
           ...prevGrievances,
           [oldStatus]: updatedOldList,
-          [newStatus]: updatedNewList,
+          [newStatus]: updatedNewList.sort((a, b) => {
+            return a.rank.localeCompare(b.rank, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
+          }),
         };
       });
     });
-  
+
     return () => {
       socket.off("update_grievance");
     };
   }, [socket]);
-  
-  
-  
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
