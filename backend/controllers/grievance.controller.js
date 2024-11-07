@@ -133,39 +133,30 @@ const updateGrievance = async (req, res) => {
       return errorResponse(res, 400, errors);
     }
 
-     // Handle rank updates if status or position is changing
-     const { status, prevRank, nextRank } = value;
-     let newRank = grievance.rank; // Default to current rank
- 
-     if (status && status !== grievance.status) {
-       // Status is changing, get rank for new status
-       const lastGrievanceInStatus = await Grievance.findOne({
-         organization_id,
-         status,
-       })
-         .sort({ rank: -1 })
-         .session(session);
- 
-       newRank = lastGrievanceInStatus
-         ? LexoRank.generateNextRank(lastGrievanceInStatus.rank)
-         : LexoRank.getInitialRank();
-     } else if (prevRank || nextRank) {
-       // Position is changing within same status
-       newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
-     }
- 
-     // Update value object with new rank
-     const updateData = {
-       ...value,
-       rank: newRank,
-     };
+    // Handle rank updates if status or position is changing
+    const { status, prevRank, nextRank } = value;
+    let newRank = grievance.rank; // Default to current rank
+
+    newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
+
+    // Update value object with new rank
+    const updateData = {
+      ...value,
+      rank: newRank,
+    };
+    delete updateData.prevRank;
+    delete updateData.nextRank;
 
     // Prepare query to find and update grievance
     const query = { _id: id, organization_id };
 
-    const updatedGrievance = await Grievance.findOneAndUpdate(query, updateData, {
-      new: true,
-    }).session(session);
+    const updatedGrievance = await Grievance.findOneAndUpdate(
+      query,
+      updateData,
+      {
+        new: true,
+      }
+    ).session(session);
     if (!updatedGrievance) {
       await session.abortTransaction();
       return errorResponse(res, 404, "Grievance not found");
@@ -177,10 +168,7 @@ const updateGrievance = async (req, res) => {
       .populate({ path: "assigned_to", select: "username" })
       .session(session);
 
-    const userData = await User.find(
-      { organization_id },
-      "_id"
-    );
+    const userData = await User.find({ organization_id }, "_id");
     const userIds = userData.map((user) => user._id);
 
     sendNotification(
