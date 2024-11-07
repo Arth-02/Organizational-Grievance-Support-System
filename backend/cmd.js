@@ -61,9 +61,11 @@ switch (command) {
     break;
   case "get-middle-rank":
     if (arg1 || arg2) {
-      console.log(`Middle rank between "${arg1}" and "${arg2}`);
+      console.log(`Middle rank between "${arg1}" and "${arg2}"`);
       const middleRank = LexoRank.getMiddleRank(arg1, arg2);
-      console.log(`Middle rank between "${arg1}" and "${arg2}": ${middleRank}`);
+      console.log(
+        `Middle rank between "${arg1}" and "${arg2}": "${middleRank}"`
+      );
     } else {
       console.log("Please provide two ranks to get the middle rank.");
       process.exit(1);

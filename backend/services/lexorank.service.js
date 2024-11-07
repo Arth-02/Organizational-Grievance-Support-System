@@ -5,10 +5,10 @@ const BASE = ALPHABET.length;
 
 class LexoRank {
   static getMiddleRank(prev, next) {
-    if (prev === null && next === null) {
+    if (!prev && !next) {
       throw new Error("Please provide ranks to get the middle rank.");
     }
-    if (prev === null) {
+    if (!prev) {
       prev = "";
       if (next[0] !== "0") {
         prev = ALPHABET[ALPHABET.indexOf(next[0]) - 1];
@@ -26,7 +26,7 @@ class LexoRank {
         return prev;
       }
     }
-    if (next === null) {
+    if (!next) {
       return this.generateNextRank(prev);
     }
     let mid = "";
