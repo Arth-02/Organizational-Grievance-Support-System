@@ -103,7 +103,7 @@ const updateGrievance = async (req, res) => {
     let schema = Joi.object();
 
     // If user has full permission to update grievance
-    if (canUpdateGrievance) {
+    if (canUpdateGrievance && (!req.body.title && !req.body.description) ) {
       schema = updateFullGrievanceSchema;
       if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
         await session.abortTransaction();
@@ -134,10 +134,11 @@ const updateGrievance = async (req, res) => {
     }
 
     // Handle rank updates if status or position is changing
-    const { status, prevRank, nextRank } = value;
+    const { prevRank, nextRank } = value;
     let newRank = grievance.rank; // Default to current rank
-
-    newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
+    if (prevRank || nextRank) {
+      newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
+    }
 
     // Update value object with new rank
     const updateData = {

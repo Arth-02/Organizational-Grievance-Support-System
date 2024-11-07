@@ -34,8 +34,6 @@ const GrievanceList = ({
     isLoading
   );
 
-  console.log(isLoading)
-
   return (
     <Droppable droppableId={list} key={list}>
       {(provided, snapshot) => {

@@ -262,6 +262,14 @@ const GrievanceBoardView = () => {
       setGrievances((prevGrievances) => {
         const updatedGrievance = msg.updatedData;
         const newStatus = updatedGrievance.status;
+        if (!updatedGrievance.is_active) {
+          return {
+            ...prevGrievances,
+            [newStatus]: prevGrievances[newStatus].filter(
+              (grievance) => grievance._id !== updatedGrievance._id
+            ),
+          };
+        }
 
         const oldStatus = Object.keys(prevGrievances).find((status) =>
           prevGrievances[status].some(
