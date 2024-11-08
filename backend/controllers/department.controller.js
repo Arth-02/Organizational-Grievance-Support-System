@@ -1,19 +1,9 @@
 const mongoose = require("mongoose");
-const Department = require("../models/department.model");
-const Organization = require("../models/organization.model");
-const User = require("../models/user.model");
 const {
   errorResponse,
   catchResponse,
   successResponse,
 } = require("../utils/response");
-const { isValidObjectId } = require("mongoose");
-const {
-  departmentSchema,
-  updateDepartmentSchema,
-  deleteDepartmentSchema,
-} = require("../validators/department.validator");
-
 const departmentService = require("../services/department.service");
 
 // Create a new department
