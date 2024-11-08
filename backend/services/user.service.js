@@ -24,7 +24,7 @@ const { sendEmail } = require("../utils/mail");
 const bcrypt = require("bcryptjs");
 const Joi = require("joi");
 const { ObjectId } = require("mongoose").Types;
-
+const boardService = require("./board.service");
 
 // User login service
 const userLogin = async (body) => {
@@ -599,23 +599,23 @@ const checkUserField = async (body, userData, type) => {
 };
 
 // Get all users service
-const getAllUsers = async (query, userData) => {
-  const {
-    page = 1,
-    limit = 10,
-    username,
-    is_active,
-    employee_id,
-    role,
-    email,
-    department,
-    permissions,
-    permissionlogic = "or",
-    sort_by = "created_at",
-    order = "desc",
-  } = query;
+const getAllUsers = async (reqquery, userData) => {
   try {
     const { organization_id, _id } = userData;
+    const {
+      page = 1,
+      limit = 10,
+      username,
+      is_active,
+      employee_id,
+      role,
+      email,
+      department,
+      permissions,
+      permissionlogic = "or",
+      sort_by = "created_at",
+      order = "desc",
+    } = reqquery;
 
     const userPermissions = [
       ...userData.role.permissions,
@@ -840,7 +840,33 @@ const getAllUsersId = async (userData) => {
     console.error("Get Users Error:", err.message);
     return { isSuccess: false, message: "Internal server error" };
   }
-}
+};
+
+// Add Board to User service
+const addBoardToUser = async (session, body, userData) => {
+  try {
+    const { organization_id, id: userId } = userData;
+    const response = await boardService.createBoard(
+      session,
+      organization_id,
+      body
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message };
+    }
+    const board = response.board;
+    const user = await User.findByIdAndUpdate(userId, {
+      $push: { board_id: board._id },
+    }).session(session);
+    if (!user) {
+      return { isSuccess: false, message: "User not found" };
+    }
+    return { isSuccess: true, data: board };
+  } catch (err) {
+    console.error("Create Board Error:", err.message);
+    return { isSuccess: false, message: "Internal server error" };
+  }
+};
 
 module.exports = {
   userLogin,
@@ -854,4 +880,5 @@ module.exports = {
   checkUserField,
   getAllUsers,
   getAllUsersId,
+  addBoardToUser,
 };

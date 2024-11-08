@@ -1,37 +1,11 @@
-const { isValidObjectId, default: mongoose } = require("mongoose");
-const { ObjectId } = mongoose.Types;
-const jwt = require("jsonwebtoken");
-const Joi = require("joi");
-const User = require("../models/user.model");
+const {default: mongoose } = require("mongoose");
 const {
   successResponse,
   errorResponse,
   catchResponse,
 } = require("../utils/response");
-const Organization = require("../models/organization.model");
-const {
-  DEFAULT_ADMIN_PERMISSIONS,
-  SUPER_ADMIN,
-  ADMIN,
-  PERMISSIONS,
-  VIEW_PERMISSION,
-  VIEW_ROLE,
-  VIEW_DEPARTMENT,
-} = require("../utils/constant");
-const Role = require("../models/role.model");
-const Department = require("../models/department.model");
-const { sendEmail } = require("../utils/mail");
-const { generateOTP } = require("../utils/common");
-const bcrypt = require("bcryptjs");
-const {
-  loginSchema,
-  createUserSchema,
-  updateSelfUserSchema,
-  updateFullUserSchema,
-  superAdminSchema,
-} = require("../validators/user.validator");
+const { PERMISSIONS } = require("../utils/constant");
 const boardService = require("../services/board.service");
-const attachmentService = require("../services/attachment.service");
 const userService = require("../services/user.service");
 
 // Login user
@@ -299,26 +273,17 @@ const addBoard = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { organization_id, id: userId } = req.user;
-    const response = await boardService.createBoard(
+    const response = await userService.addBoardToUser(
       session,
-      organization_id,
-      req.body
+      req.body,
+      req.user
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, "Error creating project board");
-    }
-    const board = response.board;
-    const user = await User.findByIdAndUpdate(userId, {
-      $push: { board_id: board._id },
-    }).session(session);
-    if (!user) {
-      await session.abortTransaction();
-      return errorResponse(res, 404, "User not found");
+      return errorResponse(res, 500, response.message);
     }
     await session.commitTransaction();
-    return successResponse(res, board, "Board created successfully");
+    return successResponse(res, response.data, "Board created successfully");
   } catch (err) {
     console.error("Create Board Error:", err.message);
     await session.abortTransaction();
