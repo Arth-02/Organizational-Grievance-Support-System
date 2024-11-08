@@ -30,7 +30,6 @@ const AttachmentSchema = new mongoose.Schema(
     uploaded_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     is_active: { type: Boolean, default: true },
   },

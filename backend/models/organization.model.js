@@ -28,9 +28,9 @@ const OrganizationSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    logo: {
-      url: String,
-      public_id: String,
+    logo_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Attachment",
     },
     description: {
       type: String,
