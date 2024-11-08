@@ -2,6 +2,19 @@ import { Draggable, Droppable } from "@hello-pangea/dnd";
 import GrievanceCard from "./GrievanceCard";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const SkeletonCard = () => (
+  <div className="bg-white dark:bg-gray-600/40 rounded-lg p-4 shadow">
+    <Skeleton className="h-4 w-3/4 mb-2" />
+    <Skeleton className="h-4 w-1/2 mb-4" />
+    <div className="flex justify-between items-center">
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <Skeleton className="h-6 w-16" />
+    </div>
+  </div>
+);
 
 const GrievanceList = ({
   list,
@@ -9,10 +22,11 @@ const GrievanceList = ({
   location,
   hasNextPage,
   page,
+  isInisialized,
   onPageChange,
 }) => {
   const containerRef = useRef(null);
-  
+
   // Track if we're currently loading
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,6 +47,9 @@ const GrievanceList = ({
     hasNextPage,
     isLoading
   );
+
+  // Generate a random number between 1 and 4
+  const randomSkeletonCount = Math.floor(Math.random() * 4) + 1;
 
   return (
     <Droppable droppableId={list} key={list}>
@@ -64,26 +81,32 @@ const GrievanceList = ({
                   isDraggingFrom ? "opacity-50" : "opacity-100"
                 }`}
               >
-                {grievances.map((grievance, index) => (
-                  <Draggable
-                    key={grievance._id}
-                    draggableId={grievance._id.toString()}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <GrievanceCard
-                        grievance={grievance}
-                        provided={provided}
-                        snapshot={snapshot}
-                        location={location}
-                      />
-                    )}
-                  </Draggable>
-                ))}
+                {!isInisialized ? (
+                  Array.from({ length: randomSkeletonCount }).map((_, index) => (
+                    <SkeletonCard key={index} />
+                  ))
+                ) : (
+                  grievances.map((grievance, index) => (
+                    <Draggable
+                      key={grievance._id}
+                      draggableId={grievance._id.toString()}
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <GrievanceCard
+                          grievance={grievance}
+                          provided={provided}
+                          snapshot={snapshot}
+                          location={location}
+                        />
+                      )}
+                    </Draggable>
+                  ))
+                )}
                 {hasNextPage && <div ref={lastElementRef} className="h-4" />}
               </div>
               {provided.placeholder}
-                {isLoading && <div className="dark:text-white">Loading</div>}
+              {isLoading && isInisialized && <Loader2 className="w-7 h-7 mt-4 mx-auto animate-spin" />}
             </div>
           </div>
         );
