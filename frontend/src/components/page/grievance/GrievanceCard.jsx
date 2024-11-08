@@ -20,7 +20,7 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
       ref={provided?.innerRef}
       {...provided?.draggableProps}
       {...provided?.dragHandleProps}
-      className="transition-all duration-200 group"
+      className="group"
     >
       <Link
         to={`/grievances/${grievance._id}`}
