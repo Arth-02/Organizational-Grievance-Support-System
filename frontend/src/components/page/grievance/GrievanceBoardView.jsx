@@ -321,6 +321,7 @@ const GrievanceBoardView = () => {
             location={location}
             hasNextPage={hasNextPage[list]}
             page={page[list]}
+            isInisialized={isInitialized[list]}
             onPageChange={handlePageChange}
           />
         ))}
