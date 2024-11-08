@@ -29,6 +29,7 @@ const updateSelfUserSchema = Joi.object({
   phone_number: Joi.string().trim().allow(""),
   username: Joi.string().trim().alphanum().min(3).max(30),
   password: Joi.string().trim().min(6),
+  image: Joi.string().trim().allow(""),
 });
 
 const updateFullUserSchema = Joi.object({
@@ -55,6 +56,7 @@ const superAdminSchema = Joi.object({
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
   special_permissions: Joi.array().default([]),
+  image: Joi.string().trim().allow(""),
   otp: Joi.string().trim().required(),
 });
 

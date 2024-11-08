@@ -32,68 +32,16 @@ const {
 } = require("../validators/user.validator");
 const boardService = require("../services/board.service");
 const attachmentService = require("../services/attachment.service");
+const userService = require("../services/user.service");
 
 // Login user
 const login = async (req, res) => {
   try {
-    const { error, value } = loginSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
+    const response = await userService.userLogin(req.body);
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-
-    const { email, username, password, rememberMe } = value;
-
-    const user = await User.findOne({
-      $or: [{ email }, { username }],
-      is_active: true,
-    })
-      .select("+password")
-      .populate("role")
-      .populate("department")
-      .populate({ path: "organization_id", select: "name logo" });
-    if (!user) {
-      return errorResponse(res, 404, "User not found");
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return errorResponse(res, 400, "Invalid password");
-    }
-
-    // User authenticated, create token
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-    const tokenExpiration = rememberMe ? "15d" : "8d";
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: tokenExpiration,
-    });
-
-    // Update last login
-    user.last_login = Date.now();
-    await User.findByIdAndUpdate(user.id, { last_login: user.last_login });
-
-    // Prepare user data for response
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      organization_id: user.organization_id,
-      department: user.department,
-      special_permissions: user.special_permissions,
-      token,
-    };
-
-    // Send success response with token and user data
-    return successResponse(res, userData, "Login successful");
+    return successResponse(res, response.data, "Login successful");
   } catch (err) {
     console.error("Login Error:", err.message);
     return catchResponse(res);
@@ -105,128 +53,25 @@ const createUser = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { organization_id } = req.user;
-    // Validate request body.
-    const { error, value } = createUserSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
-    }
-
-    const {
-      username,
-      email,
-      password,
-      role,
-      firstname,
-      lastname,
-      department,
-      employee_id,
-      phone_number,
-      is_active,
-      special_permissions
-    } = value;
-
-    if (!isValidObjectId(role)) {
-      return errorResponse(res, 400, "Invalid Role id");
-    }
-    if (!isValidObjectId(department)) {
-      return errorResponse(res, 400, "Invalid Department id");
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }, { employee_id }],
-      organization_id,
-      is_deleted: false,
-    }).session(session);
-    if (existingUser) {
-      return errorResponse(
-        res,
-        400,
-        "User already exists with this email, username or employee ID"
-      );
-    }
-
-    const existingOrganization = await Organization.findById(
-      organization_id
-    ).session(session);
-    if (!existingOrganization) {
-      return errorResponse(res, 404, "Organization not found");
-    }
-
-    const userRole = await Role.findById(role).session(session);
-    if (!userRole) {
-      return errorResponse(res, 404, "Role not found");
-    }
-    const userDepartment = await Department.findById(department).session(
-      session
+    const response = await userService.createUser(
+      session,
+      req.body,
+      req.user,
+      req.files
     );
-    if (!userDepartment) {
-      return errorResponse(res, 404, "Department not found");
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
     }
-
-    // Create new user
-    const newUser = new User({
-      username,
-      email,
-      password, // Password will be hashed by the pre-save hook
-      role,
-      firstname,
-      lastname,
-      department,
-      employee_id,
-      phone_number,
-      is_active,
-      organization_id,
-      special_permissions,
-    });
-    if (req.files && req.files.length > 0) {
-      const response = await attachmentService.createAttachment(
-        session,
-        newUser._id,
-        organization_id,
-        req.files
-      );
-      if (!response.isSuccess) {
-        await session.abortTransaction();
-        return errorResponse(res, 500, response.message);
-      }
-      console.log("Attachment Response:", response);
-      newUser.image_id = response.attachmentIds[0];
-    }
-    await newUser.save({ session });
-
-    // Create and sign JWT token
-    const payload = {
-      user: {
-        id: newUser.id,
-      },
-    };
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    // Prepare user data for response
-    const userData = {
-      id: newUser._id,
-      username: newUser.username,
-      email: newUser.email,
-      role: newUser.role,
-      fullName: newUser.fullName,
-      employee_id: newUser.employee_id,
-      department: newUser.department,
-      token,
-    };
-
-    // Send success response
     await session.commitTransaction();
-    return successResponse(res, userData, "User created successfully", 201);
+    return successResponse(
+      res,
+      response.data,
+      "User created successfully",
+      201
+    );
   } catch (err) {
-    console.error("Registration Error:", err.message);
+    console.error("Create User Error:", err.message);
     await session.abortTransaction();
     return catchResponse(res);
   } finally {
@@ -237,41 +82,11 @@ const createUser = async (req, res) => {
 // Get user profile
 const getUser = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    const id = req.params.id || req.user.id;
-    if (!id) {
-      return errorResponse(res, 400, "User id is required");
+    const response = await userService.getUserDetails(req.params.id, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 404, response.message);
     }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid user id");
-    }
-    const query = { _id: id, is_deleted: false };
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    let user;
-    if (!req.params.id) {
-      user = await User.findOne(query)
-        .populate("role")
-        .populate("department")
-        .populate({path: "image_id", select: "filename public_id url"})
-        .select("-createdAt -updatedAt -last_login -is_active -is_deleted")
-        .lean();
-      user.role.permissions = user.role.permissions
-        .map((permissionSlug) =>
-          PERMISSIONS.find((p) => p.slug === permissionSlug)
-        )
-        .filter(Boolean);
-    } else {
-      user = await User.findOne(query).select(
-        "-createdAt -updatedAt -last_login -is_active -is_deleted"
-      );
-    }
-    if (!user) {
-      return errorResponse(res, 404, "User not found");
-    }
-
-    return successResponse(res, user, "Profile retrieved successfully");
+    return successResponse(res, response.data, "User retrieved successfully");
   } catch (err) {
     console.error("Get Profile Error:", err.message);
     return catchResponse(res);
@@ -281,40 +96,16 @@ const getUser = async (req, res) => {
 // Update user profile
 const updateUser = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    let schema, id;
-    if (req.params.id) {
-      schema = updateFullUserSchema;
-      id = req.params.id;
-    } else if (req.user.id) {
-      schema = updateSelfUserSchema;
-      id = req.user.id;
-    } else {
-      return errorResponse(res, 400, "User id is required");
+    const response = await userService.updateUserDetails(
+      req.params.id,
+      req.user,
+      req.body,
+      req.files
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid User ID");
-    }
-    const { error, value } = schema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, "Validation error", errors);
-    }
-    const query = { _id: id };
-
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    const user = await User.findOneAndUpdate(query, value, {
-      new: true,
-    });
-    if (!user) {
-      return errorResponse(res, 404, "User not found");
-    }
-
-    return successResponse(res, user, "Profile updated successfully");
+    return successResponse(res, response.data, "User updated successfully");
   } catch (err) {
     console.error("Update Profile Error:", err.message);
     return catchResponse(res);
@@ -324,26 +115,10 @@ const updateUser = async (req, res) => {
 // Delete user
 const deleteUser = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    const id = req.params.id;
-    if (!id) {
-      return errorResponse(res, 400, "User id is required");
+    const response = await userService.deleteUser(req.params.id, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid user id");
-    }
-    const query = { _id: id };
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    const user = await User.findOneAndUpdate(query, {
-      is_active: false,
-      is_deleted: true,
-    });
-    if (!user) {
-      return errorResponse(res, 404, "User not found");
-    }
-
     return successResponse(res, {}, "User deleted successfully");
   } catch (err) {
     console.error("Delete User Error:", err.message);
@@ -354,31 +129,13 @@ const deleteUser = async (req, res) => {
 // Delete multiple users
 const deleteAllUsers = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    const { ids } = req.body;
-    if (!ids || !ids.length) {
-      return errorResponse(res, 400, "User ids are required");
+    const response = await userService.deleteMultipleUsers(req.body, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    for (let i = 0; i < ids.length; i++) {
-      if (!isValidObjectId(ids[i])) {
-        return errorResponse(res, 400, "Invalid user id");
-      }
-    }
-    const query = { _id: { $in: ids } };
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    const users = await User.updateMany(query, {
-      is_active: false,
-      is_deleted: true,
-    });
-    if (!users) {
-      return errorResponse(res, 404, "Users not found");
-    }
-
     return successResponse(res, {}, "Users deleted successfully");
   } catch (err) {
-    console.error("Delete Users Error:", err.message);
+    console.error("Delete All Users Error:", err.message);
     return catchResponse(res);
   }
 };
@@ -386,118 +143,22 @@ const deleteAllUsers = async (req, res) => {
 // Create super admin
 const createSuperAdmin = async (req, res) => {
   const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    session.startTransaction();
-    const { error, value } = superAdminSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
-    }
-    const {
-      firstname,
-      lastname,
-      username,
-      email,
-      password,
-      employee_id,
-      organization_id,
-      phone_number,
-      otp,
-    } = value;
-
-    if (!isValidObjectId(organization_id)) {
-      return errorResponse(res, 400, "Invalid organization id");
-    }
-
-    const organization = await Organization.findById(organization_id).session(
-      session
+    const response = await userService.createSuperAdmin(
+      session,
+      req.body,
+      req.files
     );
-    if (!organization) {
-      return errorResponse(res, 404, "Organization not found");
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, 500, response.message);
     }
-
-    if (!organization.otp) {
-      return errorResponse(res, 400, "OTP has expired");
-    }
-
-    const isOtpValid = await bcrypt.compare(otp, organization.otp);
-    if (!isOtpValid) {
-      return errorResponse(res, 400, "Invalid OTP");
-    }
-
-    const existing = await User.findOne({
-      $and: [
-        {
-          $or: [{ email }, { username }, { employee_id }],
-        },
-        { organization_id },
-      ],
-    }).session(session);
-    if (existing) {
-      return errorResponse(
-        res,
-        400,
-        "Super Admin already exists with this email"
-      );
-    }
-
-    const newRole = new Role({
-      name: SUPER_ADMIN,
-      permissions: DEFAULT_ADMIN_PERMISSIONS,
-      organization_id,
-    });
-    const role = await newRole.save({ session });
-
-    const newDepartment = new Department({
-      name: ADMIN,
-      description: "Admin Department",
-      organization_id,
-    });
-    const department = await newDepartment.save({ session });
-
-    const superAdmin = new User({
-      username,
-      email,
-      password,
-      role: role._id,
-      department: department._id,
-      firstname,
-      lastname,
-      employee_id,
-      phone_number,
-      organization_id,
-    });
-    await superAdmin.save({ session });
-    const payload = {
-      user: {
-        id: superAdmin.id,
-      },
-    };
-    const tokenExpiration = "8d";
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: tokenExpiration,
-    });
-
-    const userData = {
-      id: superAdmin._id,
-      username: superAdmin.username,
-      email: superAdmin.email,
-      role: superAdmin.role,
-      fullName: superAdmin.fullName,
-      employee_id: superAdmin.employee_id,
-      department: superAdmin.department,
-      token,
-    };
-
     await session.commitTransaction();
     return successResponse(
       res,
-      userData,
-      "Super Admin created successfully",
-      201
+      response.data,
+      "Super Admin created successfully"
     );
   } catch (err) {
     console.error("Create Super Admin Error:", err.message);
@@ -511,46 +172,10 @@ const createSuperAdmin = async (req, res) => {
 // Send OTP to email
 const sendOTPEmail = async (req, res) => {
   try {
-    const { organization_id } = req.body;
-
-    if (!organization_id) {
-      return errorResponse(res, 400, "Organization id is required");
+    const response = await userService.sendOTPEmail(req.body.organization_id);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
     }
-
-    if (!isValidObjectId(organization_id)) {
-      return errorResponse(res, 400, "Invalid organization id");
-    }
-
-    const organization = await Organization.findById(organization_id).select(
-      "email"
-    );
-    if (!organization) {
-      return errorResponse(res, 404, "Organization not found");
-    }
-
-    const otp = generateOTP();
-    const hashedOTP = await bcrypt.hash(otp, 10);
-    organization.otp = hashedOTP;
-    await organization.save();
-
-    // remove otp after 5 minutes
-    setTimeout(async () => {
-      await Organization.updateOne(
-        { _id: organization_id },
-        { $unset: { otp: "" } }
-      );
-    }, 300000);
-
-    // Send OTP to email
-    const isMailSent = await sendEmail(
-      organization.email,
-      "Email Verification",
-      `<h1>Your OTP is ${otp}</h1>`
-    );
-    if (!isMailSent) {
-      return errorResponse(res, 500, "Failed to send OTP");
-    }
-
     return successResponse(res, {}, "OTP sent successfully");
   } catch (err) {
     console.error("Generate OTP Error:", err.message);
@@ -561,26 +186,19 @@ const sendOTPEmail = async (req, res) => {
 // Check if username exists
 const checkUsername = async (req, res) => {
   try {
-    const schema = Joi.object({
-      username: Joi.string().trim().min(3).max(30).required(),
-    });
-    const { error, value } = schema.validate(req.body, { abortEarly: false });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
+    const response = await userService.checkUserField(
+      req.body,
+      req.user,
+      "Username"
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    const { username } = value;
-
-    const query = { username, is_deleted: false };
-    if (req.user?.organization_id) {
-      query.organization_id = req.user.organization_id;
+    if (response.exists) {
+      return successResponse(res, { exists: true }, "Username unavailable");
+    } else {
+      return successResponse(res, { exists: false }, "Username available");
     }
-
-    const user = await User.findOne(query);
-    if (user) {
-      return successResponse(res, { exists: true }, "Username exists");
-    }
-    return successResponse(res, { exists: false }, "Username available");
   } catch (err) {
     console.error("Check Username Error:", err.message);
     return catchResponse(res);
@@ -590,25 +208,16 @@ const checkUsername = async (req, res) => {
 // Check if email exists
 const checkEmail = async (req, res) => {
   try {
-    const schema = Joi.object({
-      email: Joi.string().trim().email().required(),
-    });
-    const { error, value } = schema.validate(req.body, { abortEarly: false });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
+    const response = await userService.checkUserField(
+      req.body,
+      req.user,
+      "Email"
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    const { email } = value;
-
-    const query = { email, is_deleted: false };
-
-    if (req.user?.organization_id) {
-      query.organization_id = req.user.organization_id;
-    }
-
-    const user = await User.findOne(query);
-    if (user) {
-      return successResponse(res, { exists: true }, "Email exists");
+    if (response.exists) {
+      return successResponse(res, { exists: true }, "Email unavailable");
     }
     return successResponse(res, { exists: false }, "Email available");
   } catch (err) {
@@ -620,23 +229,16 @@ const checkEmail = async (req, res) => {
 // Check if employee ID exists
 const checkEmployeeID = async (req, res) => {
   try {
-    const schema = Joi.object({
-      employee_id: Joi.string().trim().required(),
-    });
-    const { error, value } = schema.validate(req.body, { abortEarly: false });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return errorResponse(res, 400, errors);
+    const response = await userService.checkUserField(
+      req.body,
+      req.user,
+      "Employee ID"
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, 400, response.message);
     }
-    const { employee_id } = value;
-    const { organization_id } = req.user;
-    const user = await User.findOne({
-      employee_id,
-      organization_id,
-      is_deleted: false,
-    });
-    if (user) {
-      return successResponse(res, { exists: true }, "Employee ID exists");
+    if (response.exists) {
+      return successResponse(res, { exists: true }, "Employee ID unavailable");
     }
     return successResponse(res, { exists: false }, "Employee ID available");
   } catch (err) {
@@ -648,232 +250,14 @@ const checkEmployeeID = async (req, res) => {
 // get all users
 const getAllUsers = async (req, res) => {
   try {
-    const { organization_id, _id } = req.user;
-    const {
-      page = 1,
-      limit = 10,
-      username,
-      is_active,
-      employee_id,
-      role,
-      email,
-      department,
-      permissions,
-      permissionlogic = "or",
-      sort_by = "created_at",
-      order = "desc",
-    } = req.query;
-
-    const userPermissions = [
-      ...req.user.role.permissions,
-      ...req.user.special_permissions,
-    ];
-    const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
-    const canViewRoles = userPermissions.includes(VIEW_ROLE.slug);
-    const canViewDepartments = userPermissions.includes(VIEW_DEPARTMENT.slug);
-
-    const pageNumber = Number.isInteger(parseInt(page, 10))
-      ? parseInt(page, 10)
-      : 1;
-    const limitNumber = Number.isInteger(parseInt(limit, 10))
-      ? parseInt(limit, 10)
-      : 10;
-    const skip = (pageNumber - 1) * limitNumber;
-    const query = { is_deleted: false, _id: { $ne: _id } };
-    if (is_active === "true" || is_active === "false") {
-      query.is_active = is_active === "true";
+    const response = await userService.getAllUsers(req.query, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
     }
-    if (organization_id) {
-      query.organization_id = organization_id;
-    }
-    if (username) {
-      query.username = { $regex: username, $options: "i" };
-    }
-    if (email) {
-      query.email = { $regex: email, $options: "i" };
-    }
-    if (employee_id) {
-      query.employee_id = { $regex: employee_id, $options: "i" };
-    }
-    if (role && canViewRoles) {
-      query.role = new ObjectId(role);
-    }
-    if (department && canViewDepartments) {
-      query.department = new ObjectId(department);
-    }
-
-    const isSortedFieldPresent = sort_by === "role" || sort_by === "department";
-
-    const sortOrder = order === "asc" ? 1 : -1;
-    const pipeline = [{ $match: query }];
-
-    if (!isSortedFieldPresent) {
-      pipeline.push(
-        { $addFields: { sortField: { $toLower: `$${sort_by}` } } },
-        { $sort: { sortField: sortOrder } },
-        { $skip: skip },
-        { $limit: limitNumber }
-      );
-    }
-
-    if (canViewRoles) {
-      pipeline.push(
-        {
-          $lookup: {
-            from: "roles",
-            localField: "role",
-            foreignField: "_id",
-            as: "role",
-          },
-        },
-        {
-          $unwind: {
-            path: "$role",
-            preserveNullAndEmptyArrays: true,
-          },
-        }
-      );
-    }
-    if (canViewDepartments) {
-      pipeline.push(
-        {
-          $lookup: {
-            from: "departments",
-            localField: "department",
-            foreignField: "_id",
-            as: "department",
-          },
-        },
-        {
-          $unwind: {
-            path: "$department",
-            preserveNullAndEmptyArrays: true,
-          },
-        }
-      );
-    }
-    if (permissions && canViewPermissions) {
-      pipeline.push({
-        $addFields: {
-          merged_permissions: {
-            $concatArrays: ["$role.permissions", "$special_permissions"],
-          },
-        },
-      });
-    }
-
-    if (isSortedFieldPresent) {
-      pipeline.push(
-        { $addFields: { sortField: { $toLower: `$${sort_by}.name` } } },
-        { $sort: { sortField: sortOrder } },
-        { $skip: skip },
-        { $limit: limitNumber }
-      );
-    }
-
-    if (permissions && canViewPermissions) {
-      const permissionArray = permissions.split(",");
-
-      if (permissionlogic === "or") {
-        pipeline.push({
-          $match: {
-            $expr: {
-              $gt: [
-                {
-                  $size: {
-                    $setIntersection: [permissionArray, "$merged_permissions"],
-                  },
-                },
-                0,
-              ],
-            },
-          },
-        });
-      } else if (permissionlogic === "and") {
-        pipeline.push({
-          $match: {
-            $expr: {
-              $setIsSubset: [permissionArray, "$merged_permissions"],
-            },
-          },
-        });
-      } else {
-        console.warn(
-          `Invalid permissionLogic: ${permissionlogic}. Defaulting to "and" logic.`
-        );
-        pipeline.push({
-          $match: {
-            $expr: {
-              $setIsSubset: [permissionArray, "$merged_permissions"],
-            },
-          },
-        });
-      }
-    }
-
-    pipeline.push({
-      $project: {
-        ...(canViewRoles && {
-          role: "$role.name",
-        }),
-        ...(canViewPermissions && {
-          role_permissions: "$role.permissions",
-          special_permissions: 1,
-        }),
-        ...(canViewDepartments && {
-          department: "$department.name",
-        }),
-        username: 1,
-        email: 1,
-        firstname: 1,
-        lastname: 1,
-        employee_id: 1,
-        phone_number: 1,
-        is_active: 1,
-        last_login: 1,
-        created_at: 1,
-      },
-    });
-
-    const [users, totalUsers] = await Promise.all([
-      User.aggregate(pipeline),
-      User.countDocuments(query),
-    ]);
-
-    if (!users.length) {
-      return errorResponse(res, 404, "Users not found");
-    }
-    if (canViewPermissions) {
-      for (let i = 0; i < users.length; i++) {
-        users[i].role_permissions = users[i].role_permissions
-          .map((permissionSlug) =>
-            PERMISSIONS.find((p) => p.slug === permissionSlug)
-          )
-          .filter(Boolean);
-        users[i].special_permissions = users[i].special_permissions
-          .map((permissionSlug) =>
-            PERMISSIONS.find((p) => p.slug === permissionSlug)
-          )
-          .filter(Boolean);
-      }
-    }
-    const totalPages = Math.ceil(totalUsers / limitNumber);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
 
     return successResponse(
       res,
-      {
-        users,
-        pagination: {
-          totalItems: totalUsers,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-          hasNextPage,
-          hasPrevPage,
-        },
-      },
+      { users: response.data, pagination: response.pagination },
       "Users retrieved successfully"
     );
   } catch (err) {
@@ -899,10 +283,11 @@ const getAllPermissions = async (req, res) => {
 // get all users id
 const getAllUsersId = async (req, res) => {
   try {
-    const { organization_id } = req.user;
-    const users = await User.find({ organization_id }, "_id");
-    const userIds = users.map((user) => user._id);
-    return successResponse(res, userIds, "Users retrieved successfully");
+    const response = await userService.getAllUsersId(req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, 500, response.message);
+    }
+    return successResponse(res, response.data, "Users retrieved successfully");
   } catch (err) {
     console.error("Get Users Error:", err.message);
     return catchResponse(res);

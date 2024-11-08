@@ -47,7 +47,12 @@ router.post(
 router.get("/profile", isLoggedIn, getUser);
 router.get("/details/:id", checkPermission([VIEW_USER.slug]), getUser);
 router.get("/all", checkPermission([VIEW_USER.slug]), getAllUsers);
-router.patch("/profile/update", isLoggedIn, updateUser);
+router.patch(
+  "/profile/update",
+  isLoggedIn,
+  upload.array("image", 1),
+  updateUser
+);
 router.patch("/update/:id", checkPermission([UPDATE_USER.slug]), updateUser);
 router.delete("/delete/:id", checkPermission([DELETE_USER.slug]), deleteUser);
 router.delete("/delete", checkPermission([DELETE_USER.slug]), deleteAllUsers);
