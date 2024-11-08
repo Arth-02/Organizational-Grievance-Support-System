@@ -1,16 +1,9 @@
 const mongoose = require("mongoose");
-const { isValidObjectId } = require("mongoose");
-const uploadFiles = require("../utils/cloudinary");
-const Organization = require("../models/organization.model");
 const {
   errorResponse,
   successResponse,
   catchResponse,
 } = require("../utils/response");
-const {
-  organizationSchema,
-  updateOrganizationSchema,
-} = require("../validators/organization.validator");
 const organizationService = require("../services/organization.service");
 
 // Create a new organization
