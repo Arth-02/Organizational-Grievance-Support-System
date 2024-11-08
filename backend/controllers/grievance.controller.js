@@ -417,6 +417,15 @@ const getAllGrievances = async (req, res) => {
       Grievance.countDocuments(query),
     ]);
 
+    query.status = "submitted";
+    const totalSubmitted = await Grievance.countDocuments(query);
+    query.status = "in-progress";
+    const totalInProgress = await Grievance.countDocuments(query);
+    query.status = "resolved";
+    const totalResolved = await Grievance.countDocuments(query);
+    query.status = "dismissed";
+    const totalDismissed = await Grievance.countDocuments(query);
+
     if (!grievances.length) {
       return errorResponse(res, 404, "No grievances found");
     }
@@ -427,6 +436,10 @@ const getAllGrievances = async (req, res) => {
 
     const pagination = {
       totalItems: totalGrievances,
+      totalSubmitted,
+      totalInProgress,
+      totalResolved,
+      totalDismissed,
       totalPages: totalPages,
       currentPage: pageNumber,
       limit: limitNumber,

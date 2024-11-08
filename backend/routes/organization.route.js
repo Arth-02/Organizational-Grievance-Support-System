@@ -15,6 +15,7 @@ router.post("/create", upload.array("logo", 1), createOrganization);
 router.post(
   "/update",
   checkPermission([UPDATE_ORGANIZATION.slug]),
+  upload.array("logo", 1),
   updateOrganization
 );
 router.get("/details/:id", isLoggedIn, getOrganizationById);
