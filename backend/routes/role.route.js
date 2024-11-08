@@ -1,5 +1,4 @@
 const {
-  resetPermissions,
   createRole,
   updateRole,
   deleteRole,
@@ -15,7 +14,6 @@ const {
 const { VIEW_ROLE, CREATE_ROLE, UPDATE_ROLE, DELETE_ROLE } = require("../utils/constant");
 const router = require("express").Router();
 
-router.get("/reset-permissions", resetPermissions);
 router.get("/details/:id", checkPermission([VIEW_ROLE.slug]), getRoleById);
 router.get("/names", checkPermission([VIEW_ROLE.slug]), getAllRoleName);
 router.get("/all", checkPermission([VIEW_ROLE.slug]), getAllRoles);
