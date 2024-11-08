@@ -20,6 +20,7 @@ const createUserSchema = Joi.object({
   is_active: Joi.boolean().default(true),
   is_deleted: Joi.boolean().default(false),
   special_permissions: Joi.array().items(Joi.string()).default([]),
+  image: Joi.string().trim().allow(""),
 });
 
 const updateSelfUserSchema = Joi.object({

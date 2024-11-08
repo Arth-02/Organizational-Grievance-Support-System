@@ -20,4 +20,9 @@ const uploadFiles = async (file, organization_id, logo = false) => {
   return result;
 };
 
+// cloudinary.v2.api
+// .delete_resources(['66db3ed76a6806adf5ed7fba/vpysrvx1bwg1chijrub5', '66db3ed76a6806adf5ed7fba/bzk8znnluvzlpl0kachb'], 
+//   { type: 'upload', resource_type: 'image' })
+// .then(console.log);
+
 module.exports = uploadFiles;

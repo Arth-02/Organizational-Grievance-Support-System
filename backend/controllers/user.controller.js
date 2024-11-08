@@ -31,6 +31,7 @@ const {
   superAdminSchema,
 } = require("../validators/user.validator");
 const boardService = require("../services/board.service");
+const attachmentService = require("../services/attachment.service");
 
 // Login user
 const login = async (req, res) => {
@@ -101,6 +102,8 @@ const login = async (req, res) => {
 
 // Create new user
 const createUser = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { organization_id } = req.user;
     // Validate request body.
@@ -123,7 +126,7 @@ const createUser = async (req, res) => {
       employee_id,
       phone_number,
       is_active,
-      special_permissions,
+      special_permissions
     } = value;
 
     if (!isValidObjectId(role)) {
@@ -138,7 +141,7 @@ const createUser = async (req, res) => {
       $or: [{ email }, { username }, { employee_id }],
       organization_id,
       is_deleted: false,
-    });
+    }).session(session);
     if (existingUser) {
       return errorResponse(
         res,
@@ -147,16 +150,20 @@ const createUser = async (req, res) => {
       );
     }
 
-    const existingOrganization = await Organization.findById(organization_id);
+    const existingOrganization = await Organization.findById(
+      organization_id
+    ).session(session);
     if (!existingOrganization) {
       return errorResponse(res, 404, "Organization not found");
     }
 
-    const userRole = await Role.findById(role);
+    const userRole = await Role.findById(role).session(session);
     if (!userRole) {
       return errorResponse(res, 404, "Role not found");
     }
-    const userDepartment = await Department.findById(department);
+    const userDepartment = await Department.findById(department).session(
+      session
+    );
     if (!userDepartment) {
       return errorResponse(res, 404, "Department not found");
     }
@@ -176,9 +183,21 @@ const createUser = async (req, res) => {
       organization_id,
       special_permissions,
     });
-
-    // Save user to database
-    await newUser.save();
+    if (req.files && req.files.length > 0) {
+      const response = await attachmentService.createAttachment(
+        session,
+        newUser._id,
+        organization_id,
+        req.files
+      );
+      if (!response.isSuccess) {
+        await session.abortTransaction();
+        return errorResponse(res, 500, response.message);
+      }
+      console.log("Attachment Response:", response);
+      newUser.image_id = response.attachmentIds[0];
+    }
+    await newUser.save({ session });
 
     // Create and sign JWT token
     const payload = {
@@ -204,10 +223,14 @@ const createUser = async (req, res) => {
     };
 
     // Send success response
+    await session.commitTransaction();
     return successResponse(res, userData, "User created successfully", 201);
   } catch (err) {
     console.error("Registration Error:", err.message);
+    await session.abortTransaction();
     return catchResponse(res);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -231,6 +254,7 @@ const getUser = async (req, res) => {
       user = await User.findOne(query)
         .populate("role")
         .populate("department")
+        .populate({path: "image_id", select: "filename public_id url"})
         .select("-createdAt -updatedAt -last_login -is_active -is_deleted")
         .lean();
       user.role.permissions = user.role.permissions
@@ -979,7 +1003,10 @@ const addBoardTag = async (req, res) => {
 // Get board by id
 const getBoardById = async (req, res) => {
   try {
-    const response = await boardService.getBoardById(req.params.id, req.user.organization_id);
+    const response = await boardService.getBoardById(
+      req.params.id,
+      req.user.organization_id
+    );
     if (!response.isSuccess) {
       return errorResponse(res, 500, response.message);
     }

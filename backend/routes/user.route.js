@@ -38,7 +38,12 @@ const {
 const upload = require("../utils/multer");
 
 router.post("/login", login);
-router.post("/create", checkPermission([CREATE_USER.slug]), createUser);
+router.post(
+  "/create",
+  checkPermission([CREATE_USER.slug]),
+  upload.array("image", 1),
+  createUser
+);
 router.get("/profile", isLoggedIn, getUser);
 router.get("/details/:id", checkPermission([VIEW_USER.slug]), getUser);
 router.get("/all", checkPermission([VIEW_USER.slug]), getAllUsers);
