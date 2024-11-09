@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { apiService } from "../services/api.service";
 import { getFromLocalStorage, saveToLocalStorage } from "@/utils";
+import { baseApi } from "@/services/baseApi.service";
 
 const initialState = {
   user: null,
@@ -49,7 +49,7 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addMatcher(
-        apiService.endpoints.userLogin.matchFulfilled,
+        baseApi.endpoints.userLogin.matchFulfilled,
         (state, action) => {
           state.user = action.payload;
           state.token = action.payload.token;
@@ -69,7 +69,7 @@ const userSlice = createSlice({
         }
       )
       .addMatcher(
-        apiService.endpoints.createSuperAdmin.matchFulfilled,
+        baseApi.endpoints.createSuperAdmin.matchFulfilled,
         (state, action) => {
           state.user = action.payload.data;
         }

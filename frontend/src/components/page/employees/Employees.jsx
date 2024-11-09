@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { User, Mail, IdCard } from "lucide-react";
 import GeneralTable from "@/components/table/CustomTable";
-import {
-  useDeleteAllUsersMutation,
-  useDeleteUserMutation,
-  useGetAllDepartmentNameQuery,
-  useGetAllPermissionsQuery,
-  useGetAllRoleNameQuery,
-  useGetAllUsersQuery,
-} from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
+import { useDeleteAllUsersMutation, useDeleteUserMutation, useGetAllPermissionsQuery, useGetAllUsersQuery } from "@/services/user.service";
+import { useGetAllDepartmentNameQuery } from "@/services/department.service";
+import { useGetAllRoleNameQuery } from "@/services/role.service";
 
 const Employees = () => {
   const [filters, setFilters] = useState({

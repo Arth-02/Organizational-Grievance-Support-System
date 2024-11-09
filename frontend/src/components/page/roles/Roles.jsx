@@ -1,14 +1,11 @@
 import { useState } from "react";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
-import {
-  useGetAllRolesQuery,
-  useDeleteRoleMutation,
-  useGetAllPermissionsQuery,
-} from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
 import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
+import { useDeleteRoleMutation, useGetAllRolesQuery } from "@/services/role.service";
+import { useGetAllPermissionsQuery } from "@/services/user.service";
 
 const Roles = () => {
   const [filters, setFilters] = useState({});

@@ -7,15 +7,11 @@ import { CustomInput } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import {
-  useCreateGrievanceMutation,
-  useUpdateGrievanceMutation,
-  useGetAllDepartmentNameQuery,
-  useGetGrievanceByIdQuery,
-} from "@/services/api.service";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
 import RichTextEditor from "./TextEditor";
+import { useCreateGrievanceMutation, useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import { useGetAllDepartmentNameQuery } from "@/services/department.service";
 
 const schema = z.object({
   title: z.string().nonempty("Title is required"),

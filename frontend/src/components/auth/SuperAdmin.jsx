@@ -1,11 +1,5 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useCheckEmailMutation,
-  useCheckUsernameMutation,
-  useCreateSuperAdminMutation,
-  useOtpGenerateMutation,
-} from "@/services/api.service";
 import toast from "react-hot-toast";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
@@ -16,6 +10,9 @@ import { CustomOTPInput } from "../ui/input-otp";
 import { BadgeAlert, BadgeCheck, Loader2 } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
 import { CustomTooltip } from "../ui/tooltip";
+import { useCreateSuperAdminMutation } from "@/services/organization.service";
+import { useOtpGenerateMutation } from "@/services/auth.service";
+import { useCheckEmailMutation, useCheckUsernameMutation } from "@/services/user.service";
 
 const SuperAdmin = () => {
   const [superAdmin, { isLoading }] = useCreateSuperAdminMutation();

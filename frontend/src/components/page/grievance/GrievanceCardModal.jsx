@@ -24,10 +24,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  useGetGrievanceByIdQuery,
-  useUpdateGrievanceMutation,
-} from "@/services/api.service";
 import cn from "classnames";
 import {
   DialogDescription,
@@ -50,6 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -73,7 +70,6 @@ function GrievanceModal() {
   const [grievance, setGrievance] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
   const [updateGrievance] = useUpdateGrievanceMutation();
   const navigate = useNavigate();
 

@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GeneralTable from "@/components/table/CustomTable";
-import {
-  useGetAllDepartmentsQuery,
-  useDeleteDepartmentMutation,
-} from "@/services/api.service";
 import MainLayout from "@/components/layout/MainLayout";
 import { useSelector } from "react-redux";
+import { useDeleteDepartmentMutation, useGetAllDepartmentsQuery } from "@/services/department.service";
 
 const Departments = () => {
   const [filters, setFilters] = useState({});

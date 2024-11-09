@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import Modal from "@/components/ui/Modal";
-import { useGetAllPermissionsQuery } from "@/services/api.service";
 import { ChevronsUpDown } from "lucide-react";
 import {
   Command,
@@ -19,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useGetAllPermissionsQuery } from "@/services/user.service";
 
 const PermissionsModal = ({
   isOpen,

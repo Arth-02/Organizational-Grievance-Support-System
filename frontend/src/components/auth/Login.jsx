@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useUserLoginMutation } from "@/services/api.service";
 import { toast } from "react-hot-toast";
 import { loginSchema } from "@/validators/users";
+import { useUserLoginMutation } from "@/services/auth.service";
 
 const Login = () => {
   const {

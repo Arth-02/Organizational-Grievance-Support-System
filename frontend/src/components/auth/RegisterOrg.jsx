@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { useCreateOrganizationMutation } from "@/services/api.service";
 import toast from "react-hot-toast";
 import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
@@ -8,6 +7,7 @@ import { CustomCheckbox } from "../ui/checkbox";
 import { CustomTextarea } from "../ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addressDetailsSchema, organizationDetailsSchema } from "@/validators/users";
+import { useCreateOrganizationMutation } from "@/services/organization.service";
 
 const RegisterOrg = () => {
   const [createOrganization] = useCreateOrganizationMutation();

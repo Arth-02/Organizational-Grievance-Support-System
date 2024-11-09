@@ -7,12 +7,6 @@ import { CustomInput } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
-import {
-  useGetAllPermissionsQuery,
-  useCreateRoleMutation,
-  useUpdateRoleMutation,
-  useGetRoleByIdQuery,
-} from "@/services/api.service";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
 import {
@@ -21,6 +15,8 @@ import {
   SelectContent,
   SelectValue,
 } from "@/components/ui/select";
+import { useCreateRoleMutation, useGetRoleByIdQuery, useUpdateRoleMutation } from "@/services/role.service";
+import { useGetAllPermissionsQuery } from "@/services/user.service";
 
 // Define schema for form validation
 const schema = z.object({

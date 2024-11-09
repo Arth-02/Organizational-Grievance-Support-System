@@ -3,13 +3,10 @@
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {
-  useGetAllGrievancesQuery,
-  useUpdateGrievanceMutation,
-} from "@/services/api.service";
 import GrievanceList from "./GrievanceList";
 import toast from "react-hot-toast";
 import useSocket from "@/utils/useSocket";
+import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
 
 const GrievanceBoardView = () => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];

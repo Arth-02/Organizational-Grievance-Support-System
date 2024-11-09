@@ -16,19 +16,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, BadgeCheck, BadgeAlert } from "lucide-react";
 import { CustomTooltip } from "@/components/ui/tooltip";
 import useDebounce from "@/hooks/useDebounce";
-import {
-  useCreateUserMutation,
-  useUpdateUserMutation,
-  useGetAllRoleNameQuery,
-  useGetAllDepartmentNameQuery,
-  useCheckUsernameMutation,
-  useCheckEmailMutation,
-  useGetUserDetailsQuery,
-  useGetAllPermissionsQuery,
-  useGetRoleByIdQuery,
-} from "@/services/api.service";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
+import {
+  useCheckEmailMutation,
+  useCheckUsernameMutation,
+  useCreateUserMutation,
+  useGetAllPermissionsQuery,
+  useGetUserDetailsQuery,
+  useUpdateUserMutation,
+} from "@/services/user.service";
+import { useGetAllRoleNameQuery, useGetRoleByIdQuery } from "@/services/role.service";
+import { useGetAllDepartmentNameQuery } from "@/services/department.service";
 
 const schema = z
   .object({
@@ -72,8 +71,7 @@ const AddUpdateEmployee = () => {
   });
   const { data: roles } = useGetAllRoleNameQuery();
   const { data: departments } = useGetAllDepartmentNameQuery();
-  const [checkUsername, { isLoading: checkingUsername }] =
-    useCheckUsernameMutation();
+  const [checkUsername, { isLoading: checkingUsername }] = useCheckUsernameMutation();
   const [checkEmail, { isLoading: checkingEmail }] = useCheckEmailMutation();
   const { data: permissions } = useGetAllPermissionsQuery();
   const {

@@ -1,10 +1,10 @@
 // GrievanceTableView.js
 import { useEffect, useState } from "react";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
 import GeneralTable from "@/components/table/CustomTable";
 import StatusTag from "@/components/table/StatusTag";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
 
 const GrievanceTableView = () => {
   const [filters, setFilters] = useState({});

@@ -6,13 +6,11 @@ import {
 import { Edit2, Eye, SquarePlus } from "lucide-react";
 import { useState } from "react";
 import PermissionsModal from "./PermissionModal";
-import {
-  useUpdateRoleMutation,
-  useUpdateUserMutation,
-} from "@/services/api.service";
 import toast from "react-hot-toast";
 import ViewPermissionsModal from "./ViewPermissionsModal";
 import { useSelector } from "react-redux";
+import { useUpdateUserMutation } from "@/services/user.service";
+import { useUpdateRoleMutation } from "@/services/role.service";
 
 const ManagePermissions = ({
   permissions,

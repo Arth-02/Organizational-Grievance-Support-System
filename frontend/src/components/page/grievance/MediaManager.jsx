@@ -30,8 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useUpdateAttachmentMutation } from "@/services/api.service";
 import toast from "react-hot-toast";
+import { useUpdateAttachmentMutation } from "@/services/grievance.service";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = {

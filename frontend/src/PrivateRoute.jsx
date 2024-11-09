@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getFromLocalStorage } from "./utils";
-import { useGetProfileQuery } from "./services/api.service";
+import { useGetProfileQuery } from "./services/auth.service";
 import { setUserDetails } from "./features/userSlice";
 
 function PrivateRoute({ children }) {
