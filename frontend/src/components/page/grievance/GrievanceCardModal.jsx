@@ -46,7 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import { useDeleteGrievanceByIdMutation, useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -71,6 +71,7 @@ function GrievanceModal() {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updateGrievance] = useUpdateGrievanceMutation();
+  const [deleteGrievance] = useDeleteGrievanceByIdMutation();
   const navigate = useNavigate();
 
   const {
@@ -117,10 +118,7 @@ function GrievanceModal() {
   const handleCloseGrievance = async () => {
     setDeleting(true);
     try {
-      const response = await updateGrievance({
-        id: grievanceId,
-        data: { is_active: false },
-      }).unwrap();
+      const response = await deleteGrievance(grievanceId).unwrap();
       toast.success(response.message);
       navigate(-1);
     } catch (error) {
