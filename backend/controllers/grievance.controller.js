@@ -1,7 +1,6 @@
 const Grievance = require("../models/grievance.model");
 const mongoose = require("mongoose");
 const { isValidObjectId } = require("mongoose");
-
 const {
   successResponse,
   errorResponse,
@@ -25,6 +24,7 @@ const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
 const LexoRank = require("../services/lexorank.service");
 const attachmentService = require("../services/attachment.service");
+const userService = require("../services/user.service");
 
 const createGrievance = async (req, res) => {
   const session = await mongoose.startSession();
@@ -165,10 +165,14 @@ const updateGrievance = async (req, res) => {
       .populate({ path: "assigned_to", select: "username" })
       .session(session);
 
-    const userData = await User.find({ organization_id }, "_id");
-    const userIds = userData
-      .map((user) => user._id)
-      .filter((id) => id.toString() !== userId.toString());
+    const response = await userService.getAllUsersId(req.user);
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, response.code, response.message);
+    }
+    const userIds = response.data.filter(
+      (user) => user._id.toString() !== userId.toString()
+    );
 
     // Send notification to all users except the one who updated the grievance
     sendNotification(

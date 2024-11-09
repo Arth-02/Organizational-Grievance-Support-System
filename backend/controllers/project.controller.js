@@ -393,8 +393,7 @@ const getAllProjects = async (req, res) => {
       Project.find(query)
         .sort({ [sort_by]: order })
         .limit(limitNumber)
-        .skip(skip)
-        .populate("board_id"),
+        .skip(skip),
       Project.countDocuments(query),
     ]);
     if (!projects) {

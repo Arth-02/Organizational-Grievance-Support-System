@@ -24,6 +24,7 @@ const {
   deleteBoardTask,
   updateBoardTaskAttachment,
   getBoardById,
+  getUserNames,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -63,7 +64,9 @@ router.post("/generate-otp", sendOTPEmail);
 router.post("/checkusername", checkUsername);
 router.post("/checkemail", checkEmail);
 router.post("/checkemployeeid", checkEmployeeID);
+
 router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
+router.get("/usersname", isLoggedIn, getUserNames);
 
 router.get("/permissions", isLoggedIn, getAllPermissions);
 

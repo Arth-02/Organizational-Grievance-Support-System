@@ -306,7 +306,7 @@ const getProjectById = async (id, user) => {
     const project = await Project.findOne({
       _id: id,
       organization_id,
-    }).populate("board_id");
+    });
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }

@@ -268,6 +268,20 @@ const getAllUsersId = async (req, res) => {
   }
 };
 
+// Get User Name and Ids 
+const getUserNames = async (req, res) => {
+  try {
+    const response = await userService.getUserNamesAndIds(req.user.organization_id);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(res, response.data, "Users retrieved successfully");
+  } catch (err) {
+    console.error("Get Users Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 // Add board
 const addBoard = async (req, res) => {
   const session = await mongoose.startSession();
@@ -566,6 +580,7 @@ module.exports = {
   checkEmail,
   checkEmployeeID,
   getAllUsers,
+  getUserNames,
   getAllPermissions,
   getAllUsersId,
   addBoard,

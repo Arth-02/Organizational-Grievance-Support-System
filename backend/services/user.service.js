@@ -897,6 +897,26 @@ const addBoardToUser = async (session, body, userData) => {
   }
 };
 
+// Get User name And id service
+const getUserNamesAndIds = async (organization_id) => {
+  try {
+    if(!organization_id) {
+      return { isSuccess: false, message: "Organization id is required", code: 400 };
+    }
+    if (!isValidObjectId(organization_id)) {
+      return { isSuccess: false, message: "Invalid organization id", code: 400 };
+    }
+    const users = await User.find(
+      { organization_id },
+      "username"
+    );
+    return { isSuccess: true, data: users};
+  } catch (err) {
+    console.error("Get Users Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   userLogin,
   createUser,
@@ -910,4 +930,5 @@ module.exports = {
   getAllUsers,
   getAllUsersId,
   addBoardToUser,
+  getUserNamesAndIds,
 };
