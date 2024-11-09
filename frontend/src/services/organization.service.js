@@ -1,5 +1,4 @@
-// organizationApi.js
-import { baseApi } from './baseApi';
+import { baseApi } from './baseApi.service';
 
 export const organizationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

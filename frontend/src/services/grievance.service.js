@@ -1,5 +1,4 @@
-// grievanceApi.js
-import { baseApi } from './baseApi';
+import { baseApi } from './baseApi.service';
 
 export const grievanceApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

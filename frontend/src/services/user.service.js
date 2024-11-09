@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi';
+import { baseApi } from './baseApi.service';
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -40,6 +40,14 @@ export const userApi = baseApi.injectEndpoints({
         url: `users/update/${id}`,
         method: "PATCH",
         body: data,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    updateUserSelf: builder.mutation({
+      query: (body) => ({
+        url: "users/profile/update",
+        method: "PATCH",
+        body,
       }),
       invalidatesTags: ["Users"],
     }),
@@ -155,6 +163,7 @@ export const {
   useGetAllUsersQuery,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useUpdateUserSelfMutation,
   useDeleteUserMutation,
   useDeleteAllUsersMutation,
   useCheckUsernameMutation,

@@ -1,5 +1,4 @@
-// roleApi.js
-import { baseApi } from './baseApi';
+import { baseApi } from './baseApi.service';
 
 export const roleApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
