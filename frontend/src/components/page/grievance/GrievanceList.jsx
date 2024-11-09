@@ -23,6 +23,7 @@ const GrievanceList = ({
   hasNextPage,
   page,
   isInisialized,
+  totalGrievancesCount,
   onPageChange,
 }) => {
   const containerRef = useRef(null);
@@ -66,7 +67,7 @@ const GrievanceList = ({
                   } transition-all duration-200 overflow-x-hidden`}
           >
             <div className="p-4 pb-2">
-              <h3 className="font-semibold capitalize">{list}</h3>
+              <h3 className="font-semibold capitalize">{list} {`(${totalGrievancesCount})`}</h3>
             </div>
             <div
               ref={(node) => {
