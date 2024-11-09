@@ -1,16 +1,14 @@
-// GrievanceTableView.js
 import { useEffect, useState } from "react";
 import GeneralTable from "@/components/table/CustomTable";
 import StatusTag from "@/components/table/StatusTag";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import { useDeleteGrievanceByIdMutation, useGetAllGrievancesQuery } from "@/services/grievance.service";
 
 const GrievanceTableView = () => {
   const [filters, setFilters] = useState({});
   const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(filters);
-  const [updateGrievance] = useUpdateGrievanceMutation();
-  
+  const [deleteGrievance] = useDeleteGrievanceByIdMutation();
   const [localGrievances, setLocalGrievances] = useState([]);
 
   const navigate = useNavigate();
@@ -135,17 +133,13 @@ const GrievanceTableView = () => {
     },
   ];
 
-
   const handleCloseGrievance = async (id) => {
     try {
-      const response = await updateGrievance({
-        id: id,
-        data: { is_active: false },
-      }).unwrap();
-      toast.success(response.message);
+      const response = await deleteGrievance(id).unwrap();
+      toast.success(response.data.message);
     } catch (error) {
       console.error("Failed to close grievance:", error);
-      toast.error("Failed to close grievance");
+      toast.error(error.data.message);
     }
   };
 
