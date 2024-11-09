@@ -20,7 +20,6 @@ const GrievanceBoardView = () => {
   const socket = useSocket();
 
   const [filters, setFilters] = useState({});
-  const [localGrievances, setLocalGrievances] = useState([]);
 
   const [page, setPage] = useState({
     submitted: 1,
@@ -45,6 +44,12 @@ const GrievanceBoardView = () => {
     "in-progress": false,
     resolved: false,
     dismissed: false,
+  });
+  const [totalGrievancesCount, setTotalGrievancesCount] = useState({
+    submitted: 0,
+    "in-progress": 0,
+    resolved: 0,
+    dismissed: 0,
   });
 
   const handlePageChange = (status, newPage) => {
@@ -78,7 +83,7 @@ const GrievanceBoardView = () => {
     page: page.dismissed,
   });
 
-  const updateGrievances = (status, newGrievances, hasNextPageStatus) => {
+  const updateGrievances = (status, newGrievances, hasNextPageStatus, totalCount) => {
     if (!isInitialized[status] && page[status] === 1) {
       // Initial load
       setGrievances((prev) => ({
@@ -101,18 +106,27 @@ const GrievanceBoardView = () => {
       ...prev,
       [status]: hasNextPageStatus,
     }));
+
+    setTotalGrievancesCount((prev) => ({
+      ...prev,
+      [status]: totalCount,
+    }));
   };
+
   const onDragEnd = async (
     grievanceId,
     newStatus,
-    sourceDraggableProps,
     destinationDraggableProps
   ) => {
     let originalGrievances;
+    let originalGrievacesCount;
 
     try {
       // Create a deep copy of the original state for backup
       originalGrievances = JSON.parse(JSON.stringify(grievances));
+
+      // Create a deep copy of the original count state for backup
+      originalGrievacesCount = JSON.parse(JSON.stringify(totalGrievancesCount));
 
       // Get the previous and next grievance ranks in the destination list
       let destinationGrievances = [...grievances[newStatus]];
@@ -182,6 +196,9 @@ const GrievanceBoardView = () => {
       // Update state with the new structure
       setGrievances(updatedGrievances);
 
+      // update count of grievances in the lists
+      handleCardMoveCount(oldStatus, newStatus);
+
       // Call API to update status and rank
       const response = await updateGrievance({
         id: grievanceId,
@@ -191,6 +208,25 @@ const GrievanceBoardView = () => {
           nextRank,
         },
       });
+
+      const updatedGrievance = response.data.data;
+
+      // update the grievance rank in the destination list
+      if (updatedGrievance) {
+        setGrievances((prevGrievances) => {
+          const newStatus = updatedGrievance.status;
+          const updatedNewList = prevGrievances[newStatus].map((grievance) =>
+            grievance._id === updatedGrievance._id
+              ? { ...grievance, rank: updatedGrievance.rank }
+              : grievance
+          );
+
+          return {
+            ...prevGrievances,
+            [newStatus]: updatedNewList,
+          };
+        });
+      }
 
       if (response.error) {
         throw new Error(response.error.data.message);
@@ -202,6 +238,9 @@ const GrievanceBoardView = () => {
       );
       // Restore the original state
       setGrievances(originalGrievances);
+
+      // Restore the original count state
+      setTotalGrievancesCount(originalGrievacesCount);
     }
   };
 
@@ -217,12 +256,23 @@ const GrievanceBoardView = () => {
     }
   };
 
+  const handleCardMoveCount = (oldStatus, newStatus) => {
+    if (oldStatus === newStatus) return;
+
+    setTotalGrievancesCount((prev) => ({
+      ...prev,
+      [oldStatus]: prev[oldStatus] - 1,
+      [newStatus]: prev[newStatus] + 1,
+    }));
+  };
+
   useEffect(() => {
     if (submittedGrievance?.data?.grievances) {
       updateGrievances(
         "submitted",
         submittedGrievance.data.grievances,
-        submittedGrievance.data.pagination.hasNextPage
+        submittedGrievance.data.pagination.hasNextPage,
+        submittedGrievance.data.pagination.totalSubmitted
       );
     }
   }, [submittedGrievance]);
@@ -232,7 +282,8 @@ const GrievanceBoardView = () => {
       updateGrievances(
         "in-progress",
         inProgressGrievance.data.grievances,
-        inProgressGrievance.data.pagination.hasNextPage
+        inProgressGrievance.data.pagination.hasNextPage,
+        inProgressGrievance.data.pagination.totalInProgress
       );
     }
   }, [inProgressGrievance]);
@@ -242,7 +293,8 @@ const GrievanceBoardView = () => {
       updateGrievances(
         "resolved",
         resolvedGrievance.data.grievances,
-        resolvedGrievance.data.pagination.hasNextPage
+        resolvedGrievance.data.pagination.hasNextPage,
+        resolvedGrievance.data.pagination.totalResolved
       );
     }
   }, [resolvedGrievance]);
@@ -252,58 +304,71 @@ const GrievanceBoardView = () => {
       updateGrievances(
         "dismissed",
         dismissedGrievance.data.grievances,
-        dismissedGrievance.data.pagination.hasNextPage
+        dismissedGrievance.data.pagination.hasNextPage,
+        dismissedGrievance.data.pagination.totalDismissed
       );
     }
   }, [dismissedGrievance]);
 
-  useEffect(() => {
-    socket.on("update_grievance", (msg) => {
-      setGrievances((prevGrievances) => {
-        const updatedGrievance = msg.updatedData;
-        const newStatus = updatedGrievance.status;
-        if (!updatedGrievance.is_active) {
-          return {
-            ...prevGrievances,
-            [newStatus]: prevGrievances[newStatus].filter(
-              (grievance) => grievance._id !== updatedGrievance._id
-            ),
-          };
-        }
+  const handleUpdateGrievance = (msg) => {
+    let oldStatus = null;
+    setGrievances((prevGrievances) => {
+      const updatedGrievance = msg.updatedData;
+      const newStatus = updatedGrievance.status;
 
-        const oldStatus = Object.keys(prevGrievances).find((status) =>
-          prevGrievances[status].some(
-            (grievance) => grievance._id === updatedGrievance._id
-          )
-        );
-
-        if (!oldStatus) return prevGrievances;
-
-        // Remove from the old status list
-        const updatedOldList = prevGrievances[oldStatus].filter(
-          (grievance) => grievance._id !== updatedGrievance._id
-        );
-
-        // Add or update the grievance in the new status list
-        const updatedNewList = [
-          ...prevGrievances[newStatus].filter(
-            (grievance) => grievance._id !== updatedGrievance._id
-          ),
-          updatedGrievance,
-        ];
-
+      // If the grievance is not active, remove it from the new status list
+      if (!updatedGrievance.is_active) {
         return {
           ...prevGrievances,
-          [oldStatus]: updatedOldList,
-          [newStatus]: updatedNewList.sort((a, b) => {
-            return a.rank.localeCompare(b.rank, undefined, {
-              numeric: true,
-              sensitivity: "base",
-            });
-          }),
+          [newStatus]: prevGrievances[newStatus].filter(
+            (grievance) => grievance._id !== updatedGrievance._id
+          ),
         };
+      }
+
+      // Find the old status of the grievance
+      oldStatus = Object.keys(prevGrievances).find((status) =>
+        prevGrievances[status].some(
+          (grievance) => grievance._id === updatedGrievance._id
+        )
+      );
+
+      // If the old status is not found, return the previous state
+      if (!oldStatus) return prevGrievances;
+
+      // Remove the grievance from the old status list
+      const updatedOldList = prevGrievances[oldStatus].filter(
+        (grievance) => grievance._id !== updatedGrievance._id
+      );
+
+      // Add or update the grievance in the new status list
+      const updatedNewList = [
+        ...prevGrievances[newStatus].filter(
+          (grievance) => grievance._id !== updatedGrievance._id
+        ),
+        updatedGrievance,
+      ];
+
+      // Sort the new status list by rank
+      const sortedNewList = updatedNewList.sort((a, b) => {
+        return a.rank.localeCompare(b.rank, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       });
+
+      return {
+        ...prevGrievances,
+        [oldStatus]: updatedOldList,
+        [newStatus]: sortedNewList,
+      };
     });
+
+    handleCardMoveCount(oldStatus, msg.updatedData.status);
+  };
+
+  useEffect(() => {
+    socket.on("update_grievance", handleUpdateGrievance);
 
     return () => {
       socket.off("update_grievance");
@@ -322,6 +387,7 @@ const GrievanceBoardView = () => {
             hasNextPage={hasNextPage[list]}
             page={page[list]}
             isInisialized={isInitialized[list]}
+            totalGrievancesCount={totalGrievancesCount[list]}
             onPageChange={handlePageChange}
           />
         ))}

@@ -46,8 +46,47 @@ async function migrateOldGrievances() {
   }
 }
 
-// switch case to handle different cmd operations
 
+async function testDuplicateRank() {
+  try {
+    // Connect to your MongoDB database
+    await mongoose.connect(MONGO_URI, {
+      dbName: MONGO_DB,
+    });
+
+    // Insert two initial documents
+    const result = await Grievance.insertMany([
+      {
+        organization_id: new mongoose.Types.ObjectId(),
+        title: "Test Grievance 1",
+        description: "Description for grievance 1",
+        department_id: new mongoose.Types.ObjectId(),
+        priority: "medium",
+        reported_by: new mongoose.Types.ObjectId(),
+        rank: "A",
+      },
+      {
+        organization_id: new mongoose.Types.ObjectId(),
+        title: "Test Grievance 2",
+        description: "Description for grievance 2",
+        department_id: new mongoose.Types.ObjectId(),
+        priority: "high",
+        reported_by: new mongoose.Types.ObjectId(),
+        rank: "A",
+      },
+    ]);
+
+    console.log("Update Result:", result);
+  } catch (error) {
+    console.error("Error during update:", error.message);
+  } finally {
+    // Disconnect from the database
+    await mongoose.disconnect();
+  }
+}
+
+
+// switch case to handle different cmd operations
 const command = process.argv[2];
 const arg1 = process.argv[3];
 const arg2 = process.argv[4];
@@ -58,6 +97,9 @@ switch (command) {
     break;
   case "migrate-old-grievances":
     migrateOldGrievances();
+    break;
+  case "test-duplicate-rank":
+    testDuplicateRank();
     break;
   case "get-middle-rank":
     if (arg1 || arg2) {
