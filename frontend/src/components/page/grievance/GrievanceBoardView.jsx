@@ -192,6 +192,25 @@ const GrievanceBoardView = () => {
         },
       });
 
+      const updatedGrievance = response.data.data;
+
+      // update the grievance rank in the destination list
+      if (updatedGrievance) {
+        setGrievances((prevGrievances) => {
+          const newStatus = updatedGrievance.status;
+          const updatedNewList = prevGrievances[newStatus].map((grievance) =>
+            grievance._id === updatedGrievance._id
+              ? { ...grievance, rank: updatedGrievance.rank }
+              : grievance
+          );
+
+          return {
+            ...prevGrievances,
+            [newStatus]: updatedNewList,
+          };
+        });
+      }
+
       if (response.error) {
         throw new Error(response.error.data.message);
       }
