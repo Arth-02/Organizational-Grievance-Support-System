@@ -166,8 +166,9 @@ const updateGrievance = async (req, res) => {
       .session(session);
 
     const userData = await User.find({ organization_id }, "_id");
-    const userIds = userData.map((user) => user._id);
+    const userIds = userData.map((user) => user._id).filter((id) => id.toString() !== userId.toString());
 
+    // Send notification to all users except the one who updated the grievance
     sendNotification(
       userIds,
       {
