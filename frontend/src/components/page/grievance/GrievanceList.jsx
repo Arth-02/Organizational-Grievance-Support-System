@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SkeletonCard = () => (
-  <div className="bg-white dark:bg-gray-600/40 rounded-lg p-4 shadow">
+  <div className="bg-white dark:bg-gray-600/20 rounded-lg p-4 shadow">
     <Skeleton className="h-4 w-3/4 mb-2" />
     <Skeleton className="h-4 w-1/2 mb-4" />
     <div className="flex justify-between items-center">
@@ -49,7 +49,7 @@ const GrievanceList = ({
   );
 
   // Generate a random number between 1 and 4
-  const randomSkeletonCount = Math.floor(Math.random() * 4) + 1;
+  const randomSkeletonCountRef = useRef(Math.floor(Math.random() * 4) + 1);
 
   return (
     <Droppable droppableId={list} key={list}>
@@ -82,7 +82,7 @@ const GrievanceList = ({
                 }`}
               >
                 {!isInisialized ? (
-                  Array.from({ length: randomSkeletonCount }).map((_, index) => (
+                  Array.from({ length: randomSkeletonCountRef.current }).map((_, index) => (
                     <SkeletonCard key={index} />
                   ))
                 ) : (
