@@ -1,13 +1,20 @@
 // GrievanceTableView.js
 import { useEffect, useState } from "react";
-import { useGetAllGrievancesQuery } from "@/services/api.service";
+import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/api.service";
 import GeneralTable from "@/components/table/CustomTable";
 import StatusTag from "@/components/table/StatusTag";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const GrievanceTableView = () => {
   const [filters, setFilters] = useState({});
   const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(filters);
+  const [updateGrievance] = useUpdateGrievanceMutation();
+  
   const [localGrievances, setLocalGrievances] = useState([]);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (data?.data?.grievances) {
@@ -87,6 +94,12 @@ const GrievanceTableView = () => {
         }
       },
     },
+    {
+      accessorKey: "attachments",
+      header: "Attachments",
+      sortable: true,
+      cell: ({ row }) => row.original.attachments.length,
+    }
   ];
 
   const customFilters = [
@@ -122,6 +135,24 @@ const GrievanceTableView = () => {
     },
   ];
 
+
+  const handleCloseGrievance = async (id) => {
+    try {
+      const response = await updateGrievance({
+        id: id,
+        data: { is_active: false },
+      }).unwrap();
+      toast.success(response.message);
+    } catch (error) {
+      console.error("Failed to close grievance:", error);
+      toast.error("Failed to close grievance");
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/grievances/${id}`, { state: { background: location } });
+  };
+
   return (
     <GeneralTable
       data={localGrievances || []}
@@ -135,6 +166,10 @@ const GrievanceTableView = () => {
       customFilters={customFilters}
       searchOptions={searchOptions}
       pagination={data?.data?.pagination}
+      canUpdate={true}
+      canDelete={true}
+      onDelete={handleCloseGrievance}
+      onEdit={handleEdit}
     />
   );
 };

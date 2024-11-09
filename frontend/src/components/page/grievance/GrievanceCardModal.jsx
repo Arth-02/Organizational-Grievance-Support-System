@@ -74,9 +74,7 @@ function GrievanceModal() {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const [updateGrievance, { isLoading: isUpdating }] =
-    useUpdateGrievanceMutation();
-
+  const [updateGrievance] = useUpdateGrievanceMutation();
   const navigate = useNavigate();
 
   const {

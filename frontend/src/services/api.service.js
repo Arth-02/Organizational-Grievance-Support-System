@@ -430,6 +430,16 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
+    createGrievance: builder.mutation({
+      query: (body) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: "grievances/create",
+        method: "POST",
+        body,
+      }),
+    }),
     getAllGrievances: builder.query({
       query: (filters) => {
         const params = new URLSearchParams(filters).toString();
@@ -453,6 +463,16 @@ export const apiService = createApi({
         body: data,
       }),
       // invalidatesTags: ["Grievances"],
+    }),
+    deleteGrievanceById: builder.mutation({
+      query: (id) => ({
+        headers: {
+          Authorization: `Bearer ${getFromLocalStorage("token")}`,
+        },
+        url: `grievances/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Grievances"],
     }),
     getGrievanceById: builder.query({
       query: (id) => ({
@@ -639,7 +659,9 @@ export const {
   useCheckEmailMutation,
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
+  useCreateGrievanceMutation,
   useGetAllGrievancesQuery,
+  useDeleteGrievanceByIdMutation,
   useUpdateGrievanceMutation,
   useGetGrievanceByIdQuery,
   useUpdateAttachmentMutation,

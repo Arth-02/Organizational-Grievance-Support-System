@@ -6,13 +6,13 @@ const Textarea = React.forwardRef(({ className, error, ...props }, ref) => {
     <>
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm transition-colors duration-200",
+          "flex min-h-[80px] w-full rounded-md border bg-background dark:bg-transparent px-3 py-2 text-sm transition-colors duration-200",
           "placeholder:text-muted-foreground",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "focus:outline-none",
           error
             ? "border-red-500 focus:border-red-500"
-            : "border-gray-300 focus:border-primary",
+            : "border-gray-300 dark:border-secondary/40 focus:border-primary dark:focus:border-primary",
           className
         )}
         ref={ref}
