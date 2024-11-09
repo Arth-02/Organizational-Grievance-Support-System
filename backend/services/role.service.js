@@ -8,7 +8,6 @@ const {
 const { VIEW_PERMISSION, PERMISSIONS } = require("../utils/constant");
 const User = require("../models/user.model");
 
-
 // Create Role Service
 const createRole = async (body, userData) => {
   try {
@@ -18,7 +17,7 @@ const createRole = async (body, userData) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const { name, permissions } = value;
     const role = new Role({
@@ -30,7 +29,7 @@ const createRole = async (body, userData) => {
     return { isSuccess: true, data: role };
   } catch (err) {
     console.error("Error creating role: ", err);
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -38,7 +37,7 @@ const createRole = async (body, userData) => {
 const updateRole = async (id, body, userData) => {
   try {
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid Role Id" };
+      return { isSuccess: false, message: "Invalid Role Id", code: 400 };
     }
     const { organization_id } = userData;
     const { error, value } = updateRoleSchema.validate(body, {
@@ -47,7 +46,7 @@ const updateRole = async (id, body, userData) => {
 
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const query = { _id: id };
     if (organization_id) {
@@ -58,12 +57,12 @@ const updateRole = async (id, body, userData) => {
       new: true,
     });
     if (!role) {
-      return { isSuccess: false, message: "Role not found" };
+      return { isSuccess: false, message: "Role not found", code: 404 };
     }
     return { isSuccess: true, data: role };
   } catch (err) {
     console.error("Error updating role: ", err);
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -72,7 +71,7 @@ const getRoleById = async (id, userData) => {
   try {
     const { organization_id } = userData;
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid id" };
+      return { isSuccess: false, message: "Invalid id", code: 400 };
     }
     const query = { _id: id };
     if (organization_id) {
@@ -80,12 +79,12 @@ const getRoleById = async (id, userData) => {
     }
     const role = await Role.findOne(query);
     if (!role) {
-      return { isSuccess: false, message: "Role not found" };
+      return { isSuccess: false, message: "Role not found", code: 404 };
     }
     return { isSuccess: true, data: role };
   } catch (err) {
     console.error("Error getting role by id: ", err);
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -99,12 +98,12 @@ const getAllRoleName = async (userData) => {
     }
     const roles = await Role.find(query).select("name");
     if (!roles) {
-      return { isSuccess: false, message: "Roles not found" };
+      return { isSuccess: false, message: "Roles not found", code: 404 };
     }
     return { isSuccess: true, data: roles };
   } catch (err) {
     console.error("Error getting all roles name: ", err);
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -211,7 +210,7 @@ const getAllRoles = async (userData, reqquery) => {
     const hasPrevPage = pageNumber > 1;
 
     if (roles.length === 0) {
-      return { isSuccess: false, message: "Roles not found" };
+      return { isSuccess: false, message: "Roles not found", code: 404 };
     }
     if (canViewPermissions) {
       for (let i = 0; i < roles.length; i++) {
@@ -235,7 +234,7 @@ const getAllRoles = async (userData, reqquery) => {
     return { isSuccess: true, data: roles, pagination };
   } catch (err) {
     console.error("Error getting all roles: ", err);
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -249,24 +248,28 @@ const deleteRole = async (session, id, userData, body) => {
 
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const { replace_role_id } = value;
 
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid id" };
+      return { isSuccess: false, message: "Invalid id", code: 400 };
     }
 
     const role = await Role.findOne({ _id: id, organization_id }).session(
       session
     );
     if (!role) {
-      return { isSuccess: false, message: "Role not found" };
+      return { isSuccess: false, message: "Role not found", code: 404 };
     }
 
     if (replace_role_id) {
       if (!isValidObjectId(replace_role_id)) {
-        return { isSuccess: false, message: "Invalid replace role id" };
+        return {
+          isSuccess: false,
+          message: "Invalid replace role id",
+          code: 400,
+        };
       }
 
       const replaceRole = await Role.findOne({
@@ -274,7 +277,11 @@ const deleteRole = async (session, id, userData, body) => {
         organization_id,
       }).session(session);
       if (!replaceRole) {
-        return { isSuccess: false, message: "Replace role not found" };
+        return {
+          isSuccess: false,
+          message: "Replace role not found",
+          code: 404,
+        };
       }
 
       const userUpdate = await User.updateMany(
@@ -283,7 +290,11 @@ const deleteRole = async (session, id, userData, body) => {
       ).session(session);
 
       if (userUpdate.modifiedCount === 0) {
-        return { isSuccess: false, message: "No user found with this role" };
+        return {
+          isSuccess: false,
+          message: "No user found with this role",
+          code: 404,
+        };
       }
     } else {
       const userExist = await User.findOne({
@@ -294,6 +305,7 @@ const deleteRole = async (session, id, userData, body) => {
         return {
           isSuccess: false,
           message: "This role is associated with some users",
+          code: 400,
         };
       }
     }
@@ -302,7 +314,7 @@ const deleteRole = async (session, id, userData, body) => {
   } catch (err) {
     console.error("Error deleting role: ", err);
     ``;
-    return { isSuccess: false, message: "Internal Server Error" };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -311,7 +323,7 @@ const getUsersCountByRoleId = async (id, userData) => {
   try {
     const { organization_id } = userData;
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid role ID" };
+      return { isSuccess: false, message: "Invalid role ID", code: 400 };
     }
     const query = { role: id };
     if (organization_id) {
@@ -321,7 +333,7 @@ const getUsersCountByRoleId = async (id, userData) => {
     return { isSuccess: true, data: usersCount };
   } catch (err) {
     console.error("Error getting users count by role id: ", err);
-    return catchResponse(res);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 module.exports = {

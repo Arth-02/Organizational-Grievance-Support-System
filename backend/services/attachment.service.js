@@ -12,7 +12,11 @@ const createAttachment = async (session, user_id, organization_id, files) => {
         console.error(
           "Error uploading attachments in Attachment Service createAttachment"
         );
-        return { isSuccess: false, message: "Error uploading attachments" };
+        return {
+          isSuccess: false,
+          message: "Error uploading attachments",
+          code: 400,
+        };
       }
       const newAttachment = new Attachment({
         filename: file.originalname,
@@ -33,7 +37,7 @@ const createAttachment = async (session, user_id, organization_id, files) => {
       "Error creating attachment in Attachment Service createAttachment:",
       error.message
     );
-    return { isSuccess: false, message: error.message };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 
@@ -48,7 +52,11 @@ const deleteAttachment = async (session, attachment_id) => {
       console.error(
         "Error deleting attachment in Attachment Service deleteAttachment"
       );
-      return { isSuccess: false, message: "Error deleting attachment" };
+      return {
+        isSuccess: false,
+        message: "Error deleting attachment",
+        code: 400,
+      };
     }
     return { isSuccess: true };
   } catch (error) {
@@ -56,7 +64,7 @@ const deleteAttachment = async (session, attachment_id) => {
       "Error deleting attachment in Attachment Service deleteAttachment:",
       error.message
     );
-    return { isSuccess: false, message: error.message };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 

@@ -14,7 +14,7 @@ const createDepartment = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -36,7 +36,7 @@ const updateDepartment = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -57,7 +57,7 @@ const getAllDepartment = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -75,7 +75,7 @@ const getAllDepartmentName = async (req, res) => {
   try {
     const response = await departmentService.getAllDepartmentNames(req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -96,7 +96,7 @@ const getDepartmentById = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -121,7 +121,7 @@ const deleteDepartment = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, {}, "Department deleted successfully");
@@ -142,7 +142,7 @@ const getUsersCountByDepartmentId = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,

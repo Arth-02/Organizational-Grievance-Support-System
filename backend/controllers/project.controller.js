@@ -33,7 +33,7 @@ const createProject = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, "Error creating project board");
+      return errorResponse(res, response.code, "Error creating project board");
     }
     const board = response.board;
     const newProject = new Project({
@@ -67,7 +67,7 @@ const updateProject = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -98,7 +98,7 @@ const addProjectBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -129,7 +129,7 @@ const updateProjectBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -160,7 +160,7 @@ const deleteProjectBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -190,7 +190,7 @@ const addProjectBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -221,7 +221,7 @@ const updateProjectBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -253,7 +253,7 @@ const updateProjectBoardTaskAttachment = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -283,7 +283,7 @@ const deleteProjectBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -308,7 +308,7 @@ const getProjectById = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -333,7 +333,7 @@ const deleteProject = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, null, "Project deleted successfully");

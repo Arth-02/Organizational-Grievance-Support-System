@@ -14,7 +14,7 @@ const createOrganization = async (session, body, files) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const {
@@ -34,7 +34,11 @@ const createOrganization = async (session, body, files) => {
       session
     );
     if (existingOrganization) {
-      return { isSuccess: false, message: "Organization already exists" };
+      return {
+        isSuccess: false,
+        message: "Organization already exists",
+        code: 400,
+      };
     }
 
     const newOrganization = new Organization({
@@ -58,7 +62,11 @@ const createOrganization = async (session, body, files) => {
         files
       );
       if (!response.isSuccess) {
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       newOrg.logo_id = response.attachmentIds[0];
     }
@@ -66,7 +74,7 @@ const createOrganization = async (session, body, files) => {
     return { isSuccess: true, data: newOrg };
   } catch (err) {
     console.error("Error in createOrganization service", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -79,7 +87,7 @@ const updateOrganization = async (session, body, userData, files) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     if (files && files.length > 0) {
       const response = await attachmentService.createAttachment(
@@ -89,7 +97,11 @@ const updateOrganization = async (session, body, userData, files) => {
         files
       );
       if (!response.isSuccess) {
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       value.logo_id = response.attachmentIds[0];
     }
@@ -101,12 +113,12 @@ const updateOrganization = async (session, body, userData, files) => {
       }
     ).session(session);
     if (!organization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
     return { isSuccess: true, data: organization };
   } catch (err) {
     console.error("Error in updateOrganization service", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -114,22 +126,30 @@ const updateOrganization = async (session, body, userData, files) => {
 const getOrganizationById = async (id) => {
   try {
     if (!id) {
-      return { isSuccess: false, message: "Organization id is required" };
+      return {
+        isSuccess: false,
+        message: "Organization id is required",
+        code: 400,
+      };
     }
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid organization id" };
+      return {
+        isSuccess: false,
+        message: "Invalid organization id",
+        code: 400,
+      };
     }
     const organization = await Organization.findOne({
       _id: id,
       is_active: true,
     });
     if (!organization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
     return { isSuccess: true, data: organization };
   } catch (err) {
     console.error("Error in getOrganizationById service", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 

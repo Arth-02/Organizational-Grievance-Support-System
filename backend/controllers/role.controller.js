@@ -15,7 +15,7 @@ const createRole = async (req, res) => {
   try {
     const response = await roleService.createRole(req.body, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -38,7 +38,7 @@ const updateRole = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Role updated successfully");
   } catch (err) {
@@ -52,7 +52,7 @@ const getRoleById = async (req, res) => {
   try {
     const response = await roleService.getRoleById(req.params.id, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 404, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Role retrieved successfully");
   } catch (err) {
@@ -66,7 +66,7 @@ const getAllRoleName = async (req, res) => {
   try {
     const response = await roleService.getAllRoleName(req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 404, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Roles retrieved successfully");
   } catch (err) {
@@ -80,7 +80,7 @@ const getAllRoles = async (req, res) => {
   try {
     const response = await roleService.getAllRoles(req.user, req.query);
     if (!response.isSuccess) {
-      return errorResponse(res, 404, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,
@@ -106,7 +106,7 @@ const deleteRole = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, {}, "Role deleted successfully");
@@ -127,7 +127,7 @@ const getUsersCountByRoleId = async (req, res) => {
       req.user
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(
       res,

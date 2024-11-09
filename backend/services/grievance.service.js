@@ -14,7 +14,7 @@ const createGrievance = async (session, body, user, files) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const { title, description, priority, status, department_id } = value;
@@ -29,6 +29,7 @@ const createGrievance = async (session, body, user, files) => {
       return {
         isSuccess: false,
         message: "Department does not exist in this organization",
+        code: 400,
       };
     }
 
@@ -37,11 +38,11 @@ const createGrievance = async (session, body, user, files) => {
       organization_id,
       status,
     })
-    .sort({ rank: -1 })
-    .session(session);
+      .sort({ rank: -1 })
+      .session(session);
 
     // Generate rank for new grievance
-    const rank = lastGrievance 
+    const rank = lastGrievance
       ? LexoRank.generateNextRank(lastGrievance.rank)
       : LexoRank.getInitialRank();
 
@@ -54,7 +55,7 @@ const createGrievance = async (session, body, user, files) => {
       status,
       reported_by,
       employee_id,
-      rank
+      rank,
     });
     let response;
     if (files && files.length > 0) {
@@ -65,7 +66,11 @@ const createGrievance = async (session, body, user, files) => {
         files
       );
       if (!response.isSuccess) {
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
     }
     const attachmentIds = response.attachmentIds;
@@ -73,7 +78,7 @@ const createGrievance = async (session, body, user, files) => {
     await newGrievance.save({ session });
     return { isSuccess: true, grievance: newGrievance };
   } catch (err) {
-    return { isSuccess: false, message: err.message };
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 

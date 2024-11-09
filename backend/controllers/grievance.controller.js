@@ -99,7 +99,7 @@ const updateGrievance = async (req, res) => {
     let schema = Joi.object();
 
     // If user has full permission to update grievance
-    if (canUpdateGrievance && (!req.body.title && !req.body.description) ) {
+    if (canUpdateGrievance && !req.body.title && !req.body.description) {
       schema = updateFullGrievanceSchema;
       if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
         await session.abortTransaction();
@@ -166,7 +166,9 @@ const updateGrievance = async (req, res) => {
       .session(session);
 
     const userData = await User.find({ organization_id }, "_id");
-    const userIds = userData.map((user) => user._id).filter((id) => id.toString() !== userId.toString());
+    const userIds = userData
+      .map((user) => user._id)
+      .filter((id) => id.toString() !== userId.toString());
 
     // Send notification to all users except the one who updated the grievance
     sendNotification(
@@ -248,7 +250,7 @@ const updateGrievanceAttachment = async (req, res) => {
       );
       if (!response.isSuccess) {
         await session.abortTransaction();
-        return errorResponse(res, 400, response.message);
+        return errorResponse(res, response.code, response.message);
       }
       grievance.attachments = grievance.attachments.filter(
         (attachment) => !delete_attachments.includes(attachment._id.toString())
@@ -263,7 +265,7 @@ const updateGrievanceAttachment = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     grievance.attachments.push(...response.attachmentIds);
     const updatedGrievanceData = await Grievance.findOne({
