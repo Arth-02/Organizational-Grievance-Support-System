@@ -33,12 +33,7 @@ const GrievanceSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: [
-        "submitted",
-        "in-progress",
-        "resolved",
-        "dismissed",
-      ],
+      enum: ["submitted", "in-progress", "resolved", "dismissed"],
       default: "submitted",
     },
     is_active: {
@@ -70,7 +65,8 @@ const GrievanceSchema = new mongoose.Schema(
   }
 );
 
-GrievanceSchema.index({ status: 1, rank: 1 });
+GrievanceSchema.index({ rank: 1 }, { unique: true });
+GrievanceSchema.index({ status: 1, rank: 1 }, { unique: true });
 
 const Grievance = mongoose.model("Grievance", GrievanceSchema);
 
