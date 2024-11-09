@@ -17,7 +17,7 @@ const createOrganization = async (req, res) => {
       req.files
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -40,10 +40,15 @@ const updateOrganization = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const response = await organizationService.updateOrganization(session,req.body, req.userData, req.files);
+    const response = await organizationService.updateOrganization(
+      session,
+      req.body,
+      req.userData,
+      req.files
+    );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -63,9 +68,11 @@ const updateOrganization = async (req, res) => {
 // get by id
 const getOrganizationById = async (req, res) => {
   try {
-    const response = await organizationService.getOrganizationById(req.params.id);
+    const response = await organizationService.getOrganizationById(
+      req.params.id
+    );
     if (!response.isSuccess) {
-      return errorResponse(res, 404, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Organization found");
   } catch (err) {

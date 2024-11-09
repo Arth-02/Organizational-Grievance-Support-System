@@ -1,4 +1,4 @@
-const {default: mongoose } = require("mongoose");
+const { default: mongoose } = require("mongoose");
 const {
   successResponse,
   errorResponse,
@@ -13,7 +13,7 @@ const login = async (req, res) => {
   try {
     const response = await userService.userLogin(req.body);
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Login successful");
   } catch (err) {
@@ -35,7 +35,7 @@ const createUser = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -58,7 +58,7 @@ const getUser = async (req, res) => {
   try {
     const response = await userService.getUserDetails(req.params.id, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 404, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "User retrieved successfully");
   } catch (err) {
@@ -77,7 +77,7 @@ const updateUser = async (req, res) => {
       req.files
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "User updated successfully");
   } catch (err) {
@@ -91,7 +91,7 @@ const deleteUser = async (req, res) => {
   try {
     const response = await userService.deleteUser(req.params.id, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, {}, "User deleted successfully");
   } catch (err) {
@@ -105,7 +105,7 @@ const deleteAllUsers = async (req, res) => {
   try {
     const response = await userService.deleteMultipleUsers(req.body, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, {}, "Users deleted successfully");
   } catch (err) {
@@ -126,7 +126,7 @@ const createSuperAdmin = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -148,7 +148,7 @@ const sendOTPEmail = async (req, res) => {
   try {
     const response = await userService.sendOTPEmail(req.body.organization_id);
     if (!response.isSuccess) {
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, {}, "OTP sent successfully");
   } catch (err) {
@@ -166,7 +166,7 @@ const checkUsername = async (req, res) => {
       "Username"
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     if (response.exists) {
       return successResponse(res, { exists: true }, "Username unavailable");
@@ -188,7 +188,7 @@ const checkEmail = async (req, res) => {
       "Email"
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     if (response.exists) {
       return successResponse(res, { exists: true }, "Email unavailable");
@@ -209,7 +209,7 @@ const checkEmployeeID = async (req, res) => {
       "Employee ID"
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 400, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     if (response.exists) {
       return successResponse(res, { exists: true }, "Employee ID unavailable");
@@ -226,7 +226,7 @@ const getAllUsers = async (req, res) => {
   try {
     const response = await userService.getAllUsers(req.query, req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
 
     return successResponse(
@@ -259,7 +259,7 @@ const getAllUsersId = async (req, res) => {
   try {
     const response = await userService.getAllUsersId(req.user);
     if (!response.isSuccess) {
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.data, "Users retrieved successfully");
   } catch (err) {
@@ -280,7 +280,7 @@ const addBoard = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, response.data, "Board created successfully");
@@ -306,7 +306,7 @@ const deleteBoard = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(res, {}, "Board deleted successfully");
@@ -333,7 +333,7 @@ const addBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -358,7 +358,7 @@ const getBoardById = async (req, res) => {
       req.user.organization_id
     );
     if (!response.isSuccess) {
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     return successResponse(res, response.board, "Board retrieved successfully");
   } catch (err) {
@@ -384,7 +384,7 @@ const updateBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -418,7 +418,7 @@ const deleteBoardTag = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -450,7 +450,7 @@ const addBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -481,7 +481,7 @@ const updateBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -511,7 +511,7 @@ const updateBoardTaskAttachment = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(
@@ -539,7 +539,7 @@ const deleteBoardTask = async (req, res) => {
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, 500, response.message);
+      return errorResponse(res, response.code, response.message);
     }
     await session.commitTransaction();
     return successResponse(

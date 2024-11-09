@@ -34,7 +34,7 @@ const userLogin = async (body) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: error };
+      return { isSuccess: false, message: error, code: 400 };
     }
 
     const { email, username, password, rememberMe } = value;
@@ -48,13 +48,13 @@ const userLogin = async (body) => {
       .populate("department")
       .populate({ path: "organization_id", select: "name logo" });
     if (!user) {
-      return { isSuccess: false, message: "User not found" };
+      return { isSuccess: false, message: "User not found", code: 404 };
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return { isSuccess: false, message: "Invalid password" };
+      return { isSuccess: false, message: "Invalid password", code: 400 };
     }
 
     // User authenticated, create token
@@ -89,7 +89,7 @@ const userLogin = async (body) => {
     return { isSuccess: true, data: userData };
   } catch (err) {
     console.error("Login Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -102,7 +102,7 @@ const createUser = async (session, body, userData, files) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const {
@@ -120,10 +120,10 @@ const createUser = async (session, body, userData, files) => {
     } = value;
 
     if (!isValidObjectId(role)) {
-      return { isSuccess: false, message: "Invalid Role id" };
+      return { isSuccess: false, message: "Invalid Role id", code: 400 };
     }
     if (!isValidObjectId(department)) {
-      return { isSuccess: false, message: "Invalid Department id" };
+      return { isSuccess: false, message: "Invalid Department id", code: 400 };
     }
 
     // Check if user already exists
@@ -136,6 +136,7 @@ const createUser = async (session, body, userData, files) => {
       return {
         isSuccess: false,
         message: "User already exists with this email, username or employee ID",
+        code: 400,
       };
     }
 
@@ -143,18 +144,18 @@ const createUser = async (session, body, userData, files) => {
       organization_id
     ).session(session);
     if (!existingOrganization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
 
     const userRole = await Role.findById(role).session(session);
     if (!userRole) {
-      return { isSuccess: false, message: "Role not found" };
+      return { isSuccess: false, message: "Role not found", code: 404 };
     }
     const userDepartment = await Department.findById(department).session(
       session
     );
     if (!userDepartment) {
-      return { isSuccess: false, message: "Department not found" };
+      return { isSuccess: false, message: "Department not found", code: 404 };
     }
 
     // Create new user
@@ -181,7 +182,11 @@ const createUser = async (session, body, userData, files) => {
       );
       if (!response.isSuccess) {
         await session.abortTransaction();
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       newUser.image_id = response.attachmentIds[0];
     }
@@ -215,7 +220,7 @@ const createUser = async (session, body, userData, files) => {
     return { isSuccess: true, data: userData };
   } catch (err) {
     console.error("Registration Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -225,10 +230,10 @@ const getUserDetails = async (user_id, userData) => {
     const { organization_id } = userData;
     const id = user_id || userData.id;
     if (!id) {
-      return { isSuccess: false, message: "User id is Required" };
+      return { isSuccess: false, message: "User id is Required", code: 400 };
     }
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid user id" };
+      return { isSuccess: false, message: "Invalid user id", code: 400 };
     }
     const query = { _id: id, is_deleted: false };
     if (organization_id) {
@@ -253,13 +258,13 @@ const getUserDetails = async (user_id, userData) => {
       );
     }
     if (!user) {
-      return { isSuccess: false, message: "User not found" };
+      return { isSuccess: false, message: "User not found", code: 404 };
     }
 
     return { isSuccess: true, data: user };
   } catch (err) {
     console.error("Get Profile Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -275,17 +280,17 @@ const updateUserDetails = async (user_id, userData, body, files) => {
       schema = updateSelfUserSchema;
       id = userData.id;
     } else {
-      return errorResponse(res, 400, "User ID is required");
+      return { isSuccess: false, message: "User ID is required", code: 400 };
     }
     if (!isValidObjectId(id)) {
-      return errorResponse(res, 400, "Invalid user ID");
+      return { isSuccess: false, message: "Invalid user id", code: 400 };
     }
     const { error, value } = schema.validate(body, {
       abortEarly: false,
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const query = { _id: id };
 
@@ -300,7 +305,11 @@ const updateUserDetails = async (user_id, userData, body, files) => {
         files
       );
       if (!response.isSuccess) {
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       value.image_id = response.attachmentIds[0];
     }
@@ -308,12 +317,12 @@ const updateUserDetails = async (user_id, userData, body, files) => {
       new: true,
     });
     if (!user) {
-      return { isSuccess: false, message: "User not found" };
+      return { isSuccess: false, message: "User not found", code: 404 };
     }
     return { isSuccess: true, data: user };
   } catch (err) {
     console.error("Update Profile Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -323,10 +332,10 @@ const deleteUser = async (user_id, userData) => {
     const { organization_id } = userData;
     const id = user_id;
     if (!id) {
-      return { isSuccess: false, message: "User id is required" };
+      return { isSuccess: false, message: "User id is required", code: 400 };
     }
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid user id" };
+      return { isSuccess: false, message: "Invalid user id", code: 400 };
     }
     const query = { _id: id };
     if (organization_id) {
@@ -337,13 +346,13 @@ const deleteUser = async (user_id, userData) => {
       is_deleted: true,
     });
     if (!user) {
-      return { isSuccess: false, message: "User not found" };
+      return { isSuccess: false, message: "User not found", code: 404 };
     }
 
     return { isSuccess: true };
   } catch (err) {
     console.error("Delete User Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -353,11 +362,11 @@ const deleteMultipleUsers = async (body, userData) => {
     const { organization_id } = userData;
     const { ids } = body;
     if (!ids || !ids.length) {
-      return { isSuccess: false, message: "User ids are required" };
+      return { isSuccess: false, message: "User ids are required", code: 400 };
     }
     for (let i = 0; i < ids.length; i++) {
       if (!isValidObjectId(ids[i])) {
-        return { isSuccess: false, message: "Invalid user id" };
+        return { isSuccess: false, message: "Invalid user id", code: 400 };
       }
     }
     const query = { _id: { $in: ids } };
@@ -369,13 +378,13 @@ const deleteMultipleUsers = async (body, userData) => {
       is_deleted: true,
     });
     if (!users) {
-      return { isSuccess: false, message: "Users not found" };
+      return { isSuccess: false, message: "Users not found", code: 404 };
     }
 
     return { isSuccess: true };
   } catch (err) {
     console.error("Delete Users Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -387,7 +396,7 @@ const createSuperAdmin = async (session, body, files) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const {
       firstname,
@@ -402,23 +411,27 @@ const createSuperAdmin = async (session, body, files) => {
     } = value;
 
     if (!isValidObjectId(organization_id)) {
-      return { isSuccess: false, message: "Invalid Organization ID" };
+      return {
+        isSuccess: false,
+        message: "Invalid Organization ID",
+        code: 400,
+      };
     }
 
     const organization = await Organization.findById(organization_id).session(
       session
     );
     if (!organization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
 
     if (!organization.otp) {
-      return { isSuccess: false, message: "OTP not generated" };
+      return { isSuccess: false, message: "OTP not generated", code: 400 };
     }
 
     const isOtpValid = await bcrypt.compare(otp, organization.otp);
     if (!isOtpValid) {
-      return { isSuccess: false, message: "Invalid OTP" };
+      return { isSuccess: false, message: "Invalid OTP", code: 400 };
     }
 
     const existing = await User.findOne({
@@ -430,7 +443,7 @@ const createSuperAdmin = async (session, body, files) => {
       ],
     }).session(session);
     if (existing) {
-      return { isSuccess: false, message: "User already exists" };
+      return { isSuccess: false, message: "User already exists", code: 400 };
     }
 
     const newRole = new Role({
@@ -467,7 +480,11 @@ const createSuperAdmin = async (session, body, files) => {
         files
       );
       if (!response.isSuccess) {
-        return { isSuccess: false, message: response.message };
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       superAdmin.image_id = response.attachmentIds[0];
     }
@@ -497,7 +514,7 @@ const createSuperAdmin = async (session, body, files) => {
     return { isSuccess: true, data: userData };
   } catch (err) {
     console.error("Create Super Admin Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -505,18 +522,26 @@ const createSuperAdmin = async (session, body, files) => {
 const sendOTPEmail = async (organization_id) => {
   try {
     if (!organization_id) {
-      return { isSuccess: false, message: "Organization ID is required" };
+      return {
+        isSuccess: false,
+        message: "Organization ID is required",
+        code: 400,
+      };
     }
 
     if (!isValidObjectId(organization_id)) {
-      return { isSuccess: false, message: "Invalid Organization ID" };
+      return {
+        isSuccess: false,
+        message: "Invalid Organization ID",
+        code: 400,
+      };
     }
 
     const organization = await Organization.findById(organization_id).select(
       "email"
     );
     if (!organization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
 
     const otp = generateOTP();
@@ -539,13 +564,13 @@ const sendOTPEmail = async (organization_id) => {
       `<h1>Your OTP is ${otp}</h1>`
     );
     if (!isMailSent) {
-      return { isSuccess: false, message: "Failed to send OTP" };
+      return { isSuccess: false, message: "Failed to send OTP", code: 500 };
     }
 
     return { isSuccess: true, message: "OTP sent successfully" };
   } catch (err) {
     console.error("Generate OTP Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -572,13 +597,13 @@ const checkUserField = async (body, userData, type) => {
       });
       field = "employee_id";
     } else {
-      return { isSuccess: false, message: "invalid type" };
+      return { isSuccess: false, message: "invalid type", code: 400 };
     }
 
     const { error, value } = schema.validate(body, { abortEarly: false });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const query = { [field]: value[field], is_deleted: false };
@@ -594,7 +619,7 @@ const checkUserField = async (body, userData, type) => {
     return { isSuccess: true, exists: false, message: `${type} available` };
   } catch (err) {
     console.error(`check ${type} error:`, err.message);
-    return { isSuccess: false, message: "internal server error" };
+    return { isSuccess: false, message: "internal server error", code: 500 };
   }
 };
 
@@ -794,7 +819,7 @@ const getAllUsers = async (reqquery, userData) => {
     ]);
 
     if (!users.length) {
-      return { isSuccess: false, message: "Users not Found" };
+      return { isSuccess: false, message: "Users not Found", code: 404 };
     }
     if (canViewPermissions) {
       for (let i = 0; i < users.length; i++) {
@@ -825,7 +850,7 @@ const getAllUsers = async (reqquery, userData) => {
     return { isSuccess: true, data: users, pagination };
   } catch (err) {
     console.error("Get Users Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -838,7 +863,7 @@ const getAllUsersId = async (userData) => {
     return { isSuccess: true, data: userIds };
   } catch (err) {
     console.error("Get Users Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -852,19 +877,23 @@ const addBoardToUser = async (session, body, userData) => {
       body
     );
     if (!response.isSuccess) {
-      return { isSuccess: false, message: response.message };
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
     }
     const board = response.board;
     const user = await User.findByIdAndUpdate(userId, {
       $push: { board_id: board._id },
     }).session(session);
     if (!user) {
-      return { isSuccess: false, message: "User not found" };
+      return { isSuccess: false, message: "User not found", code: 404 };
     }
     return { isSuccess: true, data: board };
   } catch (err) {
     console.error("Create Board Error:", err.message);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 

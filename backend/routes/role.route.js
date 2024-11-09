@@ -11,7 +11,12 @@ const {
   checkPermission,
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
-const { VIEW_ROLE, CREATE_ROLE, UPDATE_ROLE, DELETE_ROLE } = require("../utils/constant");
+const {
+  VIEW_ROLE,
+  CREATE_ROLE,
+  UPDATE_ROLE,
+  DELETE_ROLE,
+} = require("../utils/constant");
 const router = require("express").Router();
 
 router.get("/details/:id", checkPermission([VIEW_ROLE.slug]), getRoleById);

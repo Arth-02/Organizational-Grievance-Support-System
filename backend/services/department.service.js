@@ -19,7 +19,7 @@ const createDepartment = async (body, userData) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const { name } = value;
@@ -32,12 +32,13 @@ const createDepartment = async (body, userData) => {
       return {
         isSuccess: false,
         message: "Department with this name already exists",
+        code: 400,
       };
     }
 
     const existingOrganization = await Organization.findById(organization_id);
     if (!existingOrganization) {
-      return { isSuccess: false, message: "Organization not found" };
+      return { isSuccess: false, message: "Organization not found", code: 404 };
     }
     const department = new Department({ ...value, organization_id });
     await department.save();
@@ -45,7 +46,7 @@ const createDepartment = async (body, userData) => {
     return { isSuccess: true, data: department };
   } catch (error) {
     console.error("Create Department Error: ", error);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -54,10 +55,14 @@ const updateDepartment = async (id, body, userData) => {
   try {
     const { organization_id } = userData;
     if (!id) {
-      return { isSuccess: false, message: "Department ID is required" };
+      return {
+        isSuccess: false,
+        message: "Department ID is required",
+        code: 400,
+      };
     }
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid department ID" };
+      return { isSuccess: false, message: "Invalid department ID", code: 400 };
     }
 
     const { error, value } = updateDepartmentSchema.validate(body, {
@@ -65,13 +70,14 @@ const updateDepartment = async (id, body, userData) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     if (!value.name && !value.description && value.is_active === undefined) {
       return {
         isSuccess: false,
         message: "Please provide name or description to update",
+        code: 400,
       };
     }
     const query = { _id: id };
@@ -82,12 +88,12 @@ const updateDepartment = async (id, body, userData) => {
       new: true,
     });
     if (!department) {
-      return { isSuccess: false, message: "Department not found" };
+      return { isSuccess: false, message: "Department not found", code: 404 };
     }
     return { isSuccess: true, data: department };
   } catch (error) {
     console.error("Update Department Error: ", error);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -128,7 +134,7 @@ const getAllDepartments = async (reqquery, userData) => {
     ]);
 
     if (!departments.length) {
-      return { isSuccess: false, message: "Departments not found" };
+      return { isSuccess: false, message: "Departments not found", code: 404 };
     }
 
     const totalPages = Math.ceil(totalDepartments / limitNumber);
@@ -147,7 +153,7 @@ const getAllDepartments = async (reqquery, userData) => {
     return { isSuccess: true, data: departments, pagination };
   } catch (error) {
     console.error("Get All Departments Error: ", error);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -163,7 +169,7 @@ const getAllDepartmentNames = async (userData) => {
     return { isSuccess: true, data: departments };
   } catch (err) {
     console.error("Get All Department Names Error: ", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -172,10 +178,14 @@ const getDepartmentById = async (id, userData) => {
   try {
     const { organization_id } = userData;
     if (!id) {
-      return { isSuccess: false, message: "Department ID is required" };
+      return {
+        isSuccess: false,
+        message: "Department ID is required",
+        code: 400,
+      };
     }
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid department ID" };
+      return { isSuccess: false, message: "Invalid department ID", code: 400 };
     }
 
     const query = { _id: id };
@@ -185,12 +195,12 @@ const getDepartmentById = async (id, userData) => {
 
     const department = await Department.findOne(query);
     if (!department) {
-      return { isSuccess: false, message: "Department not found" };
+      return { isSuccess: false, message: "Department not found", code: 404 };
     }
     return { isSuccess: true, data: department };
   } catch (error) {
     console.error("Get Department by ID Error: ", error);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -204,12 +214,12 @@ const deleteDepartment = async (session, id, body, userData) => {
 
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors };
+      return { isSuccess: false, message: errors, code: 400 };
     }
     const { replace_department_id } = value;
 
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid department ID" };
+      return { isSuccess: false, message: "Invalid department ID", code: 400 };
     }
 
     const department = await Department.findOne({
@@ -217,12 +227,16 @@ const deleteDepartment = async (session, id, body, userData) => {
       organization_id,
     }).session(session);
     if (!department) {
-      return { isSuccess: false, message: "Department not found" };
+      return { isSuccess: false, message: "Department not found", code: 404 };
     }
 
     if (replace_department_id) {
       if (!isValidObjectId(replace_department_id)) {
-        return { isSuccess: false, message: "Invalid replace_department_id" };
+        return {
+          isSuccess: false,
+          message: "Invalid replace_department_id",
+          code: 400,
+        };
       }
 
       const replaceDepartment = await Department.findOne({
@@ -230,7 +244,11 @@ const deleteDepartment = async (session, id, body, userData) => {
         organization_id,
       }).session(session);
       if (!replaceDepartment) {
-        return { isSuccess: false, message: "Replace department not found" };
+        return {
+          isSuccess: false,
+          message: "Replace department not found",
+          code: 404,
+        };
       }
 
       const userUpdate = await User.updateMany(
@@ -242,6 +260,7 @@ const deleteDepartment = async (session, id, body, userData) => {
         return {
           isSuccess: false,
           message: "No user found with this department",
+          code: 404,
         };
       }
     } else {
@@ -250,7 +269,7 @@ const deleteDepartment = async (session, id, body, userData) => {
         organization_id,
       }).session(session);
       if (userExist) {
-        return { isSuccess: false, message: "Department has users" };
+        return { isSuccess: false, message: "Department has users", code: 400 };
       }
     }
 
@@ -260,7 +279,7 @@ const deleteDepartment = async (session, id, body, userData) => {
     return { isSuccess: true };
   } catch (err) {
     console.error("Delete Department Error: ", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
@@ -269,7 +288,7 @@ const getUsersCountByDepartmentId = async (id, userData) => {
   try {
     const { organization_id } = userData;
     if (!isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid department ID" };
+      return { isSuccess: false, message: "Invalid department ID", code: 400 };
     }
     const query = { department: id };
     if (organization_id) {
@@ -279,7 +298,7 @@ const getUsersCountByDepartmentId = async (id, userData) => {
     return { isSuccess: true, data: usersCount };
   } catch (err) {
     console.error("Get Users Count by Department ID Error: ", err);
-    return { isSuccess: false, message: "Internal server error" };
+    return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
 
