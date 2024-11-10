@@ -36,6 +36,9 @@ export default function AddGrievanceModal() {
   const { data: departments } = useGetAllDepartmentNameQuery();
 
   const [files, setFiles] = useState([]);
+  // Add states to track select open states
+  const [isDepartmentSelectOpen, setIsDepartmentSelectOpen] = useState(false);
+  const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
 
   const {
     register,
@@ -56,12 +59,10 @@ export default function AddGrievanceModal() {
     try {
       const formData = new FormData();
 
-      // Append form fields
       Object.keys(data).forEach((key) => {
         formData.append(key, data[key]);
       });
 
-      // Append files
       files.forEach(({ file }) => {
         formData.append("attachments", file);
       });
@@ -76,7 +77,10 @@ export default function AddGrievanceModal() {
   };
 
   const handleClose = () => {
-    navigate(-1);
+    // Only allow closing if no select is open
+    if (!isDepartmentSelectOpen && !isPrioritySelectOpen) {
+      navigate(-1);
+    }
   };
 
   return (
@@ -84,6 +88,12 @@ export default function AddGrievanceModal() {
       backTo="/grievances"
       width="max-w-4xl"
       shouldRemoveCloseIcon={true}
+      onPointerDownOutside={(e) => {
+        // Prevent modal from closing if any select is open
+        if (isDepartmentSelectOpen || isPrioritySelectOpen) {
+          e.preventDefault();
+        }
+      }}
     >
       <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
@@ -157,7 +167,12 @@ export default function AddGrievanceModal() {
                   control={control}
                   rules={{ required: "Department is required" }}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      open={isDepartmentSelectOpen}
+                      onOpenChange={setIsDepartmentSelectOpen}
+                    >
                       <SelectTrigger className="bg-white dark:bg-slate-900">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
@@ -188,7 +203,12 @@ export default function AddGrievanceModal() {
                   control={control}
                   rules={{ required: "Priority is required" }}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      open={isPrioritySelectOpen}
+                      onOpenChange={setIsPrioritySelectOpen}
+                    >
                       <SelectTrigger className="bg-white dark:bg-slate-900">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>

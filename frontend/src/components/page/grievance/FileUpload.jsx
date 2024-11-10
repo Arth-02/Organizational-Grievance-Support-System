@@ -1,8 +1,24 @@
-import { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { X, Upload, File, Image as ImageIcon, Video, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import {
+  X,
+  Upload,
+  File,
+  Image as ImageIcon,
+  Video,
+  FileText,
+  FileSpreadsheet,
+  Loader2,
+  Maximize2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import toast from "react-hot-toast";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = {
@@ -10,21 +26,25 @@ const ACCEPTED_TYPES = {
   "video/*": [".mp4", ".webm"],
   "application/pdf": [".pdf"],
   "application/msword": [".doc"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+    ".docx",
+  ],
   "application/vnd.ms-powerpoint": [".ppt"],
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
+    ".pptx",
+  ],
   "text/plain": [".txt"],
   "text/markdown": [".md"],
 };
 
 const FILE_ICONS = {
-  "image": <ImageIcon className="w-5 h-5" />,
-  "video": <Video className="w-5 h-5" />,
-  "pdf": <FileText className="w-5 h-5 text-red-600" />,
-  "document": <FileText className="w-5 h-5 text-blue-600" />,
-  "presentation": <FileSpreadsheet className="w-5 h-5 text-orange-600" />,
-  "text": <FileText className="w-5 h-5 text-green-600" />,
-  "default": <File className="w-5 h-5" />
+  image: <ImageIcon className="w-5 h-5" />,
+  video: <Video className="w-5 h-5" />,
+  pdf: <FileText className="w-5 h-5 text-red-600" />,
+  document: <FileText className="w-5 h-5 text-blue-600" />,
+  presentation: <FileSpreadsheet className="w-5 h-5 text-orange-600" />,
+  text: <FileText className="w-5 h-5 text-green-600" />,
+  default: <File className="w-5 h-5" />,
 };
 
 const FileUploadComponent = ({
@@ -36,20 +56,37 @@ const FileUploadComponent = ({
   showUploadButton = true,
   maxFiles = 5,
   existingFiles = [],
+  shouldShowExistingFiles = true,
   onRemoveExisting,
   canEdit = true,
 }) => {
-  const [previewModal, setPreviewModal] = useState({ open: false, content: null });
+  const [previewModal, setPreviewModal] = useState({
+    open: false,
+    content: null,
+  });
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const newFiles = acceptedFiles.map((file) => ({
-      file,
-      id: Math.random().toString(36).substring(7),
-      preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
-      type: file.type,
-    }));
-    onFilesChange([...files, ...newFiles]);
-  }, [files, onFilesChange]);
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      const totalFiles =
+        files.length + existingFiles.length + acceptedFiles.length;
+
+      if (totalFiles > maxFiles) {
+        toast.error(`You can only upload up to ${maxFiles} files.`);
+        return;
+      }
+
+      const newFiles = acceptedFiles.map((file) => ({
+        file,
+        id: Math.random().toString(36).substring(7),
+        preview: file.type.startsWith("image/")
+          ? URL.createObjectURL(file)
+          : null,
+        type: file.type,
+      }));
+      onFilesChange([...files, ...newFiles]);
+    },
+    [existingFiles.length, files, maxFiles, onFilesChange]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -70,7 +107,7 @@ const FileUploadComponent = ({
   };
 
   const removeFile = (fileId) => {
-    onFilesChange(files.filter(f => f.id !== fileId));
+    onFilesChange(files.filter((f) => f.id !== fileId));
   };
 
   const formatFileSize = (bytes) => {
@@ -82,7 +119,10 @@ const FileUploadComponent = ({
   };
 
   const renderThumbnail = (file) => {
-    if (file.type?.startsWith("image/") || file.filetype?.startsWith("image/")) {
+    if (
+      file.type?.startsWith("image/") ||
+      file.filetype?.startsWith("image/")
+    ) {
       return (
         <img
           src={file.preview || file.url}
@@ -91,12 +131,38 @@ const FileUploadComponent = ({
         />
       );
     }
-    
+
     return (
       <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
         {getFileIcon(file.type || file.filetype)}
       </div>
     );
+  };
+
+  const handlePreview = (file) => {
+    if (file.type?.startsWith("image/")) {
+      setPreviewModal({
+        open: true,
+        content: (
+          <img
+            src={file.preview || file.url}
+            alt={file.file?.name || file.filename}
+            className="max-h-[80vh] max-w-full"
+          />
+        ),
+      });
+    } else if (file.type?.startsWith("video/")) {
+      setPreviewModal({
+        open: true,
+        content: (
+          <video
+            controls
+            src={file.preview}
+            className="max-h-[80vh] max-w-full"
+          />
+        ),
+      });
+    }
   };
 
   return (
@@ -120,7 +186,7 @@ const FileUploadComponent = ({
       </div>
 
       {/* Existing Files */}
-      {existingFiles.length > 0 && (
+      {shouldShowExistingFiles && existingFiles.length > 0 && (
         <div className="space-y-2">
           {existingFiles.map((file) => (
             <div
@@ -171,6 +237,14 @@ const FileUploadComponent = ({
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => handlePreview(file)}
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => removeFile(file.id)}
                 className="text-red-500 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
               >
@@ -208,11 +282,13 @@ const FileUploadComponent = ({
         open={previewModal.open}
         onOpenChange={() => setPreviewModal({ open: false, content: null })}
       >
-        <DialogContent className="sm:max-w-3xl w-fit dark:bg-transparent border-none">
-          <DialogTitle className="sr-only">Preview</DialogTitle>
-          <div className="flex justify-center">
-            {previewModal.content}
-          </div>
+        <DialogContent
+          shouldRemoveCloseIcon={true}
+          className="sm:max-w-3xl w-fit dark:bg-transparent border-none"
+        >
+          <DialogTitle className="hidden">Attachment Preview</DialogTitle>
+          <DialogDescription></DialogDescription>
+          <div className="flex justify-center">{previewModal.content}</div>
         </DialogContent>
       </Dialog>
     </div>

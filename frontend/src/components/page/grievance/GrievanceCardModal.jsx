@@ -76,6 +76,11 @@ function GrievanceModal() {
   const [grievance, setGrievance] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Add states to track select open states
+  const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
+  const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
+
   const [updateGrievance] = useUpdateGrievanceMutation();
   const [updateGrievanceAssignee] = useUpdateGrievanceAssigneeMutation();
   const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
@@ -166,7 +171,10 @@ function GrievanceModal() {
   };
 
   const handleClose = () => {
-    navigate(-1);
+    // Only allow closing if no select is open
+    if (!isStatusSelectOpen && !isPrioritySelectOpen) {
+      navigate(-1);
+    }
   };
 
   return (
@@ -174,6 +182,12 @@ function GrievanceModal() {
       backTo="/grievances"
       width="max-w-4xl"
       shouldRemoveCloseIcon={true}
+      onPointerDownOutside={(e) => {
+        // Prevent modal from closing if any select is open
+        if (isStatusSelectOpen || isPrioritySelectOpen) {
+          e.preventDefault();
+        }
+      }}
     >
       {isLoading && <GrievanceModalSkeleton />}
       {!isLoading && (
@@ -318,6 +332,7 @@ function GrievanceModal() {
                       onValueChange={(value) => {
                         handleUpdateGrievanceStatus(value);
                       }}
+                      onOpenChange={setIsStatusSelectOpen}
                     >
                       <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select status" />
@@ -359,6 +374,7 @@ function GrievanceModal() {
                       onValueChange={(value) => {
                         handleUpdateGrievance({ priority: value });
                       }}
+                      onOpenChange={setIsPrioritySelectOpen}
                     >
                       <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select priority" />

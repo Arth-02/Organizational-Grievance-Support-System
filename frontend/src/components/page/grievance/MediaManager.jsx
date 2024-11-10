@@ -68,12 +68,16 @@ const FILE_TYPES = {
     label: "Word",
   },
   "application/vnd.ms-powerpoint": {
-    icon: <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />,
+    icon: (
+      <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+    ),
     color: "bg-orange-500/10",
     label: "PowerPoint",
   },
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
-    icon: <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />,
+    icon: (
+      <FileSpreadsheet className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+    ),
     color: "bg-orange-500/10",
     label: "PowerPoint",
   },
@@ -120,25 +124,6 @@ const AttachmentManager = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  // const onDrop = useCallback((acceptedFiles) => {
-  //   const newFiles = acceptedFiles.map((file) => ({
-  //     file,
-  //     id: Math.random().toString(36).substring(7),
-  //     preview: file.type.startsWith("image/")
-  //       ? URL.createObjectURL(file)
-  //       : null,
-  //     type: file.type,
-  //   }));
-  //   setFiles((prev) => [...prev, ...newFiles]);
-  // }, []);
-
-  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
-  //   onDrop,
-  //   accept: ACCEPTED_TYPES,
-  //   maxSize: MAX_SIZE,
-  //   multiple: true,
-  // });
-
   const handleUpload = async () => {
     setUploading(true);
     setUploadProgress(0);
@@ -182,38 +167,6 @@ const AttachmentManager = ({
     }
   };
 
-  // const removeFile = (fileId) => {
-  //   setFiles(files.filter((f) => f.id !== fileId));
-  // };
-
-  // const getFileIcon = (type) => {
-  //   if (type?.startsWith("image/")) return <ImageIcon className="w-5 h-5" />;
-  //   if (type?.startsWith("video/")) return <Video className="w-5 h-5" />;
-  //   if (type?.startsWith("application/pdf"))
-  //     return <FileText className="w-5 h-5" />;
-  //   if (type?.startsWith("application/msword"))
-  //     return <FileText className="w-5 h-5" />;
-  //   if (
-  //     type?.startsWith(
-  //       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  //     )
-  //   )
-  //     return <FileText className="w-5 h-5" />;
-  //   if (type?.startsWith("application/vnd.ms-powerpoint"))
-  //     return <FileSpreadsheet className="w-5 h-5" />;
-  //   if (
-  //     type?.startsWith(
-  //       "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-  //     )
-  //   )
-  //     return <FileSpreadsheet className="w-5 h-5" />;
-  //   if (type?.startsWith("text/plain")) return <FileText className="w-5 h-5" />;
-  //   if (type?.startsWith("text/markdown"))
-  //     return <FileText className="w-5 h-5" />;
-
-  //   return <File className="w-5 h-5" />;
-  // };
-
   const handlePreview = (file) => {
     if (file.filetype?.startsWith("image/")) {
       setPreviewModal({
@@ -255,7 +208,9 @@ const AttachmentManager = ({
       const fileType = FILE_TYPES[attachment.filetype];
       return (
         <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
-          {fileType?.icon || <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />}
+          {fileType?.icon || (
+            <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />
+          )}
         </div>
       );
     }
@@ -316,119 +271,27 @@ const AttachmentManager = ({
       </div>
 
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
-        <DialogContent className="bg-white dark:bg-gray-900">
+        <DialogContent className="bg-white dark:bg-gray-900 max-w-xl">
           <DialogTitle className="text-gray-900 dark:text-white">
             Upload Attachments
           </DialogTitle>
           <DialogDescription className="text-gray-500 dark:text-gray-400">
             Add Image, Video or file upto 5 files
           </DialogDescription>
-          {/* <div className="space-y-4">
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                isDragActive
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10"
-                  : "border-gray-300 dark:border-slate-600"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400" />
-              <p className="mt-2 text-gray-700 dark:text-slate-300">
-                Drag & drop files here, or click to select files
-              </p>
-              <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-                Supports images and videos up to 5MB
-              </p>
-            </div>
-
-            {files.length > 0 && (
-              <div className="space-y-2">
-                {files.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center p-2 rounded bg-white dark:bg-slate-800 border border-gray-200 dark:border-transparent"
-                  >
-                    <div className="flex-1 flex items-center gap-2">
-                      {getFileIcon(file.type)}
-                      <span className="truncate text-gray-700 dark:text-slate-300">
-                        {file.file.name}
-                      </span>
-                    </div>
-                    {file.preview && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setPreviewModal({
-                            open: true,
-                            content: (
-                              <img
-                                src={file.preview}
-                                alt="Preview"
-                                className="max-h-[80vh] max-w-full"
-                              />
-                            ),
-                          })
-                        }
-                        className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50"
-                      >
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(file.id)}
-                      className="dark:text-red-400 dark:hover:bg-red-500/10"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {uploading && (
-              <div className="space-y-2">
-                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-                <p className="text-sm text-slate-400 text-center">
-                  {Math.round(uploadProgress)}% uploaded
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setUploadModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpload}
-                disabled={files.length === 0 || uploading}
-              >
-                {uploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Upload
-              </Button>
-            </div>
-          </div> */}
           <FileUploadComponent
-          files={files}
-          onFilesChange={setFiles}
-          onUpload={handleUpload}
-          uploading={uploading}
-          uploadProgress={uploadProgress}
-          existingFiles={existingAttachments}
-          onRemoveExisting={(id) => {
-            // Handle existing file removal
-            console.log("Remove existing file:", id);
-          }}
-          canEdit={canEdit}
-        />
+            files={files}
+            onFilesChange={setFiles}
+            onUpload={handleUpload}
+            uploading={uploading}
+            uploadProgress={uploadProgress}
+            existingFiles={existingAttachments}
+            shouldShowExistingFiles={false}
+            onRemoveExisting={(id) => {
+              // Handle existing file removal
+              console.log("Remove existing file:", id);
+            }}
+            canEdit={canEdit}
+          />
         </DialogContent>
       </Dialog>
 

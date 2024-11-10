@@ -36,6 +36,7 @@ export const RoutableModal = ({
   backTo,
   width = "max-w-3xl",
   shouldRemoveCloseIcon = false,
+  onPointerDownOutside
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,6 +48,7 @@ export const RoutableModal = ({
       setModalStack((prev) => prev.slice(0, -1));
     };
   }, [location.pathname, setModalStack]);
+
 
   const handleClose = React.useCallback(() => {
     if (backTo) {
@@ -69,6 +71,7 @@ export const RoutableModal = ({
           )}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={onPointerDownOutside}
         >
           {children}
         </DialogContent>
