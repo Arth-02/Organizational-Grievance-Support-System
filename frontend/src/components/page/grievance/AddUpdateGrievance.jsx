@@ -1,37 +1,42 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { RoutableModal } from '@/components/ui/RoutedModal';
-import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { X, Loader2, Paperclip } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RoutableModal } from "@/components/ui/RoutedModal";
+import {
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { X, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import TextEditor from './TextEditor';
-import AttachmentManager from './MediaManager';
-import toast from 'react-hot-toast';
-import { useCreateGrievanceMutation } from '@/services/grievance.service';
-import { useGetAllDepartmentNameQuery } from '@/services/department.service';
+} from "@/components/ui/select";
+import TextEditor from "./TextEditor";
+import toast from "react-hot-toast";
+import { useCreateGrievanceMutation } from "@/services/grievance.service";
+import { useGetAllDepartmentNameQuery } from "@/services/department.service";
+import FileUploadComponent from "./FileUpload";
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
 ];
 
 export default function AddGrievanceModal() {
   const navigate = useNavigate();
-  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [createGrievance, { isLoading }] = useCreateGrievanceMutation();
   const { data: departments } = useGetAllDepartmentNameQuery();
-  
+
+  const [files, setFiles] = useState([]);
+
   const {
     register,
     handleSubmit,
@@ -39,22 +44,34 @@ export default function AddGrievanceModal() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: '',
-      description: '',
-      department_id: '',
-      priority: 'low',
-      status: 'submitted',
+      title: "",
+      description: "",
+      department_id: "",
+      priority: "low",
+      status: "submitted",
     },
   });
 
   const onSubmit = async (data) => {
     try {
-      const response = await createGrievance(data).unwrap();
+      const formData = new FormData();
+
+      // Append form fields
+      Object.keys(data).forEach((key) => {
+        formData.append(key, data[key]);
+      });
+
+      // Append files
+      files.forEach(({ file }) => {
+        formData.append("attachments", file);
+      });
+
+      const response = await createGrievance(formData).unwrap();
       toast.success(response.message);
-      navigate('/grievances');
+      navigate("/grievances");
     } catch (error) {
-      console.error('Failed to create grievance:', error);
-      toast.error(error.data?.message || 'Failed to create grievance');
+      console.error("Failed to create grievance:", error);
+      toast.error(error.data?.message || "Failed to create grievance");
     }
   };
 
@@ -71,21 +88,25 @@ export default function AddGrievanceModal() {
       <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="p-4 flex items-center justify-between border-gray-200 dark:border-slate-700">
-              New Grievance
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600/50"
-                onClick={handleClose}
-              >
-                <X className="h-5 w-5" />
-              </Button>
+            New Grievance
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600/50"
+              onClick={handleClose}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </DialogTitle>
+          <DialogDescription className="hidden"></DialogDescription>
         </DialogHeader>
 
         <Separator className="w-[97%] mx-auto bg-gray-200 dark:bg-white/10" />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 overflow-y-auto"
+        >
           <div className="p-4 space-y-6">
             {/* Title */}
             <div className="space-y-2">
@@ -93,7 +114,7 @@ export default function AddGrievanceModal() {
                 Title *
               </label>
               <Input
-                {...register('title', { required: 'Title is required' })}
+                {...register("title", { required: "Title is required" })}
                 className="bg-white dark:bg-slate-900"
                 placeholder="Enter grievance title"
               />
@@ -110,7 +131,7 @@ export default function AddGrievanceModal() {
               <Controller
                 name="description"
                 control={control}
-                rules={{ required: 'Description is required' }}
+                rules={{ required: "Description is required" }}
                 render={({ field }) => (
                   <TextEditor
                     initialContent={field.value}
@@ -119,7 +140,9 @@ export default function AddGrievanceModal() {
                 )}
               />
               {errors.description && (
-                <p className="text-sm text-red-500">{errors.description.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
@@ -132,7 +155,7 @@ export default function AddGrievanceModal() {
                 <Controller
                   name="department_id"
                   control={control}
-                  rules={{ required: 'Department is required' }}
+                  rules={{ required: "Department is required" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="bg-white dark:bg-slate-900">
@@ -149,7 +172,9 @@ export default function AddGrievanceModal() {
                   )}
                 />
                 {errors.department_id && (
-                  <p className="text-sm text-red-500">{errors.department_id.message}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.department_id.message}
+                  </p>
                 )}
               </div>
 
@@ -161,7 +186,7 @@ export default function AddGrievanceModal() {
                 <Controller
                   name="priority"
                   control={control}
-                  rules={{ required: 'Priority is required' }}
+                  rules={{ required: "Priority is required" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="bg-white dark:bg-slate-900">
@@ -178,7 +203,9 @@ export default function AddGrievanceModal() {
                   )}
                 />
                 {errors.priority && (
-                  <p className="text-sm text-red-500">{errors.priority.message}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.priority.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -189,21 +216,12 @@ export default function AddGrievanceModal() {
                 <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
                   Attachments (Optional)
                 </label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-white"
-                  onClick={() => setAttachmentModalOpen(true)}
-                >
-                  <Paperclip className="h-4 w-4 mr-2" />
-                  Add Attachment
-                </Button>
               </div>
-              <AttachmentManager
-                uploadModal={attachmentModalOpen}
-                setUploadModal={setAttachmentModalOpen}
-                existingAttachments={[]}
-                canEdit={true}
+              <FileUploadComponent
+                files={files}
+                onFilesChange={setFiles}
+                showUploadButton={false}
+                maxFiles={5}
               />
             </div>
 

@@ -80,7 +80,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
     editorProps: {
       attributes: {
         class: cn(
-          "prose dark:prose-invert min-h-[200px] p-3 focus:outline-none max-w-none",
+          "prose bg-white dark:bg-slate-900/70 dark:prose-invert h-[180px] overflow-y-auto p-3 focus:outline-none max-w-none",
           "prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-headings:text-slate-800 dark:prose-headings:text-slate-200",
           "prose-blockquote:border-l-slate-300 dark:prose-blockquote:border-l-slate-700",
           "prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300",
@@ -155,8 +155,8 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
       variant="ghost"
       size="icon"
       className={cn(
-        "h-8 w-8 transition-colors",
-        isActive && "bg-slate-700 text-white",
+        "h-8 w-8 transition-colors hover:bg-black/20 dark:hover:bg-white/20",
+        isActive && "bg-gray-400/50 dark:bg-slate-700 dark:text-white",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       onClick={(e) => {

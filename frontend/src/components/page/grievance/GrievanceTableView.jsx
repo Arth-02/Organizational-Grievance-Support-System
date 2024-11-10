@@ -4,6 +4,7 @@ import StatusTag from "@/components/table/StatusTag";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteGrievanceByIdMutation, useGetAllGrievancesQuery } from "@/services/grievance.service";
+import DOMPurify from "dompurify";
 
 const GrievanceTableView = () => {
   const [filters, setFilters] = useState({});
@@ -30,6 +31,16 @@ const GrievanceTableView = () => {
       accessorKey: "description",
       header: "Description",
       sortable: true,
+      cell: ({ row }) => {
+        return (
+          <div
+            className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(row.original.description),
+            }}
+          />
+        );
+      },
     },
     {
       accessorKey: "status",
