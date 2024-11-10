@@ -1,30 +1,10 @@
-const Grievance = require("../models/grievance.model");
 const mongoose = require("mongoose");
-const { isValidObjectId } = require("mongoose");
 const {
   successResponse,
   errorResponse,
   catchResponse,
 } = require("../utils/response");
-const {
-  updateStatusGrievanceSchema,
-  updateAssignedGrievanceSchema,
-  updateFullGrievanceSchema,
-  updateGrievanceAttachmentSchema,
-  updateMyGrievanceSchema,
-} = require("../validators/grievance.validator");
-const Joi = require("joi");
-const {
-  UPDATE_GRIEVANCE_ASSIGNEE,
-  UPDATE_GRIEVANCE,
-  SUPER_ADMIN,
-} = require("../utils/constant");
-const { sendNotification } = require("../utils/notification");
-const User = require("../models/user.model");
 const grievanceService = require("../services/grievance.service");
-const LexoRank = require("../services/lexorank.service");
-const attachmentService = require("../services/attachment.service");
-const userService = require("../services/user.service");
 
 const createGrievance = async (req, res) => {
   const session = await mongoose.startSession();

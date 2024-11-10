@@ -1,13 +1,9 @@
-const Role = require("../models/role.model");
-const User = require("../models/user.model");
-const { PERMISSIONS, VIEW_PERMISSION } = require("../utils/constant");
 const {
   errorResponse,
   successResponse,
   catchResponse,
 } = require("../utils/response");
-const { isValidObjectId, default: mongoose } = require("mongoose");
-const { deleteRoleSchema } = require("../validators/role.validator");
+const { default: mongoose } = require("mongoose");
 const roleService = require("../services/role.service");
 
 // create a new role
