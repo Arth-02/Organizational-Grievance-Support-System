@@ -249,7 +249,7 @@ const GrievanceBoardView = () => {
       source.droppableId !== destination.droppableId ||
       source.index !== destination.index
     ) {
-      onDragEnd(draggableId, destination.droppableId, source, destination);
+      onDragEnd(draggableId, destination.droppableId, destination);
     }
   };
 
