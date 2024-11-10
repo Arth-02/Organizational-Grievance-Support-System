@@ -1,201 +1,230 @@
-import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useParams, useNavigate } from "react-router-dom";
-import { CustomInput } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { CustomSelect } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import { toast } from "react-hot-toast";
-import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
-import RichTextEditor from "./TextEditor";
-import { useCreateGrievanceMutation, useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
-import { useGetAllDepartmentNameQuery } from "@/services/department.service";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { RoutableModal } from '@/components/ui/RoutedModal';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { X, Loader2, Paperclip } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import TextEditor from './TextEditor';
+import AttachmentManager from './MediaManager';
+import toast from 'react-hot-toast';
+import { useCreateGrievanceMutation } from '@/services/grievance.service';
+import { useGetAllDepartmentNameQuery } from '@/services/department.service';
 
-const schema = z.object({
-  title: z.string().nonempty("Title is required"),
-  description: z.string().nonempty("Description is required"),
-  department_id: z.string().nonempty("Department is required"),
-  priority: z.string().nonempty("Priority is required"),
-  status: z.string(),
-  is_active: z.boolean(),
-  assigned_to: z.string().optional(),
-  rank: z.string().nonempty("Rank is required"),
-});
-
-const priorityOptions = [
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
 ];
 
-const statusOptions = [
-  { label: "Submitted", value: "submitted" },
-  { label: "In Progress", value: "in-progress" },
-  { label: "Resolved", value: "resolved" },
-  { label: "Dismissed", value: "dismissed" },
-];
-
-const AddUpdateGrievance = () => {
-  const { id } = useParams();
+export default function AddGrievanceModal() {
   const navigate = useNavigate();
-  const [createGrievance, { isLoading: isCreating }] = useCreateGrievanceMutation();
-  const [updateGrievance, { isLoading: isUpdating }] = useUpdateGrievanceMutation();
-
-  const { data: grievance, isLoading: isGrievanceLoading } =
-    useGetGrievanceByIdQuery(id, {
-      skip: !id,
-    });
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [createGrievance, { isLoading }] = useCreateGrievanceMutation();
   const { data: departments } = useGetAllDepartmentNameQuery();
-
+  
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-    reset,
   } = useForm({
-    resolver: zodResolver(schema),
     defaultValues: {
-      title: "",
-      description: "",
-      department_id: "",
-      priority: "low",
-      status: "submitted",
-      reported_by: "",
-      assigned_to: "",
+      title: '',
+      description: '',
+      department_id: '',
+      priority: 'low',
+      status: 'submitted',
     },
   });
 
-  useEffect(() => {
-    if (grievance) {
-      reset(grievance.data);
-    }
-  }, [grievance, reset]);
-
   const onSubmit = async (data) => {
     try {
-      if (id) {
-        const response = await updateGrievance({ id, data }).unwrap();
-        toast.success(response.message);
-      } else {
-        const response = await createGrievance(data).unwrap();
-        toast.success(response.message);
-      }
-      navigate("/grievances");
+      const response = await createGrievance(data).unwrap();
+      toast.success(response.message);
+      navigate('/grievances');
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
+      console.error('Failed to create grievance:', error);
+      toast.error(error.data?.message || 'Failed to create grievance');
     }
   };
 
-  if (isGrievanceLoading) {
-    return <div>Loading...</div>;
-  }
+  const handleClose = () => {
+    navigate(-1);
+  };
 
   return (
-    <AddUpdatePageLayout title={id ? "Update Grievance" : "Add Grievance"}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <CustomInput
-          label="Title"
-          placeholder="Enter title"
-          {...register("title")}
-          error={errors.title}
-        />
+    <RoutableModal
+      backTo="/grievances"
+      width="max-w-4xl"
+      shouldRemoveCloseIcon={true}
+    >
+      <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="p-4 flex items-center justify-between border-gray-200 dark:border-slate-700">
+              New Grievance
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600/50"
+                onClick={handleClose}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-            Description
-          </label>
-          <Controller
-            name="description"
-            control={control}
-            render={({ field }) => (
-              <div>
-                <RichTextEditor
-                  initialContent={field.value}
-                  onSave={(content) => field.onChange(content)}
-                  className="min-h-[200px]"
+        <Separator className="w-[97%] mx-auto bg-gray-200 dark:bg-white/10" />
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                Title *
+              </label>
+              <Input
+                {...register('title', { required: 'Title is required' })}
+                className="bg-white dark:bg-slate-900"
+                placeholder="Enter grievance title"
+              />
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title.message}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                Description *
+              </label>
+              <Controller
+                name="description"
+                control={control}
+                rules={{ required: 'Description is required' }}
+                render={({ field }) => (
+                  <TextEditor
+                    initialContent={field.value}
+                    onSave={field.onChange}
+                  />
+                )}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500">{errors.description.message}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Department */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                  Department *
+                </label>
+                <Controller
+                  name="department_id"
+                  control={control}
+                  rules={{ required: 'Department is required' }}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="bg-white dark:bg-slate-900">
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments?.data?.map((dept) => (
+                          <SelectItem key={dept._id} value={dept._id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
-                {errors.description && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.description.message}
-                  </p>
+                {errors.department_id && (
+                  <p className="text-sm text-red-500">{errors.department_id.message}</p>
                 )}
               </div>
-            )}
-          />
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomSelect
-            label="Department"
-            name="department_id"
-            control={control}
-            options={departments?.data?.map((dept) => ({
-              label: dept.name,
-              value: dept._id,
-            }))}
-            placeholder="Select a department"
-            error={errors.department_id}
-          />
-          <CustomSelect
-            label="Priority"
-            name="priority"
-            control={control}
-            options={priorityOptions}
-            placeholder="Select priority"
-            error={errors.priority}
-          />
-        </div>
+              {/* Priority */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                  Priority *
+                </label>
+                <Controller
+                  name="priority"
+                  control={control}
+                  rules={{ required: 'Priority is required' }}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="bg-white dark:bg-slate-900">
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRIORITY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.priority && (
+                  <p className="text-sm text-red-500">{errors.priority.message}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomSelect
-            label="Reported By"
-            name="reported_by"
-            control={control}
-            placeholder="Select reporter"
-            error={errors.reported_by}
-          />
-          <CustomSelect
-            label="Assigned To"
-            name="assigned_to"
-            control={control}
-            placeholder="Select assignee"
-            error={errors.assigned_to}
-          />
-        </div>
+            {/* Attachments */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                  Attachments (Optional)
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-white"
+                  onClick={() => setAttachmentModalOpen(true)}
+                >
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Add Attachment
+                </Button>
+              </div>
+              <AttachmentManager
+                uploadModal={attachmentModalOpen}
+                setUploadModal={setAttachmentModalOpen}
+                existingAttachments={[]}
+                canEdit={true}
+              />
+            </div>
 
-        {id && (
-          <CustomSelect
-            label="Status"
-            name="status"
-            control={control}
-            options={statusOptions}
-            placeholder="Select status"
-            error={errors.status}
-          />
-        )}
-
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/grievances")}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isCreating || isUpdating}>
-            {id ? "Update" : "Add"} Grievance
-            {(isCreating || isUpdating) && (
-              <Loader2 className="ml-2 animate-spin" size={20} />
-            )}
-          </Button>
-        </div>
-      </form>
-    </AddUpdatePageLayout>
+            {/* Submit Button */}
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                className="dark:bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Create Grievance
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </RoutableModal>
   );
-};
-
-export default AddUpdateGrievance;
+}

@@ -83,12 +83,13 @@ const createGrievance = async (session, body, user, files) => {
           code: response.code,
         };
       }
+      const attachmentIds = response.attachmentIds;
+      newGrievance.attachments = attachmentIds;
     }
-    const attachmentIds = response.attachmentIds;
-    newGrievance.attachments = attachmentIds;
     await newGrievance.save({ session });
     return { isSuccess: true, grievance: newGrievance };
   } catch (err) {
+    console.log('Error in createGrievance service: ', err);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };

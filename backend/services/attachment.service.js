@@ -1,6 +1,5 @@
 const Attachment = require("../models/attachment.model");
 const uploadFiles = require("../utils/cloudinary");
-const mongoose = require("mongoose");
 
 // Create a new attachment
 const createAttachment = async (session, user_id, organization_id, files) => {
