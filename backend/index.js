@@ -6,24 +6,19 @@ const PORT = process.env.PORT;
 const cors = require("cors");
 const connectDB = require("./database/db");
 const routes = require("./routes/index.route");
-const socketHandler = require("./utils/socket");
+const { socketHandler } = require("./utils/socket");
 
 const app = express();
 
 const httpServer = createServer(app);
 
-const { io, users } = socketHandler(httpServer);
+socketHandler(httpServer);
 
 connectDB();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req, res, next) => {
-  req.io = io;
-  req.users = users;
-  next();
-});
 
 app.use("/", routes);
 

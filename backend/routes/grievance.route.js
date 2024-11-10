@@ -5,6 +5,8 @@ const {
   updateGrievanceAttachment,
   deleteGrievanceById,
   getAllGrievances,
+  updateGrievanceAssignee,
+  updateGrievanceStatus,
 } = require("../controllers/grievance.controller");
 const upload = require("../utils/multer");
 const {
@@ -13,6 +15,8 @@ const {
 } = require("../middlewares/auth.middleware");
 const {
   DELETE_GRIEVANCE,
+  UPDATE_GRIEVANCE_ASSIGNEE,
+  UPDATE_GRIEVANCE,
 } = require("../utils/constant");
 const router = require("express").Router();
 
@@ -38,5 +42,11 @@ router.delete(
 
 router.get("/all", isLoggedIn, getAllGrievances);
 router.patch("/update/:id", isLoggedIn, updateGrievance);
+router.patch(
+  "/updateassignee/:id",
+  checkPermission([UPDATE_GRIEVANCE_ASSIGNEE.slug, UPDATE_GRIEVANCE.slug]),
+  updateGrievanceAssignee
+);
+router.patch("/updatestatus/:id", isLoggedIn, updateGrievanceStatus);
 
 module.exports = router;

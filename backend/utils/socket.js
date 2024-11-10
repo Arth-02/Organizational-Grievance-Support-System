@@ -1,11 +1,12 @@
 const { Server } = require("socket.io");
 
 const users = {};
+let io;
 
 const socketHandler = (httpServer) => {
-  const io = new Server(httpServer, {
+  io = new Server(httpServer, {
     cors: {
-      origin: "*", 
+      origin: "*",
     },
   });
 
@@ -29,8 +30,11 @@ const socketHandler = (httpServer) => {
       }
     });
   });
-
-  return { io, users };
 };
 
-module.exports = socketHandler;
+const getIo = () => {
+  if (!io) throw new Error("Socket.io not initialized!");
+  return io;
+};
+
+module.exports = { socketHandler, getIo, users };
