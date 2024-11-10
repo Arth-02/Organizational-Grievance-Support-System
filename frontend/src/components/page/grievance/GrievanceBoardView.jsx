@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import GrievanceList from "./GrievanceList";
 import toast from "react-hot-toast";
 import useSocket from "@/utils/useSocket";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import { useGetAllGrievancesQuery, useUpdateGrievanceMutation, useUpdateGrievanceStatusMutation } from "@/services/grievance.service";
 
 const GrievanceBoardView = () => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
   const location = useLocation();
 
   const [updateGrievance] = useUpdateGrievanceMutation();
+  const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
 
   const socket = useSocket();
 
@@ -197,7 +198,7 @@ const GrievanceBoardView = () => {
       handleCardMoveCount(oldStatus, newStatus);
 
       // Call API to update status and rank
-      const response = await updateGrievance({
+      const response = await updateGrievanceStatus({
         id: grievanceId,
         data: {
           status: newStatus,
