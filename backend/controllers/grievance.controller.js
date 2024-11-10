@@ -59,143 +59,74 @@ const updateGrievance = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
-    if (!id) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Grievance ID is required");
-    }
-    if (!isValidObjectId(id)) {
-      await session.abortTransaction();
-      return errorResponse(res, 400, "Invalid grievance ID");
-    }
-    const {
-      organization_id,
-      role,
-      _id: userId,
-      special_permissions,
-    } = req.user;
-    const permissions = [...role.permissions, ...special_permissions];
-
-    const grievance = await Grievance.findOne({
-      organization_id,
-      _id: id,
-    }).session(session);
-    if (!grievance) {
-      await session.abortTransaction();
-      return errorResponse(res, 404, "Grievance not found");
-    }
-
-    // Check permissions for various grievance updates
-    const canUpdateGrievance = permissions.includes(UPDATE_GRIEVANCE.slug);
-    const canUpdateGrievanceStatus =
-      grievance.assigned_to?.toString() === userId.toString();
-    const canUpdateGrievanceAssignee = permissions.includes(
-      UPDATE_GRIEVANCE_ASSIGNEE.slug
+    const response = await grievanceService.updateGrievance(
+      session,
+      req.params.id,
+      req.body,
+      req.user
     );
-    const canUpdateMyGrievance =
-      grievance.reported_by?.toString() === userId.toString();
-
-    // Initialize schema
-    let schema = Joi.object();
-
-    // If user has full permission to update grievance
-    if (canUpdateGrievance && !req.body.title && !req.body.description) {
-      schema = updateFullGrievanceSchema;
-      if (req.body.department_id && !isValidObjectId(req.body.department_id)) {
-        await session.abortTransaction();
-        return errorResponse(res, 400, "Invalid department ID");
-      }
-    } else {
-      if (canUpdateMyGrievance && !req.body.status && !req.body.assigned_to) {
-        schema = schema.concat(updateMyGrievanceSchema);
-      }
-      if (canUpdateGrievanceStatus && req.body.status) {
-        schema = schema.concat(updateStatusGrievanceSchema);
-      }
-      if (canUpdateGrievanceAssignee && req.body.assigned_to) {
-        schema = schema.concat(updateAssignedGrievanceSchema);
-      }
-
-      if (schema.describe().keys === undefined) {
-        await session.abortTransaction();
-        return errorResponse(res, 403, "Permission denied");
-      }
-    }
-
-    const { error, value } = schema.validate(req.body);
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      await session.abortTransaction();
-      return errorResponse(res, 400, errors);
-    }
-
-    // Handle rank updates if status or position is changing
-    const { prevRank, nextRank } = value;
-    let newRank = grievance.rank; // Default to current rank
-    if (prevRank || nextRank) {
-      newRank = LexoRank.getMiddleRank(prevRank || null, nextRank || null);
-    }
-
-    // Update value object with new rank
-    const updateData = {
-      ...value,
-      rank: newRank,
-    };
-    delete updateData.prevRank;
-    delete updateData.nextRank;
-
-    // Prepare query to find and update grievance
-    const query = { _id: id, organization_id };
-
-    const updatedGrievance = await Grievance.findOneAndUpdate(
-      query,
-      updateData,
-      {
-        new: true,
-      }
-    ).session(session);
-    if (!updatedGrievance) {
-      await session.abortTransaction();
-      return errorResponse(res, 404, "Grievance not found");
-    }
-
-    const updatedGrievanceData = await Grievance.findOne(query)
-      .populate({ path: "department_id", select: "name" })
-      .populate({ path: "reported_by", select: "username" })
-      .populate({ path: "assigned_to", select: "username" })
-      .session(session);
-
-    const response = await userService.getAllUsersId(req.user);
     if (!response.isSuccess) {
       await session.abortTransaction();
       return errorResponse(res, response.code, response.message);
     }
-    const userIds = response.data.filter(
-      (user) => user._id.toString() !== userId.toString()
-    );
-
-    // Send notification to all users except the one who updated the grievance
-    sendNotification(
-      userIds,
-      {
-        type: "update_grievance",
-        message: `Your grievance with ID ${id} has been updated`,
-        grievanceId: id,
-        updatedData: updatedGrievanceData,
-      },
-      req.users,
-      req.io
-    );
-
     await session.commitTransaction();
     return successResponse(
       res,
-      updatedGrievance,
+      response.data,
       "Grievance updated successfully"
     );
   } catch (err) {
     console.error("Update Grievance Error:", err.stack);
     await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// Update grievance assignee
+const updateGrievanceAssignee = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await grievanceService.updateGrievanceAssignee(
+      session,
+      req.params.id,
+      req.body,
+      req.user
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, response.code, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.data,
+      "Grievance assignee updated successfully"
+    );
+  } catch (err) {
+    console.error("Update Grievance Assignee Error:", err.stack);
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
+// Update grievance Status
+const updateGrievanceStatus = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try{
+    const response = await grievanceService.updateGrievanceStatus(session, req.params.id, req.body, req.user);
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, response.code, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(res, response.data, "Grievance status updated successfully");
+  } catch (err) {
+    console.error("Update Grievance Status Error:", err.stack);
     return catchResponse(res);
   } finally {
     session.endSession();
@@ -471,6 +402,8 @@ const getAllGrievances = async (req, res) => {
 module.exports = {
   createGrievance,
   updateGrievance,
+  updateGrievanceAssignee,
+  updateGrievanceStatus,
   updateGrievanceAttachment,
   getGrievanceById,
   deleteGrievanceById,

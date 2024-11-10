@@ -46,7 +46,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeleteGrievanceByIdMutation, useGetGrievanceByIdQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import {
+  useDeleteGrievanceByIdMutation,
+  useGetGrievanceByIdQuery,
+  useUpdateGrievanceAssigneeMutation,
+  useUpdateGrievanceMutation,
+  useUpdateGrievanceStatusMutation,
+} from "@/services/grievance.service";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -71,6 +77,8 @@ function GrievanceModal() {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updateGrievance] = useUpdateGrievanceMutation();
+  const [updateGrievanceAssignee] = useUpdateGrievanceAssigneeMutation();
+  const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
   const [deleteGrievance] = useDeleteGrievanceByIdMutation();
   const navigate = useNavigate();
 
@@ -91,8 +99,8 @@ function GrievanceModal() {
   const user = useSelector((state) => state.user.user);
 
   const canEditStatus =
-    user._id === userPermissions.includes("UPDATE_GRIEVANCE") ||
-    grievance?.data?.assigned_to?._id;
+    userPermissions.includes("UPDATE_GRIEVANCE") ||
+    user._id === grievance?.data?.assigned_to?._id.toString();
   const canEditPriority =
     userPermissions.includes("UPDATE_GRIEVANCE") ||
     user._id === grievance?.data?.reported_by?._id;
@@ -111,6 +119,34 @@ function GrievanceModal() {
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update grievance:", error);
+      toast.error(error.data.message);
+    }
+  };
+  const handleUpdateGrievanceAssignee = async (assigneeId) => {
+    try {
+      const response = await updateGrievanceAssignee({
+        id: grievanceId,
+        data: { assigned_to: assigneeId },
+      }).unwrap();
+      refetch();
+      setGrievance(grievanceData);
+      toast.success(response.message);
+    } catch (error) {
+      console.error("Failed to update assignee:", error);
+      toast.error(error.data.message);
+    }
+  };
+  const handleUpdateGrievanceStatus = async (status) => {
+    try {
+      const response = await updateGrievanceStatus({
+        id: grievanceId,
+        data: { status },
+      }).unwrap();
+      refetch();
+      setGrievance(grievanceData);
+      toast.success(response.message);
+    } catch (error) {
+      console.error("Failed to update status:", error);
       toast.error(error.data.message);
     }
   };
@@ -280,7 +316,7 @@ function GrievanceModal() {
                       value={grievance?.data?.status}
                       modal={false}
                       onValueChange={(value) => {
-                        handleUpdateGrievance({ status: value });
+                        handleUpdateGrievanceStatus(value);
                       }}
                     >
                       <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900/50">

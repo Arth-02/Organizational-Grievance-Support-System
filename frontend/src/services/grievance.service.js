@@ -26,6 +26,20 @@ export const grievanceApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    updateGrievanceAssignee: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `grievances/updateassignee/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    updateGrievanceStatus: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `grievances/updatestatus/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
     deleteGrievanceById: builder.mutation({
       query: (id) => ({
         url: `grievances/delete/${id}`,
@@ -55,6 +69,8 @@ export const {
   useCreateGrievanceMutation,
   useGetAllGrievancesQuery,
   useUpdateGrievanceMutation,
+  useUpdateGrievanceAssigneeMutation,
+  useUpdateGrievanceStatusMutation,
   useDeleteGrievanceByIdMutation,
   useGetGrievanceByIdQuery,
   useUpdateAttachmentMutation,
