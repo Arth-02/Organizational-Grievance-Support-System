@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useState } from "react";
+// import { useDropzone } from "react-dropzone";
 import {
-  X,
-  Upload,
+  // X,
+  // Upload,
   File,
-  Image as ImageIcon,
+  // Image as ImageIcon,
   Video,
   Maximize2,
   Paperclip,
@@ -32,23 +32,24 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import { useUpdateAttachmentMutation } from "@/services/grievance.service";
+import FileUploadComponent from "./FileUpload";
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_TYPES = {
-  "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-  "video/*": [".mp4", ".webm"],
-  "application/pdf": [".pdf"],
-  "application/msword": [".doc"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
-    ".docx",
-  ],
-  "application/vnd.ms-powerpoint": [".ppt"],
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
-    ".pptx",
-  ],
-  "text/plain": [".txt"],
-  "text/markdown": [".md"],
-};
+// const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+// const ACCEPTED_TYPES = {
+//   "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+//   "video/*": [".mp4", ".webm"],
+//   "application/pdf": [".pdf"],
+//   "application/msword": [".doc"],
+//   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+//     ".docx",
+//   ],
+//   "application/vnd.ms-powerpoint": [".ppt"],
+//   "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
+//     ".pptx",
+//   ],
+//   "text/plain": [".txt"],
+//   "text/markdown": [".md"],
+// };
 
 const FILE_TYPES = {
   "application/pdf": {
@@ -119,24 +120,24 @@ const AttachmentManager = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const newFiles = acceptedFiles.map((file) => ({
-      file,
-      id: Math.random().toString(36).substring(7),
-      preview: file.type.startsWith("image/")
-        ? URL.createObjectURL(file)
-        : null,
-      type: file.type,
-    }));
-    setFiles((prev) => [...prev, ...newFiles]);
-  }, []);
+  // const onDrop = useCallback((acceptedFiles) => {
+  //   const newFiles = acceptedFiles.map((file) => ({
+  //     file,
+  //     id: Math.random().toString(36).substring(7),
+  //     preview: file.type.startsWith("image/")
+  //       ? URL.createObjectURL(file)
+  //       : null,
+  //     type: file.type,
+  //   }));
+  //   setFiles((prev) => [...prev, ...newFiles]);
+  // }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: ACCEPTED_TYPES,
-    maxSize: MAX_SIZE,
-    multiple: true,
-  });
+  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  //   onDrop,
+  //   accept: ACCEPTED_TYPES,
+  //   maxSize: MAX_SIZE,
+  //   multiple: true,
+  // });
 
   const handleUpload = async () => {
     setUploading(true);
@@ -181,37 +182,37 @@ const AttachmentManager = ({
     }
   };
 
-  const removeFile = (fileId) => {
-    setFiles(files.filter((f) => f.id !== fileId));
-  };
+  // const removeFile = (fileId) => {
+  //   setFiles(files.filter((f) => f.id !== fileId));
+  // };
 
-  const getFileIcon = (type) => {
-    if (type?.startsWith("image/")) return <ImageIcon className="w-5 h-5" />;
-    if (type?.startsWith("video/")) return <Video className="w-5 h-5" />;
-    if (type?.startsWith("application/pdf"))
-      return <FileText className="w-5 h-5" />;
-    if (type?.startsWith("application/msword"))
-      return <FileText className="w-5 h-5" />;
-    if (
-      type?.startsWith(
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      )
-    )
-      return <FileText className="w-5 h-5" />;
-    if (type?.startsWith("application/vnd.ms-powerpoint"))
-      return <FileSpreadsheet className="w-5 h-5" />;
-    if (
-      type?.startsWith(
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-      )
-    )
-      return <FileSpreadsheet className="w-5 h-5" />;
-    if (type?.startsWith("text/plain")) return <FileText className="w-5 h-5" />;
-    if (type?.startsWith("text/markdown"))
-      return <FileText className="w-5 h-5" />;
+  // const getFileIcon = (type) => {
+  //   if (type?.startsWith("image/")) return <ImageIcon className="w-5 h-5" />;
+  //   if (type?.startsWith("video/")) return <Video className="w-5 h-5" />;
+  //   if (type?.startsWith("application/pdf"))
+  //     return <FileText className="w-5 h-5" />;
+  //   if (type?.startsWith("application/msword"))
+  //     return <FileText className="w-5 h-5" />;
+  //   if (
+  //     type?.startsWith(
+  //       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  //     )
+  //   )
+  //     return <FileText className="w-5 h-5" />;
+  //   if (type?.startsWith("application/vnd.ms-powerpoint"))
+  //     return <FileSpreadsheet className="w-5 h-5" />;
+  //   if (
+  //     type?.startsWith(
+  //       "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+  //     )
+  //   )
+  //     return <FileSpreadsheet className="w-5 h-5" />;
+  //   if (type?.startsWith("text/plain")) return <FileText className="w-5 h-5" />;
+  //   if (type?.startsWith("text/markdown"))
+  //     return <FileText className="w-5 h-5" />;
 
-    return <File className="w-5 h-5" />;
-  };
+  //   return <File className="w-5 h-5" />;
+  // };
 
   const handlePreview = (file) => {
     if (file.filetype?.startsWith("image/")) {
@@ -322,7 +323,7 @@ const AttachmentManager = ({
           <DialogDescription className="text-gray-500 dark:text-gray-400">
             Add Image, Video or file upto 5 files
           </DialogDescription>
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <div
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg p-8 text-center ${
@@ -414,7 +415,20 @@ const AttachmentManager = ({
                 Upload
               </Button>
             </div>
-          </div>
+          </div> */}
+          <FileUploadComponent
+          files={files}
+          onFilesChange={setFiles}
+          onUpload={handleUpload}
+          uploading={uploading}
+          uploadProgress={uploadProgress}
+          existingFiles={existingAttachments}
+          onRemoveExisting={(id) => {
+            // Handle existing file removal
+            console.log("Remove existing file:", id);
+          }}
+          canEdit={canEdit}
+        />
         </DialogContent>
       </Dialog>
 

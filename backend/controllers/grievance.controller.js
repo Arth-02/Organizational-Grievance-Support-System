@@ -260,18 +260,23 @@ const updateGrievanceAttachment = async (req, res) => {
         (attachment) => !delete_attachments.includes(attachment._id.toString())
       );
     }
-    const response = await attachmentService.createAttachment(
-      session,
-      grievance._id,
-      _id,
-      organization_id,
-      req.files
-    );
-    if (!response.isSuccess) {
-      await session.abortTransaction();
-      return errorResponse(res, response.code, response.message);
+
+    if (req.files && req.files.length > 0) {
+      const response = await attachmentService.createAttachment(
+        session,
+        _id,
+        organization_id,
+        req.files
+      );
+      if (!response.isSuccess) {
+        await session.abortTransaction();
+        return errorResponse(res, response.code, response.message);
+      }
+      grievance.attachments.push(...response.attachmentIds);
     }
-    grievance.attachments.push(...response.attachmentIds);
+
+    await grievance.save({ session });
+
     const updatedGrievanceData = await Grievance.findOne({
       _id: id,
       organization_id,
@@ -299,7 +304,6 @@ const updateGrievanceAttachment = async (req, res) => {
       req.io
     );
 
-    await grievance.save({ session });
     await session.commitTransaction();
     return successResponse(res, grievance, "Grievance updated successfully");
   } catch (err) {
