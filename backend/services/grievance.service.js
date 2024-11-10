@@ -5,6 +5,7 @@ const {
   updateMyGrievanceSchema,
   updateAssignedGrievanceSchema,
   updateStatusGrievanceSchema,
+  updateGrievanceAttachmentSchema,
 } = require("../validators/grievance.validator");
 const Grievance = require("../models/grievance.model");
 const Department = require("../models/department.model");
@@ -13,7 +14,7 @@ const LexoRank = require("./lexorank.service");
 const { isValidObjectId } = require("mongoose");
 const Joi = require("joi");
 const userService = require("./user.service");
-const { UPDATE_GRIEVANCE } = require("../utils/constant");
+const { UPDATE_GRIEVANCE, SUPER_ADMIN } = require("../utils/constant");
 const { sendNotification } = require("../utils/notification");
 const User = require("../models/user.model");
 
@@ -89,7 +90,7 @@ const createGrievance = async (session, body, user, files) => {
     await newGrievance.save({ session });
     return { isSuccess: true, grievance: newGrievance };
   } catch (err) {
-    console.log('Error in createGrievance service: ', err);
+    console.log("Error in createGrievance service: ", err);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
@@ -328,6 +329,16 @@ const updateGrievanceStatus = async (session, id, body, user) => {
         value.prevRank || null,
         value.nextRank || null
       );
+    } else {
+      const lastGrievance = await Grievance.findOne({
+        organization_id,
+        status: value.status,
+      })
+        .sort({ rank: 1 })
+        .session(session);
+      newRank = lastGrievance
+        ? LexoRank.getMiddleRank(null, lastGrievance.rank)
+        : LexoRank.getInitialRank();
     }
 
     // Update value object with new rank
@@ -340,7 +351,7 @@ const updateGrievanceStatus = async (session, id, body, user) => {
 
     const query = { _id: id, organization_id };
 
-    await Grievance.updateOne(query, value, {
+    await Grievance.updateOne(query, updateData, {
       new: true,
     }).session(session);
 
@@ -376,9 +387,277 @@ const updateGrievanceStatus = async (session, id, body, user) => {
   }
 };
 
+// Update a grievance Attachments
+const updateGrievanceAttachment = async (session, id, body, user, files) => {
+  try {
+    const { organization_id, _id } = user;
+    if (!id) {
+      return {
+        isSuccess: false,
+        message: "Grievance ID is required",
+        code: 400,
+      };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid grievance ID", code: 400 };
+    }
+    const { error, value } = updateGrievanceAttachmentSchema.validate(body);
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+
+    const grievance = await Grievance.findOne({
+      _id: id,
+      organization_id,
+    }).session(session);
+    if (!grievance) {
+      return { isSuccess: false, message: "Grievance not found", code: 404 };
+    }
+    if (grievance.reported_by.toString() !== _id.toString()) {
+      return {
+        isSuccess: false,
+        message: "Permission denied",
+        code: 403,
+      };
+    }
+    let totalAttachments = grievance?.attachments?.length;
+    if (value?.delete_attachments) {
+      totalAttachments -= value?.delete_attachments?.length;
+    }
+    if (files && files.length > 0) {
+      totalAttachments += files?.length;
+    }
+    if (totalAttachments > 5) {
+      return {
+        isSuccess: false,
+        message: "Maximum 5 attachments are allowed",
+        code: 400,
+      };
+    }
+    if (value?.delete_attachments && value?.delete_attachments.length > 0) {
+      const { delete_attachments } = value;
+      const response = await attachmentService.deleteAttachment(
+        session,
+        delete_attachments
+      );
+      if (!response.isSuccess) {
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
+      }
+      grievance.attachments = grievance.attachments.filter(
+        (attachment) => !delete_attachments.includes(attachment._id.toString())
+      );
+    }
+
+    if (files && files.length > 0) {
+      const response = await attachmentService.createAttachment(
+        session,
+        _id,
+        organization_id,
+        files
+      );
+      if (!response.isSuccess) {
+        await session.abortTransaction();
+        return errorResponse(res, response.code, response.message);
+      }
+      grievance.attachments.push(...response.attachmentIds);
+    }
+
+    await grievance.save({ session });
+
+    const updatedGrievanceData = await Grievance.findOne({
+      _id: id,
+      organization_id,
+    })
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" })
+      .populate({ path: "assigned_to", select: "username" })
+      .session(session);
+
+    const userData = await User.find(
+      { organization_id, _id: { $ne: _id } },
+      "_id"
+    );
+    const userIds = userData.map((user) => user._id);
+
+    sendNotification(userIds, {
+      type: "update_grievance",
+      message: `Your grievance with ID ${id} has been updated`,
+      grievanceId: id,
+      updatedData: updatedGrievanceData,
+    });
+
+    return { isSuccess: true, data: updatedGrievanceData };
+  } catch (err) {
+    console.error("Update Grievance Attachment Error:", err.message);
+    await session.abortTransaction();
+    return catchResponse(res);
+  }
+};
+
+// get grievance by id
+const getGrievanceById = async (id, user) => {
+  try {
+    const { organization_id } = user;
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid grievance ID", code: 400 };
+    }
+    const query = { _id: id, is_active: true };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const grievance = await Grievance.findOne(query)
+      .populate({ path: "department_id", select: "name" })
+      .populate({ path: "reported_by", select: "username" })
+      .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      });
+    if (!grievance) {
+      return { isSuccess: false, message: "Grievance not found", code: 404 };
+    }
+    return { isSuccess: true, data: grievance };
+  } catch (err) {
+    console.error("Get Grievance By Id Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// delete grievance by id
+const deleteGrievanceById = async (id, user) => {
+  try {
+    const { organization_id } = user;
+    if (!id) {
+      return {
+        isSuccess: false,
+        message: "Grievance ID is required",
+        code: 400,
+      };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid grievance ID", code: 400 };
+    }
+    const query = { _id: id };
+    if (organization_id) {
+      query.organization_id = organization_id;
+    }
+    const grievance = await Grievance.findOne(query);
+    if (!grievance) {
+      return { isSuccess: false, message: "Grievance not found", code: 404 };
+    }
+    await Grievance.updateOne({ _id: id }, { is_active: false });
+    return { isSuccess: true, message: "Grievance deleted successfully" };
+  } catch (err) {
+    console.error("Delete Grievance By Id Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Get all grievances
+const getAllGrievances = async (reqquery,user) => {
+  try {
+    const { organization_id, role } = user;
+    const {
+      page = 1,
+      limit = 10,
+      sort_by = "created_at",
+      order = "desc",
+      search,
+      status,
+      priority,
+      department_id,
+      employee_id,
+      is_active = "true",
+    } = reqquery;
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const isSuperAdmin = role.name === SUPER_ADMIN;
+
+    const query = { organization_id };
+    if (is_active && isSuperAdmin) {
+      query.is_active = is_active === "true";
+    } else {
+      query.is_active = true;
+    }
+    if (status) {
+      query.status = status;
+    }
+    if (priority) {
+      query.priority = priority;
+    }
+    if (department_id) {
+      query.department_id = department_id;
+    }
+    if (employee_id) {
+      query.employee_id = employee_id;
+    }
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+
+    const [grievances, totalGrievances] = await Promise.all([
+      Grievance.find(query)
+        .sort({ rank: 1 })
+        .limit(limitNumber)
+        .skip(skip)
+        .populate({ path: "department_id", select: "name" })
+        .populate({ path: "reported_by", select: "username" })
+        .populate({ path: "assigned_to", select: "username" }),
+      Grievance.countDocuments(query),
+    ]);
+
+    query.status = "submitted";
+    const totalSubmitted = await Grievance.countDocuments(query);
+    query.status = "in-progress";
+    const totalInProgress = await Grievance.countDocuments(query);
+    query.status = "resolved";
+    const totalResolved = await Grievance.countDocuments(query);
+    query.status = "dismissed";
+    const totalDismissed = await Grievance.countDocuments(query);
+
+    if (!grievances.length) {
+      return {isSuccess: false, message: "No grievances found", code: 404};
+    }
+
+    const totalPages = Math.ceil(totalGrievances / limitNumber);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    const pagination = {
+      totalItems: totalGrievances,
+      totalSubmitted,
+      totalInProgress,
+      totalResolved,
+      totalDismissed,
+      totalPages: totalPages,
+      currentPage: pageNumber,
+      limit: limitNumber,
+      hasNextPage: hasNextPage,
+      hasPrevPage: hasPrevPage,
+    };
+
+    return {isSuccess: true, data: grievances, pagination};
+  } catch (err) {
+    console.error("Get All Grievances Error:", err.message);
+    return {isSuccess: false, message: "Internal Server Error", code: 500};
+  }
+};
+
 module.exports = {
   createGrievance,
   updateGrievance,
   updateGrievanceAssignee,
   updateGrievanceStatus,
+  updateGrievanceAttachment,
+  getGrievanceById,
+  deleteGrievanceById,
+  getAllGrievances,
 };

@@ -20,12 +20,6 @@ const createGrievanceSchema = Joi.object({
 const updateFullGrievanceSchema = Joi.object({
   department_id: Joi.string(),
   priority: Joi.string().valid("low", "medium", "high"),
-  status: Joi.string().valid(
-    "submitted",
-    "in-progress",
-    "resolved",
-    "dismissed"
-  ),
   is_active: Joi.boolean(),
   assigned_to: Joi.string().length(24),
   prevRank: Joi.string().allow(null).optional(),

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useLocation } from "react-router-dom";
@@ -6,13 +5,16 @@ import { useEffect, useState } from "react";
 import GrievanceList from "./GrievanceList";
 import toast from "react-hot-toast";
 import useSocket from "@/utils/useSocket";
-import { useGetAllGrievancesQuery, useUpdateGrievanceMutation } from "@/services/grievance.service";
+import {
+  useGetAllGrievancesQuery,
+  useUpdateGrievanceStatusMutation,
+} from "@/services/grievance.service";
 
 const GrievanceBoardView = () => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
   const location = useLocation();
 
-  const [updateGrievance] = useUpdateGrievanceMutation();
+  const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
 
   const socket = useSocket();
 
@@ -56,31 +58,67 @@ const GrievanceBoardView = () => {
     }));
   };
 
-  const { data: submittedGrievance } = useGetAllGrievancesQuery({
-    ...filters,
-    status: "submitted",
-    page: page.submitted,
-  });
+  const { data: submittedGrievance, isError: submittedError } =
+    useGetAllGrievancesQuery({
+      ...filters,
+      status: "submitted",
+      page: page.submitted,
+    });
 
-  const { data: inProgressGrievance } = useGetAllGrievancesQuery({
-    ...filters,
-    status: "in-progress",
-    page: page["in-progress"],
-  });
+  const { data: inProgressGrievance, isError: inProgressError } =
+    useGetAllGrievancesQuery({
+      ...filters,
+      status: "in-progress",
+      page: page["in-progress"],
+    });
 
-  const { data: resolvedGrievance } = useGetAllGrievancesQuery({
-    ...filters,
-    status: "resolved",
-    page: page.resolved,
-  });
+  const { data: resolvedGrievance, isError: resolvedError } =
+    useGetAllGrievancesQuery({
+      ...filters,
+      status: "resolved",
+      page: page.resolved,
+    });
 
-  const { data: dismissedGrievance } = useGetAllGrievancesQuery({
-    ...filters,
-    status: "dismissed",
-    page: page.dismissed,
-  });
+  const { data: dismissedGrievance, isError: dismissedError } =
+    useGetAllGrievancesQuery({
+      ...filters,
+      status: "dismissed",
+      page: page.dismissed,
+    });
 
-  const updateGrievances = (status, newGrievances, hasNextPageStatus, totalCount) => {
+  useEffect(() => {
+    if (submittedError) {
+      setIsInitialized((prev) => ({
+        ...prev,
+        submitted: true,
+      }));
+    }
+    if (inProgressError) {
+      setIsInitialized((prev) => ({
+        ...prev,
+        "in-progress": true,
+      }));
+    }
+    if (resolvedError) {
+      setIsInitialized((prev) => ({
+        ...prev,
+        resolved: true,
+      }));
+    }
+    if (dismissedError) {
+      setIsInitialized((prev) => ({
+        ...prev,
+        dismissed: true,
+      }));
+    }
+  }, [submittedError, inProgressError, resolvedError, dismissedError]);
+
+  const updateGrievances = (
+    status,
+    newGrievances,
+    hasNextPageStatus,
+    totalCount
+  ) => {
     if (!isInitialized[status] && page[status] === 1) {
       // Initial load
       setGrievances((prev) => ({
@@ -197,7 +235,7 @@ const GrievanceBoardView = () => {
       handleCardMoveCount(oldStatus, newStatus);
 
       // Call API to update status and rank
-      const response = await updateGrievance({
+      const response = await updateGrievanceStatus({
         id: grievanceId,
         data: {
           status: newStatus,
@@ -364,11 +402,79 @@ const GrievanceBoardView = () => {
     handleCardMoveCount(oldStatus, msg.updatedData.status);
   };
 
+  const handleUpdateGrievanceAssignee = (msg) => {
+    setGrievances((prevGrievances) => {
+      const updatedGrievance = msg.updatedData;
+      const status = updatedGrievance.status;
+
+      // Add or update the grievance in the new status list
+      const updatedNewList = prevGrievances[status].map((grievance) =>
+        grievance._id === updatedGrievance._id ? updatedGrievance : grievance
+      );
+
+      return {
+        ...prevGrievances,
+        [status]: updatedNewList,
+      };
+    });
+  };
+
+  const handleUpdateGrievanceStatus = (msg) => {
+    let oldStatus = null;
+    setGrievances((prevGrievances) => {
+      const updatedGrievance = msg.updatedData;
+      const newStatus = updatedGrievance.status;
+
+      // Find the old status of the grievance
+      oldStatus = Object.keys(prevGrievances).find((status) =>
+        prevGrievances[status].some(
+          (grievance) => grievance._id === updatedGrievance._id
+        )
+      );
+
+      // If the old status is not found, return the previous state
+      if (!oldStatus) return prevGrievances;
+
+      // Remove the grievance from the old status list
+      const updatedOldList = prevGrievances[oldStatus].filter(
+        (grievance) => grievance._id !== updatedGrievance._id
+      );
+
+      // Add or update the grievance in the new status list
+      const updatedNewList = [
+        ...prevGrievances[newStatus].filter(
+          (grievance) => grievance._id !== updatedGrievance._id
+        ),
+        updatedGrievance,
+      ];
+
+      // Sort the new status list by rank
+      const sortedNewList = updatedNewList.sort((a, b) => {
+        return a.rank.localeCompare(b.rank, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+      });
+
+      return {
+        ...prevGrievances,
+        [oldStatus]: updatedOldList,
+        [newStatus]: sortedNewList,
+      };
+    });
+
+    handleCardMoveCount(oldStatus, msg.updatedData.status);
+  };
+
   useEffect(() => {
     socket.on("update_grievance", handleUpdateGrievance);
+    socket.on("update_grievance_assignee", handleUpdateGrievanceAssignee);
+    socket.on("update_grievance_status", handleUpdateGrievanceStatus);
 
     return () => {
       socket.off("update_grievance");
+      socket.off("update_grievance_status");
+      socket.off("update_grievance_assignee");
     };
   }, [socket]);
 
