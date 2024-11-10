@@ -51,7 +51,6 @@ export default function AddGrievanceModal() {
       description: "",
       department_id: "",
       priority: "low",
-      status: "submitted",
     },
   });
 

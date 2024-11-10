@@ -53,6 +53,7 @@ import {
   useUpdateGrievanceMutation,
   useUpdateGrievanceStatusMutation,
 } from "@/services/grievance.service";
+import EditableDescription from "./EditableDescription";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -294,17 +295,13 @@ function GrievanceModal() {
                 </div>
 
                 {/* Description */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2 flex items-center gap-2">
-                    <Menu className="h-5 w-5" /> Description
-                  </h3>
-                  <TextEditor
-                    initialContent={grievance?.data?.description || ""}
-                    onSave={(content) => {
-                      handleUpdateGrievance({ description: content });
-                    }}
-                  />
-                </div>
+                <EditableDescription
+                  description={grievance?.data?.description}
+                  canEdit={canEditGrievance}
+                  onSave={(content) => {
+                    handleUpdateGrievance({ description: content });
+                  }}
+                />
 
                 {/* Attachments section remains the same */}
                 <AttachmentManager
