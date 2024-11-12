@@ -172,12 +172,12 @@ export default function AddGrievanceModal() {
                       open={isDepartmentSelectOpen}
                       onOpenChange={setIsDepartmentSelectOpen}
                     >
-                      <SelectTrigger className="bg-white dark:bg-slate-900">
+                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-slate-900">
                         {departments?.data?.map((dept) => (
-                          <SelectItem key={dept._id} value={dept._id}>
+                          <SelectItem key={dept._id} value={dept._id} className="hover:bg-gray-100 dark:hover:bg-slate-600/50">
                             {dept.name}
                           </SelectItem>
                         ))}
@@ -208,12 +208,12 @@ export default function AddGrievanceModal() {
                       open={isPrioritySelectOpen}
                       onOpenChange={setIsPrioritySelectOpen}
                     >
-                      <SelectTrigger className="bg-white dark:bg-slate-900">
+                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-slate-900">
                         {PRIORITY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
+                          <SelectItem key={option.value} value={option.value} className="hover:bg-gray-100 dark:hover:bg-slate-600/50">
                             {option.label}
                           </SelectItem>
                         ))}
