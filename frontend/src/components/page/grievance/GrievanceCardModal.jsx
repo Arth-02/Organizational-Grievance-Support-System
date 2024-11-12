@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RoutableModal } from "@/components/ui/RoutedModal";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Menu,
-  User,
   Users,
   Building2,
   AlertTriangle,
   Clock,
   Paperclip,
   X,
-  Plus,
   Loader2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -33,7 +29,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import GrievanceModalSkeleton from "./GreievanceCardModalSkeleton";
 import AttachmentManager from "./MediaManager";
-import TextEditor from "./TextEditor";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import {
@@ -64,6 +59,7 @@ import ActionComboBoxButton from "./ActionComboBoxButton";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
 import { useGetAllUserNamesQuery } from "@/services/user.service";
 import EditableTitle from "./EditableTitle";
+import useSocket from "@/utils/useSocket";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -100,6 +96,8 @@ function GrievanceModal() {
     useGetAllDepartmentNameQuery();
   const { data: users, isLoading: usersLoading } = useGetAllUserNamesQuery();
   const navigate = useNavigate();
+
+  const socket = useSocket();
 
   const {
     data: grievanceData,
@@ -226,6 +224,20 @@ function GrievanceModal() {
     .filter((department) => {
       return department.value !== grievance?.data?.department_id?._id;
     });
+
+  const handleGrievanceUpdate = (data) => {
+    if (grievanceId === data.grievanceId) {
+      const newData = { data: data.updatedData };
+      setGrievance(newData);
+    }
+  };
+
+  useEffect(() => {
+    socket.on("update_grievance", handleGrievanceUpdate);
+    return () => {
+      socket.off("update_grievance");
+    };
+  }, [socket]);
 
   return (
     <RoutableModal
