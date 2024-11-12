@@ -227,8 +227,18 @@ function GrievanceModal() {
 
   const handleGrievanceUpdate = (data) => {
     if (grievanceId === data.grievanceId) {
-      const newData = { data: data.updatedData };
-      setGrievance(newData);
+      // update data but not the attachments
+      setGrievance((prevGrievance) => {
+        const updatedData = {
+          ...prevGrievance,
+          data: {
+            ...prevGrievance.data,
+            ...data.updatedData,
+            attachments: prevGrievance.data.attachments, // Preserve the attachments
+          },
+        };
+        return updatedData;
+      });
     }
   };
 
