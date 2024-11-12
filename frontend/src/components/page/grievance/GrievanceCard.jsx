@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, AlertTriangle, Paperclip, User } from "lucide-react";
 import cn from "classnames";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
-import { TooltipContent } from "@radix-ui/react-tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
 
 const PRIORITY_BADGES = {

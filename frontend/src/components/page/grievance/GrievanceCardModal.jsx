@@ -54,6 +54,12 @@ import {
   useUpdateGrievanceStatusMutation,
 } from "@/services/grievance.service";
 import EditableDescription from "./EditableDescription";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -113,7 +119,8 @@ function GrievanceModal() {
   const canEditAssignee = userPermissions.includes("UPDATE_GRIEVANCE_ASSIGNEE");
   const canEditAttachments = user._id === grievance?.data?.reported_by?._id;
   const canEditGrievance = userPermissions.includes("UPDATE_GRIEVANCE");
-  const canEditTitleAndDescription = user._id === grievance?.data?.reported_by?._id;
+  const canEditTitleAndDescription =
+    user._id === grievance?.data?.reported_by?._id;
 
   const handleUpdateGrievance = async (data) => {
     try {
@@ -248,39 +255,55 @@ function GrievanceModal() {
                       Reported By
                     </h3>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                        <User className="h-4 w-4" />
-                      </div>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Avatar>
+                            <AvatarImage
+                              src={grievance?.data?.reported_by?.avatar}
+                              alt={grievance?.data?.reported_by?.username}
+                            />
+                            <AvatarFallback>
+                              {grievance?.data?.reported_by?.username[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {grievance?.data?.reported_by?.username}
+                        </TooltipContent>
+                      </Tooltip>
                       <span className="text-gray-700 dark:text-slate-300">
                         {grievance?.data?.reported_by?.username || "User"}
                       </span>
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
-                      Assigned To
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      {grievance?.data?.assigned_to ? (
-                        <>
-                          <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                            <User className="h-4 w-4" />
-                          </div>
-                          <span className="text-gray-700 dark:text-slate-300">
-                            {grievance.data.assigned_to.username}
-                          </span>
-                        </>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Assign
-                        </Button>
-                      )}
+                  {grievance?.data?.assigned_to && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
+                        Assigned To
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Avatar>
+                              <AvatarImage
+                                src={grievance?.data?.assigned_to?.avatar}
+                                alt={grievance?.data?.assigned_to?.username}
+                              />
+                              <AvatarFallback>
+                                {grievance?.data?.assigned_to?.username[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {grievance?.data?.assigned_to?.username}
+                          </TooltipContent>
+                        </Tooltip>
+                        <span className="text-gray-700 dark:text-slate-300">
+                          {grievance.data.assigned_to.username}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
