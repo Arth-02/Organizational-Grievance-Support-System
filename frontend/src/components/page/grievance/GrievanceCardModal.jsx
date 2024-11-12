@@ -63,6 +63,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ActionComboBoxButton from "./ActionComboBoxButton";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
 import { useGetAllUserNamesQuery } from "@/services/user.service";
+import EditableTitle from "./EditableTitle";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -95,8 +96,9 @@ function GrievanceModal() {
   const [updateGrievanceAssignee] = useUpdateGrievanceAssigneeMutation();
   const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
   const [deleteGrievance] = useDeleteGrievanceByIdMutation();
-  const {data: departments, isLoading: departmentLoading} = useGetAllDepartmentNameQuery();
-  const {data: users, isLoading: usersLoading} = useGetAllUserNamesQuery();
+  const { data: departments, isLoading: departmentLoading } =
+    useGetAllDepartmentNameQuery();
+  const { data: users, isLoading: usersLoading } = useGetAllUserNamesQuery();
   const navigate = useNavigate();
 
   const {
@@ -127,7 +129,9 @@ function GrievanceModal() {
   const canEditGrievance = userPermissions.includes("UPDATE_GRIEVANCE");
   const canEditTitleAndDescription =
     user._id === grievance?.data?.reported_by?._id;
-  const canDeleteGrievance = userPermissions.includes("DELETE_GRIEVANCE") || user._id === grievance?.data?.assigned_to?._id.toString();
+  const canDeleteGrievance =
+    userPermissions.includes("DELETE_GRIEVANCE") ||
+    user._id === grievance?.data?.assigned_to?._id.toString();
 
   const handleUpdateGrievance = async (data) => {
     try {
@@ -196,26 +200,32 @@ function GrievanceModal() {
   };
 
   // exclude the current assignee and reported user from the list of users
-  const usersList = users?.data?.map((user) => {
-    return {
-      label: user.username,
-      value: user._id,
-      image: user.avatar,
-    }
-  }).filter((user) => {
-    return user.value !== grievance?.data?.assigned_to?._id && user.value !== grievance?.data?.reported_by?._id;
-  });
+  const usersList = users?.data
+    ?.map((user) => {
+      return {
+        label: user.username,
+        value: user._id,
+        image: user.avatar,
+      };
+    })
+    .filter((user) => {
+      return (
+        user.value !== grievance?.data?.assigned_to?._id &&
+        user.value !== grievance?.data?.reported_by?._id
+      );
+    });
 
   // exclude the current department from the list of departments
-  const departmentsList = departments?.data?.map((department) => {
-    return {
-      label: department.name,
-      value: department._id,
-    };
-  }
-  ).filter((department) => {
-    return department.value !== grievance?.data?.department_id?._id;
-  });
+  const departmentsList = departments?.data
+    ?.map((department) => {
+      return {
+        label: department.name,
+        value: department._id,
+      };
+    })
+    .filter((department) => {
+      return department.value !== grievance?.data?.department_id?._id;
+    });
 
   return (
     <RoutableModal
@@ -237,6 +247,7 @@ function GrievanceModal() {
               <div className="flex-1">
                 <EditableTitle
                   grievance={grievance}
+                  canEditTitle={canEditTitleAndDescription}
                   handleUpdateGrievance={handleUpdateGrievance}
                 />
                 <div className="flex items-center gap-2 mt-3">
@@ -500,7 +511,9 @@ function GrievanceModal() {
                         buttonIcon={Building2}
                         options={departmentsList}
                         onSelect={(option) => {
-                          handleUpdateGrievance({ department_id: option.value });
+                          handleUpdateGrievance({
+                            department_id: option.value,
+                          });
                         }}
                       />
                     )}
@@ -562,46 +575,5 @@ function GrievanceModal() {
     </RoutableModal>
   );
 }
-
-const EditableTitle = ({ grievance, handleUpdateGrievance }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const inputRef = useRef(null);
-  const [updateGrievance, { isLoading: isUpdating }] =
-    useUpdateGrievanceMutation();
-
-  const handleTitleChange = async (newTitle) => {
-    try {
-      await handleUpdateGrievance({ title: newTitle });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Failed to update title:", error);
-    }
-  };
-
-  return (
-    <div>
-      {isEditing ? (
-        <Input
-          ref={inputRef}
-          defaultValue={grievance?.data?.title}
-          onBlur={(e) => handleTitleChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleTitleChange(e.target.value);
-            if (e.key === "Escape") setIsEditing(false);
-          }}
-          className="text-xl font-medium bg-transparent border-slate-700 text-black dark:text-white"
-          autoFocus
-        />
-      ) : (
-        <h2
-          onClick={() => setIsEditing(true)}
-          className="text-xl font-medium cursor-pointer hover:underline text-black dark:text-white"
-        >
-          {grievance?.data?.title || "Grievance Title"}
-        </h2>
-      )}
-    </div>
-  );
-};
 
 export default GrievanceModal;
