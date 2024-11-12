@@ -284,7 +284,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
 
   return (
     <>
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden max-w-[644px]">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden max-w-full">
         <div className="bg-slate-200 dark:bg-slate-900/50 p-2 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center flex-wrap gap-1">
             {toolbarItems.map((item, index) =>
