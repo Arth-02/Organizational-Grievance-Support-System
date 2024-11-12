@@ -93,6 +93,12 @@ export const userApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    getAllUserNames: builder.query({
+      query: () => ({
+        url: "users/usersname",
+        method: "GET",
+      }),
+    }),
     // Board operations
     addBoard: builder.mutation({
       query: (body) => ({
@@ -170,6 +176,7 @@ export const {
   useCheckEmailMutation,
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
+  useGetAllUserNamesQuery,
   // Board operation hooks
   useAddBoardMutation,
   useDeleteBoardMutation,

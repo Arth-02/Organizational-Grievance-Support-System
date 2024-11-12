@@ -60,6 +60,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ActionComboBoxButton from "./ActionComboBoxButton";
+import { useGetAllDepartmentNameQuery } from "@/services/department.service";
+import { useGetAllUserNamesQuery } from "@/services/user.service";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -92,6 +95,8 @@ function GrievanceModal() {
   const [updateGrievanceAssignee] = useUpdateGrievanceAssigneeMutation();
   const [updateGrievanceStatus] = useUpdateGrievanceStatusMutation();
   const [deleteGrievance] = useDeleteGrievanceByIdMutation();
+  const {data: departments, isLoading: departmentLoading} = useGetAllDepartmentNameQuery();
+  const {data: users, isLoading: usersLoading} = useGetAllUserNamesQuery();
   const navigate = useNavigate();
 
   const {
@@ -101,6 +106,7 @@ function GrievanceModal() {
   } = useGetGrievanceByIdQuery(grievanceId, {
     skip: !grievanceId,
   });
+
   useEffect(() => {
     if (grievanceData) {
       setGrievance(grievanceData);
@@ -121,6 +127,7 @@ function GrievanceModal() {
   const canEditGrievance = userPermissions.includes("UPDATE_GRIEVANCE");
   const canEditTitleAndDescription =
     user._id === grievance?.data?.reported_by?._id;
+  const canDeleteGrievance = userPermissions.includes("DELETE_GRIEVANCE") || user._id === grievance?.data?.assigned_to?._id.toString();
 
   const handleUpdateGrievance = async (data) => {
     try {
@@ -136,6 +143,7 @@ function GrievanceModal() {
       toast.error(error.data.message);
     }
   };
+
   const handleUpdateGrievanceAssignee = async (assigneeId) => {
     try {
       const response = await updateGrievanceAssignee({
@@ -150,6 +158,7 @@ function GrievanceModal() {
       toast.error(error.data.message);
     }
   };
+
   const handleUpdateGrievanceStatus = async (status) => {
     try {
       const response = await updateGrievanceStatus({
@@ -185,6 +194,28 @@ function GrievanceModal() {
       navigate(-1);
     }
   };
+
+  // exclude the current assignee and reported user from the list of users
+  const usersList = users?.data?.map((user) => {
+    return {
+      label: user.username,
+      value: user._id,
+      image: user.avatar,
+    }
+  }).filter((user) => {
+    return user.value !== grievance?.data?.assigned_to?._id && user.value !== grievance?.data?.reported_by?._id;
+  });
+
+  // exclude the current department from the list of departments
+  const departmentsList = departments?.data?.map((department) => {
+    return {
+      label: department.name,
+      value: department._id,
+    };
+  }
+  ).filter((department) => {
+    return department.value !== grievance?.data?.department_id?._id;
+  });
 
   return (
     <RoutableModal
@@ -445,46 +476,49 @@ function GrievanceModal() {
                   </div>
                 )}
 
-                {(canEditGrievance || canEditAssignee) && (
+                {(canEditGrievance ||
+                  canEditAssignee ||
+                  canDeleteGrievance) && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400">
                       Actions
                     </h4>
                     {canEditAssignee && (
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        Change Assignee
-                      </Button>
+                      <ActionComboBoxButton
+                        buttonLabel="Change Assignee"
+                        buttonIcon={Users}
+                        shouldShowUserAvatar={true}
+                        options={usersList}
+                        onSelect={(option) => {
+                          handleUpdateGrievanceAssignee(option.value);
+                        }}
+                      />
                     )}
                     {canEditGrievance && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
-                        >
-                          <Building2 className="h-4 w-4 mr-2" />
-                          Change Department
-                        </Button>
-                        {grievance?.data?.is_active && (
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-200/30 dark:text-red-400 dark:hover:bg-red-500/10"
-                            onClick={() => {
-                              setDeleteDialog(true);
-                            }}
-                          >
-                            <AlertTriangle className="h-4 w-4 mr-2" />
-                            Close Grievance
-                          </Button>
-                        )}
-                      </>
+                      <ActionComboBoxButton
+                        buttonLabel="Change Department"
+                        buttonIcon={Building2}
+                        options={departmentsList}
+                        onSelect={(option) => {
+                          handleUpdateGrievance({ department_id: option.value });
+                        }}
+                      />
+                    )}
+                    {canDeleteGrievance && grievance?.data?.is_active && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-200/30 dark:text-red-400 dark:hover:bg-red-500/10"
+                        onClick={() => {
+                          setDeleteDialog(true);
+                        }}
+                      >
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Close Grievance
+                      </Button>
                     )}
                   </div>
                 )}
-                <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="pt-4 border-t border-gray-200 dark:border-slate-700 !mb-2">
                   <div className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Created{" "}
