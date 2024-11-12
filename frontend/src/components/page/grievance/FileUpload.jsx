@@ -78,9 +78,10 @@ const FileUploadComponent = ({
       const newFiles = acceptedFiles.map((file) => ({
         file,
         id: Math.random().toString(36).substring(7),
-        preview: file.type.startsWith("image/")
-          ? URL.createObjectURL(file)
-          : null,
+        preview:
+          file.type.startsWith("image/") || file.type.startsWith("video/")
+            ? URL.createObjectURL(file)
+            : null,
         type: file.type,
       }));
       onFilesChange([...files, ...newFiles]);
@@ -130,6 +131,13 @@ const FileUploadComponent = ({
           className="h-12 w-12 object-cover rounded"
         />
       );
+    }
+    else if (file.type?.startsWith("video/") || file.filetype?.startsWith("video/")) {
+      return (
+        <video className="h-12 w-12 object-cover rounded">
+          <source src={file.preview || file.url} type={file.type} />
+        </video>
+      )
     }
 
     return (

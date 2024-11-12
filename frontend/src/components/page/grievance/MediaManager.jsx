@@ -1,11 +1,6 @@
 import { useState } from "react";
-// import { useDropzone } from "react-dropzone";
 import {
-  // X,
-  // Upload,
   File,
-  // Image as ImageIcon,
-  Video,
   Maximize2,
   Paperclip,
   Trash2,
@@ -33,23 +28,6 @@ import {
 import toast from "react-hot-toast";
 import { useUpdateAttachmentMutation } from "@/services/grievance.service";
 import FileUploadComponent from "./FileUpload";
-
-// const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-// const ACCEPTED_TYPES = {
-//   "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-//   "video/*": [".mp4", ".webm"],
-//   "application/pdf": [".pdf"],
-//   "application/msword": [".doc"],
-//   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
-//     ".docx",
-//   ],
-//   "application/vnd.ms-powerpoint": [".ppt"],
-//   "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
-//     ".pptx",
-//   ],
-//   "text/plain": [".txt"],
-//   "text/markdown": [".md"],
-// };
 
 const FILE_TYPES = {
   "application/pdf": {
@@ -201,7 +179,9 @@ const AttachmentManager = ({
     } else if (attachment.filetype?.startsWith("video/")) {
       return (
         <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
-          <Video className="h-6 w-6 text-gray-500 dark:text-slate-400" />
+          <video className="h-12 w-12 object-cover rounded">
+            <source src={attachment.url} type={attachment.filetype} />
+          </video>
         </div>
       );
     } else {
@@ -268,6 +248,14 @@ const AttachmentManager = ({
             </div>
           </div>
         ))}
+
+        {
+          existingAttachments.length === 0 && (
+            <div className="text-gray-500 !mt-4 ml-6 dark:text-slate-400 text-sm">
+              No attachments found
+            </div>
+          )
+        }
       </div>
 
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>

@@ -113,6 +113,7 @@ function GrievanceModal() {
   const canEditAssignee = userPermissions.includes("UPDATE_GRIEVANCE_ASSIGNEE");
   const canEditAttachments = user._id === grievance?.data?.reported_by?._id;
   const canEditGrievance = userPermissions.includes("UPDATE_GRIEVANCE");
+  const canEditTitleAndDescription = user._id === grievance?.data?.reported_by?._id;
 
   const handleUpdateGrievance = async (data) => {
     try {
@@ -297,7 +298,7 @@ function GrievanceModal() {
                 {/* Description */}
                 <EditableDescription
                   description={grievance?.data?.description}
-                  canEdit={canEditGrievance}
+                  canEdit={canEditTitleAndDescription}
                   onSave={(content) => {
                     handleUpdateGrievance({ description: content });
                   }}
@@ -331,7 +332,7 @@ function GrievanceModal() {
                       }}
                       onOpenChange={setIsStatusSelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-slate-900">
@@ -354,7 +355,7 @@ function GrievanceModal() {
                     </Select>
                   ) : (
                     <div
-                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-input/50 ${
+                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
                         STATUS_BADGES[grievance?.data?.status]?.color
                       }`}
                     >
@@ -373,7 +374,7 @@ function GrievanceModal() {
                       }}
                       onOpenChange={setIsPrioritySelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-slate-900">
@@ -396,7 +397,7 @@ function GrievanceModal() {
                     </Select>
                   ) : (
                     <div
-                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-input/50 ${
+                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
                         PRIORITY_BADGES[grievance?.data?.priority]?.color
                       }`}
                     >
