@@ -1,7 +1,9 @@
 const Task = require("../models/task.model");
 const {
-  updateBoardTaskSchema,
-  updateBoardTaskAttachmentchema,
+  updateTaskSchema,
+  updateTaskAttachmentchema,
+  updateTaskSubmissionSchema,
+  updateTaskFinishSchema,
 } = require("../validators/task.validator");
 const attachmentService = require("./attachment.service");
 const { isValidObjectId } = require("mongoose");
@@ -57,7 +59,7 @@ const updateTask = async (session, id, body) => {
     if (!task) {
       return { isSuccess: false, message: "Task not found", code: 404 };
     }
-    const { error, value } = updateBoardTaskSchema.validate(body, {
+    const { error, value } = updateTaskSchema.validate(body, {
       abortEarly: false,
     });
     if (error) {
@@ -94,7 +96,7 @@ const updateTaskAttachment = async (session, id, body, user, files) => {
     if (!task) {
       return { isSuccess: false, message: "Task not found", code: 404 };
     }
-    const { error, value } = updateBoardTaskAttachmentchema.validate(body, {
+    const { error, value } = updateTaskAttachmentchema.validate(body, {
       abortEarly: false,
     });
     if (error) {
@@ -164,6 +166,84 @@ const updateTaskAttachment = async (session, id, body, user, files) => {
   }
 };
 
+// Update Task Submit service
+const updateTaskSubmission = async (session, id, body,user ,isProjectManager) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Task ID is required", code: 400 };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
+    }
+    const task = await Task.findById(id).session(session);
+    if (!task) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    if (
+      !isProjectManager &&
+      task.assignee_to.toString() !== user._id.toString()
+    ) {
+      return {
+        isSuccess: false,
+        message: "Permission denied",
+        code: 403,
+      };
+    }
+    const { error, value } = updateTaskSubmissionSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+    task.is_submitted = value.is_submitted;
+    const updatedTask = await task.save({ session: session });
+    return {
+      isSuccess: true,
+      message: "Task submitted successfully",
+      data: updatedTask,
+      code: 200,
+    };
+  } catch (error) {
+    console.log("Update Task Submit Error: ", error);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
+// Update Task Finish service
+const updateTaskFinish = async (session, id, body) => {
+  try {
+    if (!id) {
+      return { isSuccess: false, message: "Task ID is required", code: 400 };
+    }
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
+    }
+    const task = await Task.findById(id).session(session);
+    if (!task) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    const { error, value } = updateTaskFinishSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+    task.is_finished = value.is_finished;
+    const updatedTask = await task.save({ session: session });
+    return {
+      isSuccess: true,
+      message: "Task finished successfully",
+      data: updatedTask,
+      code: 200,
+    };
+  } catch (error) {
+    console.log("Update Task Finish Error: ", error);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 // Delete Task service
 const deleteTask = async (session, id) => {
   try {
@@ -191,5 +271,7 @@ module.exports = {
   createTask,
   updateTask,
   updateTaskAttachment,
+  updateTaskSubmission,
+  updateTaskFinish,
   deleteTask,
 };

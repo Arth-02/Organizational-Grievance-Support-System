@@ -19,7 +19,7 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
     assignee_to: {
-      type: [mongoose.Schema.Types.ObjectId],
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     attachments: {
@@ -33,6 +33,12 @@ const taskSchema = new mongoose.Schema(
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
+    },
+    is_submitted: {
+      type: Boolean,
+    },
+    is_finished: {
+      type: Boolean,
     },
   },
   {

@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi.service';
+import { baseApi } from "./baseApi.service";
 
 export const projectApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -79,6 +79,20 @@ export const projectApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    updateProjectBoardTaskSubmission: builder.mutation({
+      query: ({ project_id, task_id, data }) => ({
+        url: `projects/update-board-task-submission/${project_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    updateProjectBoardTaskFinish: builder.mutation({
+      query: ({ project_id, task_id, data }) => ({
+        url: `projects/update-board-task-finish/${project_id}/task/${task_id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
     deleteProjectBoardTask: builder.mutation({
       query: ({ project_id, task_id }) => ({
         url: `projects/delete-board-task/${project_id}/task/${task_id}`,
@@ -100,5 +114,7 @@ export const {
   useAddProjectBoardTaskMutation,
   useUpdateProjectBoardTaskMutation,
   useUpdateProjectBoardTaskAttachmentMutation,
+  useUpdateProjectBoardTaskSubmissionMutation,
+  useUpdateProjectBoardTaskFinishMutation,
   useDeleteProjectBoardTaskMutation,
 } = projectApi;

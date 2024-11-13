@@ -11,6 +11,8 @@ const {
   updateProjectBoardTask,
   deleteProjectBoardTask,
   updateProjectBoardTaskAttachment,
+  updateProjectBoardTaskSubmission,
+  updateProjectBoardTaskFinish,
 } = require("../controllers/project.controller");
 const {
   checkPermission,
@@ -55,6 +57,16 @@ router.patch(
   isLoggedIn,
   upload.array("attachments", 5),
   updateProjectBoardTaskAttachment
+);
+router.patch(
+  "/update-board-task-submission/:project_id/task/:task_id",
+  isLoggedIn,
+  updateProjectBoardTaskSubmission
+);
+router.patch(
+  "/update-board-task-finish/:project_id/task/:task_id",
+  isLoggedIn,
+  updateProjectBoardTaskFinish
 );
 router.delete(
   "/delete-board-task/:project_id/task/:task_id",

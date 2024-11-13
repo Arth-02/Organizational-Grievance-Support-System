@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Board = require("../models/board.model");
-const attachmentService = require("./attachment.service");
 const taskservice = require("./task.service");
 const {
   updateBoardTagSchema,
@@ -10,9 +9,7 @@ const {
 } = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
 const {
-  addBoardTaskSchema,
-  updateBoardTaskSchema,
-  updateBoardTaskAttachmentchema,
+  addTaskSchema,
 } = require("../validators/task.validator");
 
 // Create a new board
@@ -201,7 +198,7 @@ const addBoardTask = async (
     if (!isValidObjectId(id)) {
       return { isSuccess: false, message: "Invalid Board ID", code: 400 };
     }
-    const { error, value } = addBoardTaskSchema.validate(body, {
+    const { error, value } = addTaskSchema.validate(body, {
       abortEarly: false,
     });
     if (error) {
@@ -333,6 +330,88 @@ const updateBoardTaskAttachment = async (
   }
 };
 
+// Update a board task Submission
+const updateBoardTaskSubmission = async (
+  session,
+  board_id,
+  task_id,
+  organization_id,
+  body,
+  user,
+  isProjectManager
+) => {
+  try {
+    if (!board_id) {
+      return { isSuccess: false, message: "Board ID is required", code: 400 };
+    }
+    if (!isValidObjectId(board_id)) {
+      return { isSuccess: false, message: "Invalid Board ID", code: 400 };
+    }
+    const board = await Board.findOne({
+      _id: board_id,
+      organization_id,
+    }).session(session);
+    if (!board) {
+      return { isSuccess: false, message: "Board not found", code: 404 };
+    }
+    const response = await taskservice.updateTaskSubmission(
+      session,
+      task_id,
+      body,
+      user,
+      isProjectManager
+    );
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
+    }
+    return { data: response.data, isSuccess: true };
+  } catch (err) {
+    console.error("Update Board Task Submission Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Update a board task Finish
+const updateBoardTaskFinish = async (
+  session,
+  board_id,
+  task_id,
+  organization_id,
+  body
+) => {
+  try {
+    if (!board_id) {
+      return { isSuccess: false, message: "Board ID is required", code: 400 };
+    }
+    if (!isValidObjectId(board_id)) {
+      return { isSuccess: false, message: "Invalid Board ID", code: 400 };
+    }
+    const board = await Board.findOne({
+      _id: board_id,
+      organization_id,
+    }).session(session);
+    if (!board) {
+      return { isSuccess: false, message: "Board not found", code: 404 };
+    }
+    const response = await taskservice.updateTaskFinish(session, task_id, body);
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
+    }
+    return { data: response.data, isSuccess: true };
+  } catch (err) {
+    console.error("Update Board Task Finish Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 // Delete a board task
 const deleteBoardTask = async (
   session,
@@ -410,6 +489,8 @@ module.exports = {
   addBoardTask,
   updateBoardTask,
   updateBoardTaskAttachment,
+  updateBoardTaskSubmission,
+  updateBoardTaskFinish,
   deleteBoardTask,
   deleteBoard,
 };

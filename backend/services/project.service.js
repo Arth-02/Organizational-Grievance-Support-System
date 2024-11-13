@@ -311,6 +311,100 @@ const updateProjectBoardTaskAttachment = async (
   }
 };
 
+// Update a project board task submission
+const updateProjectBoardTaskSubmission = async (
+  session,
+  project_id,
+  task_id,
+  body,
+  user
+) => {
+  try {
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required", code: 400 };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id", code: 400 };
+    }
+    const { organization_id } = user;
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    }).session(session);
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+    const isProjectMember = project.manager.includes(user._id);
+    const response = await boardService.updateBoardTaskSubmission(
+      session,
+      project.board_id,
+      task_id,
+      organization_id,
+      body,
+      user,
+      isProjectMember
+    );
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
+    }
+    return { isSuccess: true, data: response.data };
+  } catch (err) {
+    console.error("Update Project Board Task Submission Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Update a project board task finish
+const updateProjectBoardTaskFinish = async (
+  session,
+  project_id,
+  task_id,
+  body,
+  user
+) => {
+  try {
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required", code: 400 };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id", code: 400 };
+    }
+    const { organization_id } = user;
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    }).session(session);
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+    if (!project.manager.includes(user._id)) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    const response = await boardService.updateBoardTaskFinish(
+      session,
+      project.board_id,
+      task_id,
+      organization_id,
+      body
+    );
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
+    }
+    return { isSuccess: true, data: response.data };
+  } catch (err) {
+    console.error("Update Project Board Task Finish Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 // Delete a project board task
 const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
   try {
@@ -425,6 +519,8 @@ module.exports = {
   addProjectBoardTask,
   updateProjectBoardTask,
   updateProjectBoardTaskAttachment,
+  updateProjectBoardTaskSubmission,
+  updateProjectBoardTaskFinish,
   deleteProjectBoardTask,
   getProjectById,
   deleteProject,
