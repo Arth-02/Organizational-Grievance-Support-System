@@ -1,9 +1,58 @@
 const mongoose = require("mongoose");
 const boardService = require("./board.service");
 const Project = require("../models/project.model");
-const { updateProjectSchema } = require("../validators/project.validator");
-const { UPDATE_PROJECT, VIEW_PROJECT } = require("../utils/constant");
+const {
+  updateProjectSchema,
+  createProjectSchema,
+} = require("../validators/project.validator");
+const {
+  UPDATE_PROJECT,
+  VIEW_PROJECT,
+  CREATE_PROJECT,
+} = require("../utils/constant");
 const { isValidObjectId } = mongoose;
+
+// Create a project service
+const createProject = async (session, body, user) => {
+  try {
+    const { organization_id, role, special_permissions, _id } = user;
+    const permissions = [...role.permissions, ...special_permissions];
+    const canCreate = permissions.includes(CREATE_PROJECT.slug);
+    if (!canCreate) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    const { error, value } = createProjectSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+
+    const boardBody = { name: value.name };
+    const response = await boardService.createBoard(
+      session,
+      organization_id,
+      boardBody
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message, code: 400 };
+    }
+    const board = response.board;
+    const newProject = new Project({
+      ...value,
+      organization_id,
+      board_id: board._id,
+      created_by: user._id,
+    });
+    const project = await newProject.save({ session });
+
+    return { data: project, isSuccess: true };
+  } catch (err) {
+    console.error("Get Users Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
 
 // Update a project
 const updateProject = async (session, id, body, user) => {
@@ -31,7 +80,8 @@ const updateProject = async (session, id, body, user) => {
     }
     const permissions = [...role.permissions, ...special_permissions];
     canUpdate =
-      project.manager?.toString() === userId.toString() ||
+      project.created_by.toString() === userId.toString() ||
+      project.manager.includes(userId) ||
       permissions.includes(UPDATE_PROJECT.slug);
     if (!canUpdate) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
@@ -76,7 +126,10 @@ const updateProjectBoardTag = async (session, id, body, user, request) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (!project.members.includes(userId)) {
+    if (
+      !project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString()
+    ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTag(
@@ -125,7 +178,10 @@ const addProjectBoardTask = async (session, id, body, user, files) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (!project.members.includes(userId)) {
+    if (
+      !project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString()
+    ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.addBoardTask(
@@ -174,7 +230,10 @@ const updateProjectBoardTask = async (
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (!project.members.includes(userId)) {
+    if (
+      !project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString()
+    ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTask(
@@ -222,7 +281,10 @@ const updateProjectBoardTaskAttachment = async (
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (!project.members.includes(userId)) {
+    if (
+      !project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString()
+    ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTaskAttachment(
@@ -266,7 +328,10 @@ const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (!project.members.includes(userId)) {
+    if (
+      !project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString()
+    ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.deleteBoardTask(
@@ -309,7 +374,9 @@ const getProjectById = async (id, user) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    const isProjectMember = project.members.includes(_id);
+    const isProjectMember =
+      project.manager.includes(_id) ||
+      project.created_by.toString() === _id.toString();
     if (!hasPermission && !isProjectMember) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
@@ -352,6 +419,7 @@ const deleteProject = async (session, id, organization_id) => {
 };
 
 module.exports = {
+  createProject,
   updateProjectBoardTag,
   updateProject,
   addProjectBoardTask,

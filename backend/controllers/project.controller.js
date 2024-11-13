@@ -11,40 +11,21 @@ const { ObjectId } = mongoose.Types;
 const projectService = require("../services/project.service");
 
 // Create a new project
-
 const createProject = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { organization_id } = req.user;
-    const { error, value } = createProjectSchema.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      await session.abortTransaction();
-      return errorResponse(res, 400, errors);
-    }
-    const boardBody = { name: value.name };
-    const response = await boardService.createBoard(
+    const response = await projectService.createProject(
       session,
-      organization_id,
-      boardBody
+      req.body,
+      req.user
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
-      return errorResponse(res, response.code, "Error creating project board");
+      return errorResponse(res, response.code, response.message);
     }
-    const board = response.board;
-    const newProject = new Project({
-      ...value,
-      organization_id,
-      board_id: board._id,
-    });
-    const project = await newProject.save({ session });
-
     await session.commitTransaction();
-    return successResponse(res, project, "Project created successfully");
+    return successResponse(res, response.data, "Project created successfully");
   } catch (err) {
     console.error("Get Users Error:", err.message);
     await session.abortTransaction();

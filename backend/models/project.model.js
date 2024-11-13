@@ -1,5 +1,6 @@
 const { required } = require("joi");
 const mongoose = require("mongoose");
+const { create } = require("./board.model");
 
 const projectSchema = new mongoose.Schema(
   {
@@ -27,7 +28,7 @@ const projectSchema = new mongoose.Schema(
       default: null,
     },
     manager: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
     },
     members: {
@@ -39,7 +40,11 @@ const projectSchema = new mongoose.Schema(
       ref: "Board",
       required: [true, "Board ID is required"],
     },
-    is_active: {
+    created_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+    ,is_active: {
       type: Boolean,
       default: true,
     },
