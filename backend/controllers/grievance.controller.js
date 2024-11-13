@@ -6,6 +6,7 @@ const {
 } = require("../utils/response");
 const grievanceService = require("../services/grievance.service");
 
+// Create a grievance
 const createGrievance = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();

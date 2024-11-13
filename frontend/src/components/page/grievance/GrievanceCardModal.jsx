@@ -234,7 +234,6 @@ function GrievanceModal() {
           data: {
             ...prevGrievance.data,
             ...data.updatedData,
-            attachments: prevGrievance.data.attachments, // Preserve the attachments
           },
         };
         return updatedData;
@@ -242,10 +241,22 @@ function GrievanceModal() {
     }
   };
 
+  const handleDeleteGrievance = (data) => {
+    if (grievanceId === data.grievanceId) {
+      navigate(-1);
+    }
+  };
+
   useEffect(() => {
     socket.on("update_grievance", handleGrievanceUpdate);
+    socket.on("update_grievance_assignee", handleGrievanceUpdate);
+    socket.on("update_grievance_status", handleGrievanceUpdate);
+    socket.on("delete_grievance", handleDeleteGrievance);
     return () => {
       socket.off("update_grievance");
+      socket.off("update_grievance_assignee");
+      socket.off("update_grievance_status");
+      socket.off("delete_grievance");
     };
   }, [socket]);
 

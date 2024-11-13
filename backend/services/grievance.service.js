@@ -176,6 +176,10 @@ const updateGrievance = async (session, id, body, user) => {
       .populate({ path: "department_id", select: "name" })
       .populate({ path: "reported_by", select: "username" })
       .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      })
       .session(session);
 
     const response = await userService.getAllUsersId(user);
@@ -256,6 +260,10 @@ const updateGrievanceAssignee = async (session, id, body, user) => {
       .populate({ path: "department_id", select: "name" })
       .populate({ path: "reported_by", select: "username" })
       .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      })
       .session(session);
 
     const response = await userService.getAllUsersId(user);
@@ -359,6 +367,10 @@ const updateGrievanceStatus = async (session, id, body, user) => {
       .populate({ path: "department_id", select: "name" })
       .populate({ path: "reported_by", select: "username" })
       .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      })
       .session(session);
 
     const response = await userService.getAllUsersId(user);
@@ -476,6 +488,10 @@ const updateGrievanceAttachment = async (session, id, body, user, files) => {
       .populate({ path: "department_id", select: "name" })
       .populate({ path: "reported_by", select: "username" })
       .populate({ path: "assigned_to", select: "username" })
+      .populate({
+        path: "attachments",
+        select: "filename url filetype filesize",
+      })
       .session(session);
 
     const userData = await User.find(
@@ -483,14 +499,14 @@ const updateGrievanceAttachment = async (session, id, body, user, files) => {
       "_id"
     );
     const userIds = userData.map((user) => user._id);
-
-    sendNotification(userIds, {
-      type: "update_grievance",
-      message: `Your grievance with ID ${id} has been updated`,
-      grievanceId: id,
-      updatedData: updatedGrievanceData,
-    });
-
+    if (userIds.length > 0) {
+      sendNotification(userIds, {
+        type: "update_grievance",
+        message: `Your grievance with ID ${id} has been updated`,
+        grievanceId: id,
+        updatedData: updatedGrievanceData,
+      });
+    }
     return { isSuccess: true, data: updatedGrievanceData };
   } catch (err) {
     console.error("Update Grievance Attachment Error:", err.message);
@@ -531,7 +547,7 @@ const getGrievanceById = async (id, user) => {
 // delete grievance by id
 const deleteGrievanceById = async (id, user) => {
   try {
-    const { organization_id } = user;
+    const { organization_id,_id:userId } = user;
     if (!id) {
       return {
         isSuccess: false,
@@ -551,6 +567,19 @@ const deleteGrievanceById = async (id, user) => {
       return { isSuccess: false, message: "Grievance not found", code: 404 };
     }
     await Grievance.updateOne({ _id: id }, { is_active: false });
+    const userData = await User.find(
+      { organization_id, userId: { $ne: userId } },
+      "_id"
+    );
+    const userIds = userData.map((user) => user._id);
+    if (userIds.length > 0) {
+      sendNotification(userIds, {
+        type: "delete_grievance",
+        message: `Your grievance with ID ${id} has been Deleted`,
+        grievanceId: id,
+        status: grievance.status,
+      });
+    }
     return { isSuccess: true, message: "Grievance deleted successfully" };
   } catch (err) {
     console.error("Delete Grievance By Id Error:", err.message);
@@ -559,7 +588,7 @@ const deleteGrievanceById = async (id, user) => {
 };
 
 // Get all grievances
-const getAllGrievances = async (reqquery,user) => {
+const getAllGrievances = async (reqquery, user) => {
   try {
     const { organization_id, role } = user;
     const {
@@ -624,7 +653,7 @@ const getAllGrievances = async (reqquery,user) => {
     const totalDismissed = await Grievance.countDocuments(query);
 
     if (!grievances.length) {
-      return {isSuccess: false, message: "No grievances found", code: 404};
+      return { isSuccess: false, message: "No grievances found", code: 404 };
     }
 
     const totalPages = Math.ceil(totalGrievances / limitNumber);
@@ -644,10 +673,10 @@ const getAllGrievances = async (reqquery,user) => {
       hasPrevPage: hasPrevPage,
     };
 
-    return {isSuccess: true, data: grievances, pagination};
+    return { isSuccess: true, data: grievances, pagination };
   } catch (err) {
     console.error("Get All Grievances Error:", err.message);
-    return {isSuccess: false, message: "Internal Server Error", code: 500};
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 

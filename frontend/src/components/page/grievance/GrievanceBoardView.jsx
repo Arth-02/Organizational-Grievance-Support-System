@@ -419,6 +419,23 @@ const GrievanceBoardView = () => {
     });
   };
 
+  const handleDeleteGrievance = (msg) => {
+    setGrievances((prevGrievances) => {
+      const grievanceId = msg.grievanceId;
+      const status = msg.status;
+
+      // Remove the grievance from the status list
+      const updatedList = prevGrievances[status].filter(
+        (grievance) => grievance._id !== grievanceId
+      );
+
+      return {
+        ...prevGrievances,
+        [status]: updatedList,
+      };
+    });
+  };
+
   const handleUpdateGrievanceStatus = (msg) => {
     let oldStatus = null;
     setGrievances((prevGrievances) => {
@@ -470,11 +487,13 @@ const GrievanceBoardView = () => {
     socket.on("update_grievance", handleUpdateGrievance);
     socket.on("update_grievance_assignee", handleUpdateGrievanceAssignee);
     socket.on("update_grievance_status", handleUpdateGrievanceStatus);
+    socket.on("delete_grievance", handleDeleteGrievance);
 
     return () => {
       socket.off("update_grievance");
       socket.off("update_grievance_status");
       socket.off("update_grievance_assignee");
+      socket.off("delete_grievance");
     };
   }, [socket]);
 
