@@ -500,7 +500,7 @@ const updateBoardTask = async (req, res) => {
     await session.commitTransaction();
     return successResponse(
       res,
-      response.updatedBoard,
+      response.data,
       "Board task updated successfully"
     );
   } catch (err) {

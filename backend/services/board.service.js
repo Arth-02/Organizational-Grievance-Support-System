@@ -1,16 +1,19 @@
 const mongoose = require("mongoose");
 const Board = require("../models/board.model");
 const attachmentService = require("./attachment.service");
+const taskservice = require("./task.service");
 const {
   updateBoardTagSchema,
   addAndDeleteBoardTagSchema,
   createBoardSchema,
   updateBoardSchema,
+} = require("../validators/board.validator");
+const { isValidObjectId } = mongoose;
+const {
   addBoardTaskSchema,
   updateBoardTaskSchema,
   updateBoardTaskAttachmentchema,
-} = require("../validators/board.validator");
-const { isValidObjectId } = mongoose;
+} = require("../validators/task.validator");
 
 // Create a new board
 const createBoard = async (session, organization_id, body) => {
@@ -217,26 +220,18 @@ const addBoardTask = async (
     if (board.tags.indexOf(value.tag) === -1) {
       return { isSuccess: false, message: "Tag not found", code: 404 };
     }
-    let response;
-    if (files && files.length > 0) {
-      response = await attachmentService.createAttachment(
-        session,
-        user._id,
-        organization_id,
-        files
-      );
-      if (!response.isSuccess) {
-        return {
-          isSuccess: false,
-          message: response.message,
-          code: response.code,
-        };
-      }
-      const attachmentIds = response.attachmentIds;
-      value.attachments = attachmentIds;
+    const response = await taskservice.createTask(session, value, user, files);
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
     }
-    const newTask = { ...value };
-    board.tasks.push(newTask);
+    if (!board.tasks) {
+      board.tasks = [];
+    }
+    board.tasks.push(response.task_id);
     const updatedBoard = await board.save({ session });
     return { updatedBoard, isSuccess: true };
   } catch (err) {
@@ -261,12 +256,6 @@ const updateBoardTask = async (
     if (!isValidObjectId(board_id)) {
       return { isSuccess: false, message: "Invalid Board ID", code: 400 };
     }
-    if (!task_id) {
-      return { isSuccess: false, message: "Task ID is required", code: 400 };
-    }
-    if (!isValidObjectId(task_id)) {
-      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
-    }
     const board = await Board.findOne({
       _id: board_id,
       organization_id,
@@ -277,33 +266,19 @@ const updateBoardTask = async (
     if (user && board_id === user.board_id) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
-    console.log(task_id);
-    console.log("board.tasks", board.tasks);
-    const taskIndex = board.tasks.findIndex(
-      (task) => task._id.toString() === task_id
-    );
-    if (taskIndex === -1) {
-      return { isSuccess: false, message: "Task not found", code: 404 };
-    }
-    const { error, value } = updateBoardTaskSchema.validate(body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors, code: 400 };
-    }
-    if (value.tag && board.tags.indexOf(value.tag) === -1) {
+    if (body.tag && board.tags.indexOf(body.tag) === -1) {
       return { isSuccess: false, message: "Tag not found", code: 404 };
     }
-    const task = board.tasks[taskIndex];
-    task.tag = value.tag || task.tag;
-    task.title = value.title || task.title;
-    task.description = value.description || task.description;
-    task.due_date = value.due_date || task.due_date;
-    task.assignee_to = value.assignee_to || task.assignee_to;
-    task.priority = value.priority || task.priority;
-    const updatedBoard = await board.save({ session });
-    return { updatedBoard, isSuccess: true };
+    const response = await taskservice.updateTask(session, task_id, body);
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
+    }
+
+    return { data: response.data, isSuccess: true };
   } catch (err) {
     console.error("Update Board Task Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
@@ -327,12 +302,6 @@ const updateBoardTaskAttachment = async (
     if (!isValidObjectId(board_id)) {
       return { isSuccess: false, message: "Invalid Board ID", code: 400 };
     }
-    if (!task_id) {
-      return { isSuccess: false, message: "Task ID is required", code: 400 };
-    }
-    if (!isValidObjectId(task_id)) {
-      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
-    }
     const board = await Board.findOne({
       _id: board_id,
       organization_id,
@@ -343,71 +312,21 @@ const updateBoardTaskAttachment = async (
     if (user && board_id === user.board_id) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
-    const taskIndex = board.tasks.findIndex(
-      (task) => task._id.toString() === task_id
+    const response = await taskservice.updateTaskAttachment(
+      session,
+      task_id,
+      body,
+      user,
+      files
     );
-    if (taskIndex === -1) {
-      return { isSuccess: false, message: "Task not found", code: 404 };
-    }
-    const task = board.tasks[taskIndex];
-    const { error, value } = updateBoardTaskAttachmentchema.validate(body, {
-      abortEarly: false,
-    });
-    if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: errors, code: 400 };
-    }
-    let totalAttachments = task.attachments.length;
-    if (files && files.length > 0) {
-      totalAttachments += files.length;
-    }
-    if (value.delete_attachments && value.delete_attachments.length > 0) {
-      totalAttachments -= value.delete_attachments.length;
-    }
-    if (totalAttachments > 5) {
+    if (!response.isSuccess) {
       return {
         isSuccess: false,
-        message: "Maximum 5 attachments allowed",
-        code: 400,
+        message: response.message,
+        code: response.code,
       };
     }
-    if (value.delete_attachments && value.delete_attachments.length > 0) {
-      const deleteAttachments = value.delete_attachments;
-      const response = await attachmentService.deleteAttachment(
-        session,
-        deleteAttachments
-      );
-      if (!response.isSuccess) {
-        return {
-          isSuccess: false,
-          message: response.message,
-          code: response.code,
-        };
-      }
-      task.attachments = task.attachments.filter(
-        (attachment) => !deleteAttachments.includes(attachment.toString())
-      );
-    }
-    let response;
-    if (files && files.length > 0) {
-      response = await attachmentService.createAttachment(
-        session,
-        user._id,
-        organization_id,
-        files
-      );
-      if (!response.isSuccess) {
-        return {
-          isSuccess: false,
-          message: response.message,
-          code: response.code,
-        };
-      }
-      const attachmentIds = response.attachmentIds;
-      task.attachments = task.attachments.concat(attachmentIds);
-    }
-    const updatedBoard = await board.save({ session });
-    return { board: updatedBoard, isSuccess: true };
+    return { board: response.data, isSuccess: true };
   } catch (err) {
     console.error("Update Board Task Attachment Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
@@ -429,12 +348,6 @@ const deleteBoardTask = async (
     if (!isValidObjectId(board_id)) {
       return { isSuccess: false, message: "Invalid Board ID", code: 400 };
     }
-    if (!task_id) {
-      return { isSuccess: false, message: "Task ID is required", code: 400 };
-    }
-    if (!isValidObjectId(task_id)) {
-      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
-    }
     const board = await Board.findOne({
       _id: board_id,
       organization_id,
@@ -445,15 +358,18 @@ const deleteBoardTask = async (
     if (user && board_id === user.board_id) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
-    const taskIndex = board.tasks.findIndex(
-      (task) => task._id.toString() === task_id
-    );
-    if (taskIndex === -1) {
-      return { isSuccess: false, message: "Task not found", code: 404 };
+    const response = await taskservice.deleteTask(session, task_id);
+    if (!response.isSuccess) {
+      return {
+        isSuccess: false,
+        message: response.message,
+        code: response.code,
+      };
     }
+    const taskIndex = board.tasks.indexOf(task_id);
     board.tasks.splice(taskIndex, 1);
-    const updatedBoard = await board.save({ session });
-    return { updatedBoard, isSuccess: true };
+    await board.save({ session });
+    return { isSuccess: true, message: "Task deleted successfully" };
   } catch (err) {
     console.error("Delete Board Task Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };

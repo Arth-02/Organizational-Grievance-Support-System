@@ -191,8 +191,7 @@ const updateProjectBoardTask = async (
         code: response.code,
       };
     }
-    const board = response.board;
-    return { board, isSuccess: true };
+    return { board: response.data, isSuccess: true };
   } catch (err) {
     console.error("Update Project Board Task Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
