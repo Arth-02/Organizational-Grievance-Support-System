@@ -7,6 +7,7 @@ import {
   Loader2,
   FileText,
   FileSpreadsheet,
+  Download,
 } from "lucide-react";
 import {
   Dialog,
@@ -28,6 +29,11 @@ import {
 import toast from "react-hot-toast";
 import { useUpdateAttachmentMutation } from "@/services/grievance.service";
 import FileUploadComponent from "./FileUpload";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const FILE_TYPES = {
   "application/pdf": {
@@ -91,16 +97,9 @@ const AttachmentManager = ({
     attachment: null,
   });
   const [deleting, setDeleting] = useState(false);
+  const [selectedAttachments, setSelectedAttachments] = useState([]);
 
   const [updateAttachment] = useUpdateAttachmentMutation();
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
 
   const handleUpload = async () => {
     setUploading(true);
@@ -126,22 +125,25 @@ const AttachmentManager = ({
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteDialog.attachment) return;
+  const handleDelete = async (attachmentsToDelete) => {
+    if (!attachmentsToDelete || attachmentsToDelete.length === 0) return;
 
     setDeleting(true);
     try {
-      const data = { delete_attachments: [deleteDialog.attachment._id] };
+      const data = { delete_attachments: attachmentsToDelete };
       const response = await updateAttachment({
         id: grievanceId,
         data,
       }).unwrap();
       onUpdate(response.data);
+      toast.success("Attachments deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);
+      toast.error(error?.data?.message || "Failed to delete attachments");
     } finally {
       setDeleting(false);
-      setDeleteDialog({ open: false, attachment: null });
+      setDeleteDialog({ open: false, attachments: [] });
+      setSelectedAttachments([]);
     }
   };
 
@@ -166,96 +168,173 @@ const AttachmentManager = ({
       });
     }
   };
+  const toggleSelectAttachment = (attachmentId) => {
+    setSelectedAttachments((prevSelected) =>
+      prevSelected.includes(attachmentId)
+        ? prevSelected.filter((id) => id !== attachmentId)
+        : [...prevSelected, attachmentId]
+    );
+  };
 
-  const renderThumbnail = (attachment) => {
-    if (attachment.filetype?.startsWith("image/")) {
-      return (
-        <img
-          src={attachment.url}
-          alt={attachment.filename}
-          className="h-12 w-12 object-cover rounded"
-        />
-      );
-    } else if (attachment.filetype?.startsWith("video/")) {
-      return (
-        <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
-          <video className="h-12 w-12 object-cover rounded">
-            <source src={attachment.url} type={attachment.filetype} />
-          </video>
-        </div>
-      );
-    } else {
-      const fileType = FILE_TYPES[attachment.filetype];
-      return (
-        <div className="h-12 w-12 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center">
-          {fileType?.icon || (
-            <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />
-          )}
-        </div>
-      );
+  const handleDeleteSelected = () => {
+    if (selectedAttachments.length > 0) {
+      setDeleteDialog({ open: true, attachments: selectedAttachments });
     }
+  };
+
+  const handleImageVideoRender = (attachment) => {
+    return (
+      <>
+        <div
+          className={`relative group w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer ${
+            selectedAttachments.includes(attachment._id)
+              ? "ring-2 ring-blue-500"
+              : ""
+          }`}
+        >
+          {attachment.filetype?.startsWith("image/") ? (
+            <img
+              src={attachment.url}
+              alt={attachment.filename}
+              className="object-cover w-32 h-32"
+            />
+          ) : (
+            <video className="h-32 w-32 object-cover rounded">
+              <source src={attachment.url} type={attachment.filetype} />
+            </video>
+          )}
+          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePreview(attachment);
+              }}
+              className="hover:bg-gray-100 dark:hover:bg-white/20"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteDialog({ open: true, attachments: [attachment._id] });
+              }}
+              className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <Tooltip>
+          <TooltipTrigger className="w-full text-black dark:text-white text-xs my[6px] text-center p-1 truncate">
+            {attachment.filename}
+          </TooltipTrigger>
+          <TooltipContent>{attachment.filename}</TooltipContent>
+        </Tooltip>
+      </>
+    );
+  };
+
+  const handleFileRender = (attachment) => {
+    return (
+      <>
+        <div
+          className={`relative group w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer ${
+            selectedAttachments.includes(attachment._id)
+              ? "ring-2 ring-blue-500"
+              : ""
+          }`}
+        >
+          <div className="h-32 w-32 flex items-center justify-center">
+            {FILE_TYPES[attachment.filetype]?.icon || (
+              <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />
+            )}
+          </div>
+          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <a
+              href={attachment.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9 rounded-md px-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/30"
+            >
+              <Download className="h-4 w-4 mt-2" />
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteDialog({ open: true, attachments: [attachment._id] });
+              }}
+              className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <Tooltip>
+          <TooltipTrigger className="w-full text-black dark:text-white text-xs my[6px] text-center p-1 truncate">
+            {attachment.filename}
+          </TooltipTrigger>
+          <TooltipContent>{attachment.filename}</TooltipContent>
+        </Tooltip>
+      </>
+    );
   };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-2">
           <Paperclip className="h-5 w-5" /> Attachments (
           {existingAttachments.length})
         </h3>
 
-        {existingAttachments.map((attachment) => (
-          <div
-            key={attachment._id}
-            className="flex items-center gap-3 p-2 rounded bg-white dark:bg-slate-800 border border-gray-200 dark:border-transparent"
-          >
-            <div
-              className="cursor-pointer"
-              onClick={() => handlePreview(attachment)}
+        {selectedAttachments.length > 0 && (
+          <div className="flex items-center gap-2 absolute -top-3 right-0 !mt-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedAttachments([])}
+              className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50"
             >
-              {renderThumbnail(attachment)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm text-gray-700 dark:text-slate-300 truncate">
-                {attachment.filename}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-slate-400">
-                {formatFileSize(attachment.filesize)}
-              </div>
-            </div>
-            <div className="flex items-center">
-              {(attachment?.filetype?.startsWith("image/") ||
-                attachment?.filetype?.startsWith("video/")) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handlePreview(attachment)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700/50"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </Button>
-              )}
-              {canEdit && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteDialog({ open: true, attachment })}
-                  className="text-red-500 hover:text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+              Cancel
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeleteSelected}
+              className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/20"
+            >
+              <Trash2 className="h-4 w-4 mr-[6px]" />
+              Delete ({selectedAttachments.length})
+            </Button>
           </div>
-        ))}
+        )}
 
-        {
-          existingAttachments.length === 0 && (
-            <div className="text-gray-500 !mt-4 ml-6 dark:text-slate-400 text-sm">
-              No attachments found
+        <div className="flex overflow-x-auto space-x-4 p-2 max-w-[645px]">
+          {existingAttachments.map((attachment) => (
+            <div
+              key={attachment._id}
+              className={`relative shrink-0 group w-32 rounded-lg `}
+              onClick={() => toggleSelectAttachment(attachment._id)}
+            >
+              {attachment.filetype?.startsWith("image/") ||
+              attachment.filetype?.startsWith("video/")
+                ? handleImageVideoRender(attachment)
+                : handleFileRender(attachment)}
             </div>
-          )
-        }
+          ))}
+        </div>
+
+        {existingAttachments.length === 0 && (
+          <div className="text-gray-500 !mt-4 ml-6 dark:text-slate-400 text-sm">
+            No attachments found
+          </div>
+        )}
       </div>
 
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
@@ -302,16 +381,15 @@ const AttachmentManager = ({
       <AlertDialog
         open={deleteDialog.open}
         onOpenChange={(open) =>
-          setDeleteDialog({ open, attachment: deleteDialog.attachment })
+          setDeleteDialog({ open, attachments: deleteDialog.attachments || [] })
         }
       >
         <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogTitle>Delete Attachments</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;
-              {deleteDialog.attachment?.filename}&quot;? This action cannot be
-              undone.
+              Are you sure you want to delete the selected attachments? This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -319,7 +397,7 @@ const AttachmentManager = ({
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => handleDelete(deleteDialog.attachments)}
               className="bg-red-500 hover:bg-red-600"
               disabled={deleting}
             >

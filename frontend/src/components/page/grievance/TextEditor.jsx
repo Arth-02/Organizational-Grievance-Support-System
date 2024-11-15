@@ -101,9 +101,8 @@ const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
         ),
       },
     },
-    onUpdate: ({ editor }) => {
+    onUpdate: () => {
       if (!isEditing) setIsEditing(true);
-      console.log(editor.getHTML());
     },
   });
 

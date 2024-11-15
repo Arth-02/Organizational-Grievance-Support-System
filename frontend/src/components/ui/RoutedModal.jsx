@@ -65,7 +65,7 @@ export const RoutableModal = ({
         <DialogContent
           shouldRemoveCloseIcon={shouldRemoveCloseIcon}
           className={cn(
-            "p-0 overflow-hidden focus:outline-none",
+            "p-0 overflow-hidden",
             width,
             className
           )}
