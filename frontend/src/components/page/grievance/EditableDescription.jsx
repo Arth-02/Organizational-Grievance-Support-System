@@ -33,6 +33,7 @@ const EditableDescription = ({
         <TextEditor
           initialContent={description || ""}
           onSave={handleDescriptionSave}
+          className={canEdit ? "border dark:border-slate-700" : "border-none"}
           onCancel={() => setIsEditing(false)}
         />
       ) : (

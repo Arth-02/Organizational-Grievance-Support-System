@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const RichTextEditor = ({ initialContent, onSave, className }) => {
+const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalContent, setOriginalContent] = useState(initialContent);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -121,6 +121,7 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
       editor.commands.setContent(originalContent);
       setIsEditing(false);
     }
+    onCancel();
   }, [editor, originalContent]);
 
   const addLink = useCallback(() => {
@@ -305,28 +306,6 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
               )
             )}
           </div>
-
-          {isEditing && (
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleCancel}
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Save
-              </Button>
-            </div>
-          )}
         </div>
 
         {editor && (
@@ -393,6 +372,26 @@ const RichTextEditor = ({ initialContent, onSave, className }) => {
         )}
 
         <EditorContent editor={editor} />
+      </div>
+
+      <div className="flex items-center gap-2 mt-2 justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleCancel}
+          className="text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleSave}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Save
+        </Button>
       </div>
 
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
