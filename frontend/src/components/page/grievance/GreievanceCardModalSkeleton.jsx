@@ -57,11 +57,6 @@ const GrievanceModalSkeleton = () => {
               <div>
                 <Skeleton className="h-4 w-32 mb-4" />
                 <div className="rounded-lg border border-slate-700 overflow-hidden">
-                  <div className="bg-slate-900/50 p-2 border-b border-slate-700 flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Skeleton key={i} className="h-8 w-8" />
-                    ))}
-                  </div>
                   <div className="p-3">
                     <Skeleton className="h-24 w-full" />
                   </div>
@@ -70,16 +65,14 @@ const GrievanceModalSkeleton = () => {
 
               {/* Attachments */}
               <div>
-                <Skeleton className="h-4 w-24 mb-2" />
-                <div className="space-y-2">
-                  {[...Array(2)].map((_, i) => (
+                <Skeleton className="h-4 w-24 mb-4" />
+                <div className="flex gap-3">
+                  {[...Array(4)].map((_, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 p-2 rounded"
+                      className="flex items-center gap-2 rounded"
                     >
-                      <Skeleton className="h-9 w-9" />
-                      <Skeleton className="h-9 flex-1" />
-                      <Skeleton className="h-9 w-9" />
+                      <Skeleton className="h-32 w-32 rounded-lg" />
                     </div>
                   ))}
                 </div>
@@ -113,8 +106,8 @@ const GrievanceModalSkeleton = () => {
               {/* Created date */}
               <div className="pt-4 border-t border-slate-700">
                 <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-5 w-4" />
+                  <Skeleton className="h-5 w-32" />
                 </div>
               </div>
             </div>
