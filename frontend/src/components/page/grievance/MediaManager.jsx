@@ -295,17 +295,22 @@ const AttachmentManager = ({
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteDialog({ open: true, attachments: [attachment._id] });
-              }}
-              className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteDialog({
+                    open: true,
+                    attachments: [attachment._id],
+                  });
+                }}
+                className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         <Tooltip>
@@ -347,17 +352,22 @@ const AttachmentManager = ({
             >
               <Download className="h-4 w-4 mt-2" />
             </a>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteDialog({ open: true, attachments: [attachment._id] });
-              }}
-              className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteDialog({
+                    open: true,
+                    attachments: [attachment._id],
+                  });
+                }}
+                className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
         <Tooltip>
@@ -378,7 +388,7 @@ const AttachmentManager = ({
           {existingAttachments.length})
         </h3>
 
-        {selectedAttachments.length > 0 && (
+        {selectedAttachments.length > 0 && canEdit && (
           <div className="flex items-center gap-2 absolute -top-3 right-0 !mt-0">
             <Button
               variant="ghost"
@@ -404,8 +414,14 @@ const AttachmentManager = ({
           {existingAttachments.map((attachment) => (
             <div
               key={attachment._id}
-              className={`relative shrink-0 group w-32 rounded-lg `}
-              onClick={() => toggleSelectAttachment(attachment._id)}
+              className={`relative shrink-0 group w-32 rounded-lg ${
+                canEdit ? "cursor-pointer" : "cursor-default"
+              }`}
+              onClick={
+                canEdit
+                  ? () => toggleSelectAttachment(attachment._id)
+                  : undefined
+              }
             >
               {attachment.filetype?.startsWith("image/") ||
               attachment.filetype?.startsWith("video/")

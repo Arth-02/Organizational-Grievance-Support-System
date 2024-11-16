@@ -19,7 +19,7 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
     assignee_to: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
     },
     attachments: {

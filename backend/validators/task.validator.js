@@ -15,7 +15,7 @@ const updateTaskSchema = Joi.object({
   title: Joi.string(),
   description: Joi.string(),
   due_date: Joi.date(),
-  assignee_to: Joi.string().pattern(/^[0-9a-fA-F]{24}$/),
+  assignee_to: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
   created_by: Joi.string().pattern(/^[0-9a-fA-F]{24}$/),
   priority: Joi.string().valid("low", "medium", "high"),
 });

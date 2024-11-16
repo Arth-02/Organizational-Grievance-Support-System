@@ -167,7 +167,13 @@ const updateTaskAttachment = async (session, id, body, user, files) => {
 };
 
 // Update Task Submit service
-const updateTaskSubmission = async (session, id, body,user ,isProjectManager) => {
+const updateTaskSubmission = async (
+  session,
+  id,
+  body,
+  user,
+  isProjectManager
+) => {
   try {
     if (!id) {
       return { isSuccess: false, message: "Task ID is required", code: 400 };
@@ -179,10 +185,7 @@ const updateTaskSubmission = async (session, id, body,user ,isProjectManager) =>
     if (!task) {
       return { isSuccess: false, message: "Task not found", code: 404 };
     }
-    if (
-      !isProjectManager &&
-      task.assignee_to.toString() !== user._id.toString()
-    ) {
+    if (!isProjectManager && !task.assignee_to.includes(user._id.toString())) {
       return {
         isSuccess: false,
         message: "Permission denied",
