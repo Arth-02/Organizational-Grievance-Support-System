@@ -11,7 +11,7 @@ const AvatarGroup = ({ users, limit = 3 }) => {
   const remainingCount = users.length - limit;
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <div className="flex relative -space-x-4">
         {visibleUsers.map((user, index) => (
           <Tooltip key={user._id}>
@@ -32,7 +32,7 @@ const AvatarGroup = ({ users, limit = 3 }) => {
                 }}
               >
                 <AvatarImage src={user.avatar} alt={user.username} />
-                <AvatarFallback className="bg-gray-200 text-gray-700 text-xs">
+                <AvatarFallback className="bg-gray-200 text-gray-700 text-sm">
                   {user.username.slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
