@@ -18,6 +18,7 @@ import useSocket from "./utils/useSocket";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
 import GrievanceModal from "./components/page/grievance/GrievanceCardModal";
+import AllProjects from "./components/page/projects/AllProjects";
 
 function App() {
   useSocket();
@@ -46,6 +47,7 @@ function App() {
             >
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
+              <Route path="/projects" element={<AllProjects />} />
               <Route
                 path="/employees"
                 element={

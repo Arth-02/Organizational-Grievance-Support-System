@@ -434,7 +434,8 @@ const getAllProjects = async (req, res) => {
       Project.find(query)
         .sort({ [sort_by]: order })
         .limit(limitNumber)
-        .skip(skip),
+        .skip(skip)
+        .populate("manager", "username avatar"),
       Project.countDocuments(query),
     ]);
     if (!projects) {
