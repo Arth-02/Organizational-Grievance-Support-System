@@ -8,6 +8,8 @@ import {
   FileText,
   FileSpreadsheet,
   Download,
+  ImageIcon,
+  Film,
 } from "lucide-react";
 import {
   Dialog,
@@ -77,6 +79,36 @@ const FILE_TYPES = {
   },
 };
 
+const MediaTypeIndicator = ({ type }) => {
+  let icon = <FileText className="w-4 h-4" />;
+  let label = "File";
+  let bgColor = "bg-gray-500";
+
+  if (type?.startsWith("image/")) {
+    icon = <ImageIcon className="w-4 h-4 backdrop-blur-md" />;
+    label = "Image";
+    bgColor = "bg-blue-500 dark:bg-black/50";
+  } else if (type?.startsWith("video/")) {
+    icon = <Film className="w-4 h-4" />;
+    label = "Video";
+    bgColor = "bg-purple-500 dark:bg-black/50";
+  } else if (FILE_TYPES[type]) {
+    label = FILE_TYPES[type].label;
+    bgColor = "bg-gray-500 dark:bg-black/50";
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        className={`absolute top-1 right-1 ${bgColor} bg-opacity-75 p-1 rounded-md`}
+      >
+        {icon}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+};
+
 const AttachmentManager = ({
   uploadModal,
   setUploadModal,
@@ -98,6 +130,7 @@ const AttachmentManager = ({
   });
   const [deleting, setDeleting] = useState(false);
   const [selectedAttachments, setSelectedAttachments] = useState([]);
+  const [loadingMedia, setLoadingMedia] = useState({});
 
   const [updateAttachment] = useUpdateAttachmentMutation();
 
@@ -168,6 +201,7 @@ const AttachmentManager = ({
       });
     }
   };
+
   const toggleSelectAttachment = (attachmentId) => {
     setSelectedAttachments((prevSelected) =>
       prevSelected.includes(attachmentId)
@@ -182,7 +216,34 @@ const AttachmentManager = ({
     }
   };
 
+  const handleMediaLoad = (attachmentId) => {
+    setLoadingMedia((prev) => ({
+      ...prev,
+      [attachmentId]: false,
+    }));
+  };
+
+  const handleMediaError = (attachmentId) => {
+    setLoadingMedia((prev) => ({
+      ...prev,
+      [attachmentId]: false,
+    }));
+    toast.error(`Failed to load media: ${attachmentId}`);
+  };
+
   const handleImageVideoRender = (attachment) => {
+    // Initialize loading state for this media if not already set
+    if (
+      loadingMedia[attachment._id] === undefined &&
+      (attachment.filetype?.startsWith("image/") ||
+        attachment.filetype?.startsWith("video/"))
+    ) {
+      setLoadingMedia((prev) => ({
+        ...prev,
+        [attachment._id]: true,
+      }));
+    }
+
     return (
       <>
         <div
@@ -192,17 +253,36 @@ const AttachmentManager = ({
               : ""
           }`}
         >
+          <MediaTypeIndicator type={attachment.filetype} />
+
+          {loadingMedia[attachment._id] && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-500 dark:text-gray-400" />
+            </div>
+          )}
+
           {attachment.filetype?.startsWith("image/") ? (
             <img
               src={attachment.url}
               alt={attachment.filename}
-              className="object-cover w-32 h-32"
+              className={`object-cover w-32 h-32 transition-opacity duration-300 ${
+                loadingMedia[attachment._id] ? "opacity-0" : "opacity-100"
+              }`}
+              onLoad={() => handleMediaLoad(attachment._id)}
+              onError={() => handleMediaError(attachment._id)}
             />
           ) : (
-            <video className="h-32 w-32 object-cover rounded">
+            <video
+              className={`h-32 w-32 object-cover rounded transition-opacity duration-300 ${
+                loadingMedia[attachment._id] ? "opacity-0" : "opacity-100"
+              }`}
+              onLoadedData={() => handleMediaLoad(attachment._id)}
+              onError={() => handleMediaError(attachment._id)}
+            >
               <source src={attachment.url} type={attachment.filetype} />
             </video>
           )}
+
           <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
               variant="ghost"
@@ -248,6 +328,8 @@ const AttachmentManager = ({
               : ""
           }`}
         >
+          <MediaTypeIndicator type={attachment.filetype} />
+
           <div className="h-32 w-32 flex items-center justify-center">
             {FILE_TYPES[attachment.filetype]?.icon || (
               <File className="h-6 w-6 text-gray-500 dark:text-slate-400" />
@@ -258,6 +340,9 @@ const AttachmentManager = ({
               href={attachment.url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               className="h-9 rounded-md px-[10px] text-blue-500 hover:text-blue-600 dark:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/30"
             >
               <Download className="h-4 w-4 mt-2" />

@@ -58,7 +58,7 @@ const GrievanceModalSkeleton = () => {
                 <Skeleton className="h-4 w-32 mb-4" />
                 <div className="rounded-lg border border-slate-700 overflow-hidden">
                   <div className="p-3">
-                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
                 </div>
               </div>
