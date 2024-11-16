@@ -1,6 +1,7 @@
 import AvatarGroup from "@/components/ui/AvatarGroup";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Users, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ProjectCardSkeleton = () => {
   return (
@@ -68,9 +69,9 @@ const ProjectCard = ({ project }) => {
     <div className="flex flex-col h-full p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
       {/* Project Status Badge */}
       <div className="flex justify-between items-start mb-2">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1">
+        <Link to={`/projects/${project._id}/board/${project.board_id}`} className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1 hover:underline">
           {project.name}
-        </h2>
+        </Link>
         <span
           className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
             project.is_active
@@ -113,7 +114,7 @@ const ProjectCard = ({ project }) => {
 
         {/* Avatar group for managers of project */}
         <div className="absolute -bottom-2 -right-2">
-          <AvatarGroup users={project.manager} limit={3} />
+          <AvatarGroup users={project.manager} limit={2} />
         </div>
       </div>
     </div>
