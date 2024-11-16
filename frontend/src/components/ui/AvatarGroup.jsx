@@ -17,7 +17,7 @@ const AvatarGroup = ({ users, limit = 3 }) => {
           <Tooltip key={user._id}>
             <TooltipTrigger>
               <Avatar
-                className="h-10 w-10 border border-white dark:border-gray-800 bg-white dark:bg-gray-800 transition-transform duration-200"
+                className="h-10 w-10 border-2 border-white dark:border-gray-800 bg-white dark:bg-gray-800 transition-transform duration-200"
                 style={{
                   zIndex: visibleUsers.length - index,
                   transform: "scale(1)",
