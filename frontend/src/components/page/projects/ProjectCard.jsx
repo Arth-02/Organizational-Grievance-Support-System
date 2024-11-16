@@ -67,7 +67,7 @@ const ProjectCard = ({ project }) => {
   return (
     <div className="flex flex-col h-full p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
       {/* Project Status Badge */}
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-2">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1">
           {project.name}
         </h2>
@@ -86,7 +86,7 @@ const ProjectCard = ({ project }) => {
       </p>
 
       {/* Project Details */}
-      <div className="mt-auto space-y-3 relative">
+      <div className="mt-auto space-y-2 relative">
         {/* Date Information */}
         <div className="flex items-center space-x-2 text-sm">
           <Calendar className="w-4 h-4 text-gray-500" />
