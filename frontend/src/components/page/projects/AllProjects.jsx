@@ -9,7 +9,7 @@ const AllProjects = () => {
   const { data: projectsData, isLoading: projectsLoading } =
     useGetAllProjectsQuery();
 
-  const user = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user);
   const userPermissions = useSelector((state) => state.user.permissions);
 
   const canSeeAllProjects = userPermissions.includes("VIEW_PROJECT");
@@ -56,7 +56,7 @@ const AllProjects = () => {
         {(shouldShowOtherProjects || projectsLoading) && (
           <section>
             <h1 className="text-lg text-gray-800 dark:text-white">
-              Other Projects
+              Other Projects (Not a member)
             </h1>
             <ProjectList
               projects={otherProjects}

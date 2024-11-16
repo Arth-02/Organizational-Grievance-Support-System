@@ -112,7 +112,7 @@ const ProjectCard = ({ project }) => {
         </div>
 
         {/* Avatar group for managers of project */}
-        <div className="absolute bottom-0 right-0">
+        <div className="absolute -bottom-2 -right-2">
           <AvatarGroup users={project.manager} limit={3} />
         </div>
       </div>

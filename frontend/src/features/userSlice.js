@@ -73,7 +73,7 @@ const userSlice = createSlice({
         (state, action) => {
           state.user = action.payload.data;
         }
-      );
+      )
   },
 });
 
