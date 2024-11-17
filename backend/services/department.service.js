@@ -98,7 +98,7 @@ const updateDepartment = async (id, body, userData) => {
 };
 
 // Get All Departments service
-const getAllDepartments = async (reqquery, userData) => {
+const getAllDepartments = async (req_query, userData) => {
   try {
     const { organization_id } = userData;
     const {
@@ -108,9 +108,13 @@ const getAllDepartments = async (reqquery, userData) => {
       name,
       sort_by = "created_at",
       order = "desc",
-    } = reqquery;
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    } = req_query;
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
     const skip = (pageNumber - 1) * limitNumber;
 
     const query = {};

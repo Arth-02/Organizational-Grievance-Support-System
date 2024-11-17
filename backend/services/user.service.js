@@ -624,7 +624,7 @@ const checkUserField = async (body, userData, type) => {
 };
 
 // Get all users service
-const getAllUsers = async (reqquery, userData) => {
+const getAllUsers = async (req_query, userData) => {
   try {
     const { organization_id, _id } = userData;
     const {
@@ -640,7 +640,7 @@ const getAllUsers = async (reqquery, userData) => {
       permissionlogic = "or",
       sort_by = "created_at",
       order = "desc",
-    } = reqquery;
+    } = req_query;
 
     const userPermissions = [
       ...userData.role.permissions,
@@ -836,8 +836,8 @@ const getAllUsers = async (reqquery, userData) => {
       }
     }
     const totalPages = Math.ceil(totalUsers / limitNumber);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
+    const hasNextPage = pageNumber < totalPages;
+    const hasPrevPage = pageNumber > 1;
     const pagination = {
       totalItems: totalUsers,
       totalPages,
@@ -885,7 +885,7 @@ const addBoardToUser = async (session, body, userData) => {
     }
     const board = response.board;
     const user = await User.findByIdAndUpdate(userId, {
-      $push: { board_id: board._id },
+      $push: { board_ids: board._id },
     }).session(session);
     if (!user) {
       return { isSuccess: false, message: "User not found", code: 404 };

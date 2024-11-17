@@ -108,7 +108,7 @@ const getAllRoleName = async (userData) => {
 };
 
 // Get All Roles Service
-const getAllRoles = async (userData, reqquery) => {
+const getAllRoles = async (userData, req_query) => {
   try {
     const { organization_id } = userData;
     const {
@@ -120,7 +120,7 @@ const getAllRoles = async (userData, reqquery) => {
       sort_by = "created_at",
       permissionlogic = "or",
       order = "desc",
-    } = reqquery;
+    } = req_query;
 
     const userPermissions = [
       ...userData.role.permissions,
@@ -129,8 +129,12 @@ const getAllRoles = async (userData, reqquery) => {
 
     const canViewPermissions = userPermissions.includes(VIEW_PERMISSION.slug);
 
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
     const skip = (pageNumber - 1) * limitNumber;
 
     const query = {};

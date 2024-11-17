@@ -8,9 +8,7 @@ const {
   updateBoardSchema,
 } = require("../validators/board.validator");
 const { isValidObjectId } = mongoose;
-const {
-  addTaskSchema,
-} = require("../validators/task.validator");
+const { addTaskSchema } = require("../validators/task.validator");
 
 // Create a new board
 const createBoard = async (session, organization_id, body) => {
@@ -54,7 +52,7 @@ const updateBoard = async (session, id, organization_id, body, user = null) => {
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && id === user.board_id) {
+    if (user && id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const updatedBoard = await Board.findByIdAndUpdate(
@@ -124,7 +122,7 @@ const updateBoardTag = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && id === user.board_id) {
+    if (user && id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (request === "add") {
@@ -211,7 +209,7 @@ const addBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && id === user.board_id) {
+    if (user && id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (board.tags.indexOf(value.tag) === -1) {
@@ -260,7 +258,7 @@ const updateBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && board_id === user.board_id) {
+    if (user && board_id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (body.tag && board.tags.indexOf(body.tag) === -1) {
@@ -306,7 +304,7 @@ const updateBoardTaskAttachment = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && board_id === user.board_id) {
+    if (user && board_id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await taskservice.updateTaskAttachment(
@@ -434,7 +432,7 @@ const deleteBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && board_id === user.board_id) {
+    if (user && board_id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await taskservice.deleteTask(session, task_id);
@@ -470,13 +468,123 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (user && id === user.board_id) {
+    if (user && id === user.board_ids) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     await Board.findByIdAndDelete(id, { session });
     return { isSuccess: true };
   } catch (err) {
     console.error("Delete Board Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Get All Tasks of a Board
+const getBoardTasks = async (board_id, user, req_query) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      tag,
+      sort_by = "created_at",
+      order = "desc",
+    } = req_query;
+
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const query = { _id: new mongoose.Types.ObjectId(board_id) };
+
+    const pipeline = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "tasks",
+          foreignField: "_id",
+          as: "tasks",
+        },
+      },
+      {
+        $facet: {
+          totalDataCount: [
+            { $unwind: "$tasks" },
+            // ...(tag ? [{ $match: { "tasks.tag": tag } }] : []),
+            { $count: "total" },
+          ],
+          totalTagDataCount: [
+            { $unwind: "$tasks" },
+            ...(tag ? [{ $match: { "tasks.tag": tag } }] : []),
+            { $count: "total" },
+          ],
+          tasks: [
+            { $unwind: "$tasks" },
+            ...(tag ? [{ $match: { "tasks.tag": tag } }] : []),
+            { $sort: { [`tasks.${sort_by}`]: order === "desc" ? -1 : 1 } },
+            { $skip: skip },
+            { $limit: limitNumber },
+            {
+              $project: {
+                _id: 0,
+                id: "$tasks._id",
+                tag: "$tasks.tag",
+                title: "$tasks.title",
+                description: "$tasks.description",
+                due_date: "$tasks.due_date",
+                assignee_to: "$tasks.assignee_to",
+                attachments: "$tasks.attachments",
+                created_by: "$tasks.created_by",
+                priority: "$tasks.priority",
+                created_at: "$tasks.created_at",
+                updated_at: "$tasks.updated_at",
+                is_submitted: "$tasks.is_submitted",
+                is_finished: "$tasks.is_finished",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          totalTasks: { $arrayElemAt: ["$totalDataCount.total", 0] },
+          totalTagTasks: { $arrayElemAt: ["$totalTagDataCount.total", 0] },
+          tasks: "$tasks",
+        },
+      },
+    ];
+
+    const result = await Board.aggregate(pipeline);
+
+    if (!result.length) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+
+    const { tasks, totalTasks = 0, totalTagTasks = 0 } = result[0];
+    const totalPages = Math.ceil(totalTasks / limitNumber);
+    const hasNextPage = pageNumber < totalPages;
+    const hasPrevPage = pageNumber > 1;
+    const pagination = {
+      totalItems: totalTasks,
+      totalTagItems: totalTagTasks,
+      totalPages,
+      currentPage: pageNumber,
+      limit: limitNumber,
+      hasNextPage,
+      hasPrevPage,
+    };
+
+    return {
+      data: tasks,
+      pagination,
+      isSuccess: true,
+    };
+  } catch (err) {
+    console.error("Get Board Tasks Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
@@ -493,4 +601,5 @@ module.exports = {
   updateBoardTaskFinish,
   deleteBoardTask,
   deleteBoard,
+  getBoardTasks,
 };

@@ -469,7 +469,7 @@ const getProjectById = async (id, user) => {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
     const isProjectMember =
-      project.manager.includes(_id) ||
+      project.members.includes(_id) ||
       project.created_by.toString() === _id.toString();
     if (!hasPermission && !isProjectMember) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
@@ -477,6 +477,38 @@ const getProjectById = async (id, user) => {
     return { project, isSuccess: true };
   } catch (err) {
     console.error("Get Project Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Get All Project Board Tasks
+const getAllProjectBoardTasks = async (project_id, user, req_query) => {
+  try {
+    const { organization_id, role, special_permissions, _id } = user;
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required", code: 400 };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id", code: 400 };
+    }
+    const permissions = [...role.permissions, ...special_permissions];
+    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    });
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+    const isProjectMember =
+      project.members.includes(_id) ||
+      project.created_by.toString() === _id.toString();
+    if (!hasPermission && !isProjectMember) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    return await boardService.getBoardTasks(project.board_id, user, req_query);
+  } catch (err) {
+    console.error("Get All Project Board Tasks Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
@@ -523,5 +555,6 @@ module.exports = {
   updateProjectBoardTaskFinish,
   deleteProjectBoardTask,
   getProjectById,
+  getAllProjectBoardTasks,
   deleteProject,
 };

@@ -79,7 +79,7 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    board_id: {
+    board_ids: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Board",
     },

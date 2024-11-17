@@ -13,6 +13,7 @@ const {
   updateProjectBoardTaskAttachment,
   updateProjectBoardTaskSubmission,
   updateProjectBoardTaskFinish,
+  getAllProjectBoardTasks,
 } = require("../controllers/project.controller");
 const {
   checkPermission,
@@ -73,5 +74,7 @@ router.delete(
   isLoggedIn,
   deleteProjectBoardTask
 );
+
+router.get("/all-board-tasks/:id", isLoggedIn, getAllProjectBoardTasks);
 
 module.exports = router;

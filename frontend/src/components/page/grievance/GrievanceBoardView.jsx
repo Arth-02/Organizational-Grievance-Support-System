@@ -307,7 +307,7 @@ const GrievanceBoardView = () => {
         "submitted",
         submittedGrievance.data.grievances,
         submittedGrievance.data.pagination.hasNextPage,
-        submittedGrievance.data.pagination.totalSubmitted
+        submittedGrievance.data.pagination.totalStatusCount
       );
     }
   }, [submittedGrievance]);
@@ -318,7 +318,7 @@ const GrievanceBoardView = () => {
         "in-progress",
         inProgressGrievance.data.grievances,
         inProgressGrievance.data.pagination.hasNextPage,
-        inProgressGrievance.data.pagination.totalInProgress
+        inProgressGrievance.data.pagination.totalStatusCount
       );
     }
   }, [inProgressGrievance]);
@@ -329,7 +329,7 @@ const GrievanceBoardView = () => {
         "resolved",
         resolvedGrievance.data.grievances,
         resolvedGrievance.data.pagination.hasNextPage,
-        resolvedGrievance.data.pagination.totalResolved
+        resolvedGrievance.data.pagination.totalStatusCount
       );
     }
   }, [resolvedGrievance]);
@@ -340,7 +340,7 @@ const GrievanceBoardView = () => {
         "dismissed",
         dismissedGrievance.data.grievances,
         dismissedGrievance.data.pagination.hasNextPage,
-        dismissedGrievance.data.pagination.totalDismissed
+        dismissedGrievance.data.pagination.totalStatusCount
       );
     }
   }, [dismissedGrievance]);

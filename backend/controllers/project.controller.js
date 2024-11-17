@@ -467,6 +467,28 @@ const getAllProjects = async (req, res) => {
   }
 };
 
+// get All Project Board Tasks
+const getAllProjectBoardTasks = async (req, res) => {
+  try {
+    const response = await projectService.getAllProjectBoardTasks(
+      req.params.id,
+      req.user,
+      req.query
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(
+      res,
+      { tasks: response.data, pagination: response.pagination },
+      "Project board tasks fetched successfully"
+    );
+  } catch (err) {
+    console.error("Get Project Board Tasks Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   createProject,
   updateProject,
@@ -482,4 +504,5 @@ module.exports = {
   getProjectById,
   deleteProject,
   getAllProjects,
+  getAllProjectBoardTasks,
 };

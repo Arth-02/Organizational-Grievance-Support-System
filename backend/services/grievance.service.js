@@ -547,7 +547,7 @@ const getGrievanceById = async (id, user) => {
 // delete grievance by id
 const deleteGrievanceById = async (id, user) => {
   try {
-    const { organization_id,_id:userId } = user;
+    const { organization_id, _id: userId } = user;
     if (!id) {
       return {
         isSuccess: false,
@@ -588,7 +588,7 @@ const deleteGrievanceById = async (id, user) => {
 };
 
 // Get all grievances
-const getAllGrievances = async (reqquery, user) => {
+const getAllGrievances = async (req_query, user) => {
   try {
     const { organization_id, role } = user;
     const {
@@ -602,10 +602,14 @@ const getAllGrievances = async (reqquery, user) => {
       department_id,
       employee_id,
       is_active = "true",
-    } = reqquery;
+    } = req_query;
 
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
     const skip = (pageNumber - 1) * limitNumber;
 
     const isSuperAdmin = role.name === SUPER_ADMIN;
@@ -642,16 +646,10 @@ const getAllGrievances = async (reqquery, user) => {
         .populate({ path: "assigned_to", select: "username" }),
       Grievance.countDocuments(query),
     ]);
-
-    query.status = "submitted";
-    const totalSubmitted = await Grievance.countDocuments(query);
-    query.status = "in-progress";
-    const totalInProgress = await Grievance.countDocuments(query);
-    query.status = "resolved";
-    const totalResolved = await Grievance.countDocuments(query);
-    query.status = "dismissed";
-    const totalDismissed = await Grievance.countDocuments(query);
-
+    let totalStatusCount = 0;
+    if (query.status) {
+      totalStatusCount = await Grievance.countDocuments(query);
+    }
     if (!grievances.length) {
       return { isSuccess: false, message: "No grievances found", code: 404 };
     }
@@ -662,10 +660,7 @@ const getAllGrievances = async (reqquery, user) => {
 
     const pagination = {
       totalItems: totalGrievances,
-      totalSubmitted,
-      totalInProgress,
-      totalResolved,
-      totalDismissed,
+      totalStatusCount,
       totalPages: totalPages,
       currentPage: pageNumber,
       limit: limitNumber,
