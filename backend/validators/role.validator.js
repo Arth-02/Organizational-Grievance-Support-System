@@ -13,7 +13,7 @@ const updateRoleSchema = Joi.object({
 });
 
 const deleteRoleSchema = Joi.object({
-  replace_role_id: Joi.string().trim(),
+  replace_role_id: Joi.string().custom(objectIdValidation).label("replace_role_id"),
 });
 
 module.exports = {

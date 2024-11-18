@@ -5,7 +5,7 @@ const addTaskSchema = Joi.object({
   title: Joi.string().required(),
   description: Joi.string().required(),
   due_date: Joi.date(),
-  assignee_to: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
+  assignee_to: Joi.array().items(Joi.string().custom(objectIdValidation).label("assignee_to")),
   attachments: Joi.array().items(Joi.object()),
   priority: Joi.string().valid("low", "medium", "high").required(),
 });
@@ -15,8 +15,8 @@ const updateTaskSchema = Joi.object({
   title: Joi.string(),
   description: Joi.string(),
   due_date: Joi.date(),
-  assignee_to: Joi.array().items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/)),
-  created_by: Joi.string().pattern(/^[0-9a-fA-F]{24}$/),
+  assignee_to: Joi.array().items(Joi.string().custom(objectIdValidation).label("assignee_to")),
+  created_by: Joi.string().custom(objectIdValidation).label("created_by"),
   priority: Joi.string().valid("low", "medium", "high"),
 });
 

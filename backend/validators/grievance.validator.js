@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { objectIdValidation } = require("../utils");
 
 const createGrievanceSchema = Joi.object({
   title: Joi.string().min(5).max(100).required(),
@@ -21,13 +22,16 @@ const updateFullGrievanceSchema = Joi.object({
   department_id: Joi.string(),
   priority: Joi.string().valid("low", "medium", "high"),
   is_active: Joi.boolean(),
-  assigned_to: Joi.string().length(24),
+  assigned_to: Joi.string().custom(objectIdValidation).label("assigned_to"),
   prevRank: Joi.string().allow(null).optional(),
   nextRank: Joi.string().allow(null).optional(),
 });
 
 const updateAssignedGrievanceSchema = Joi.object({
-  assigned_to: Joi.string().length(24).required(),
+  assigned_to: Joi.string()
+    .custom(objectIdValidation)
+    .label("assigned_to")
+    .required(),
 });
 
 const updateStatusGrievanceSchema = Joi.object({
