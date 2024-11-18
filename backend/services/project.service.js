@@ -506,7 +506,7 @@ const getAllProjectBoardTasks = async (project_id, user, req_query) => {
     if (!hasPermission && !isProjectMember) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
-    return await boardService.getBoardTasks(project.board_id, user, req_query);
+    return await boardService.getBoardTasks(project.board_id, req_query);
   } catch (err) {
     console.error("Get All Project Board Tasks Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };

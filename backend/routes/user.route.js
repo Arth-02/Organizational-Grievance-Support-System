@@ -25,6 +25,7 @@ const {
   updateBoardTaskAttachment,
   getBoardById,
   getUserNames,
+  getBoardTasks,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -100,5 +101,6 @@ router.delete(
   isLoggedIn,
   deleteBoardTask
 );
+router.get("/all-board-tasks/:id", isLoggedIn, getBoardTasks);
 
 module.exports = router;

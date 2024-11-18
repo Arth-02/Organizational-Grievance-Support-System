@@ -99,6 +99,12 @@ export const projectApi = baseApi.injectEndpoints({
         method: "DELETE",
       }),
     }),
+    getProjectBoardTasks: builder.query({
+      query: (id) => ({
+        url: `projects/all-board-tasks/${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 

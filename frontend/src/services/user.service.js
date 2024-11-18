@@ -1,4 +1,4 @@
-import { baseApi } from './baseApi.service';
+import { baseApi } from "./baseApi.service";
 
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -12,7 +12,12 @@ export const userApi = baseApi.injectEndpoints({
       query: (filters) => {
         const cleanedFilters = Object.entries(filters).reduce(
           (acc, [key, value]) => {
-            if (value !== "" && value !== null && value !== undefined && value !== "all") {
+            if (
+              value !== "" &&
+              value !== null &&
+              value !== undefined &&
+              value !== "all"
+            ) {
               acc[key] = value;
             }
             return acc;
@@ -159,6 +164,12 @@ export const userApi = baseApi.injectEndpoints({
       query: ({ board_id, task_id }) => ({
         url: `users/delete-board-task/${board_id}/task/${task_id}`,
         method: "DELETE",
+      }),
+    }),
+    getBoardTasks: builder.query({
+      query: (id) => ({
+        url: `users/all-board-tasks/${id}`,
+        method: "GET",
       }),
     }),
   }),

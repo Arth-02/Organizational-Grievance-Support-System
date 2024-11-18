@@ -268,10 +268,12 @@ const getAllUsersId = async (req, res) => {
   }
 };
 
-// Get User Name and Ids 
+// Get User Name and Ids
 const getUserNames = async (req, res) => {
   try {
-    const response = await userService.getUserNamesAndIds(req.user.organization_id);
+    const response = await userService.getUserNamesAndIds(
+      req.user.organization_id
+    );
     if (!response.isSuccess) {
       return errorResponse(res, response.code, response.message);
     }
@@ -567,6 +569,28 @@ const deleteBoardTask = async (req, res) => {
   }
 };
 
+// get User Borad Tasks
+const getBoardTasks = async (req, res) => {
+  try {
+    const response = await boardService.getBoardTasks(
+      req.params.id,
+      req.query,
+      req.user
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(
+      res,
+      { tasks: response.data, pagination: response.pagination },
+      "Board Tasks retrieved successfully"
+    );
+  } catch (err) {
+    console.error("Get User Board Tasks Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -593,4 +617,5 @@ module.exports = {
   updateBoardTask,
   updateBoardTaskAttachment,
   deleteBoardTask,
+  getBoardTasks,
 };

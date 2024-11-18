@@ -116,7 +116,7 @@ const isLoggedIn = async (req, res, next) => {
     const user = await User.findOne({ _id: id, is_active: true })
       .populate({ path: "role", select: "name permissions" })
       .select(
-        "_id role organization_id department employee_id special_permissions"
+        "_id role organization_id department employee_id special_permissions board_ids"
       );
 
     if (!user) {
