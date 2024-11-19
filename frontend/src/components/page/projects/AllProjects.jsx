@@ -32,7 +32,7 @@ const AllProjects = () => {
   return (
     <MainLayout
       title={"All Projects"}
-      buttonLink={"/project/create"}
+      buttonLink={"/projects/add"}
       buttonTitle={"Create New Project"}
     >
       <div className="space-y-6">

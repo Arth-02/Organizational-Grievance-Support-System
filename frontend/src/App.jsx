@@ -20,6 +20,7 @@ import { ModalProvider } from "./components/ui/RoutedModal";
 import GrievanceModal from "./components/page/grievance/GrievanceCardModal";
 import AllProjects from "./components/page/projects/AllProjects";
 import BoardPage from "./components/page/board/BoardPage";
+import AddUpdateProject from "./components/page/projects/AddUpdateProject";
 
 function App() {
   useSocket();
@@ -49,6 +50,7 @@ function App() {
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
               <Route path="/projects" element={<AllProjects />} />
+              <Route path="/projects/add" element={<AddUpdateProject />} />
               <Route path="/projects/:projectId/board/:boardId" element={<BoardPage />} />
               <Route
                 path="/employees"
