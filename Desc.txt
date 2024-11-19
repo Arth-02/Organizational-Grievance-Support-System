@@ -1,0 +1,40 @@
+Employee Management System
+
+Employee:-
+There are permissions for any action 
+employee can perform action if employee have permission 
+basically permissions are give to role and that role give to employee
+There is one more field in employee that is special permissions that the very good feature for example if an employee dont have some permissions in their give role then this field comes to help by give extra permissions other then role permission to the employee 
+
+then there is deparment 
+then there is role where all permissions for role are handler
+
+then comes Grievance where employee of organization can report any problem if arise 
+In Clint side the display of Grievance very smooth and user friendly 
+User can drag and drop Grievance card for status update and arrange Grievance in specific order
+the employee who have update Grievance assignee permission can assignee grievance to specific employee 
+when grievance is create employee also attach some photo or video 
+give title and desc too
+
+then come project 
+the employee who have create project permissions can create project and add member, manager, start date, due date, title, desc 
+when the project is created, they get one board for project 
+where they manage all task. They can create column for their specific needs
+then that board can be edit by either manager or selected members 
+when someone create task they can also assignee task to any project member
+also add attachments to task
+then if assigneed employee completed the task he or she will click on Submitted button then manager will check the work and then manager click on on finish button 
+
+there one more feature Employee can create there own personal boards  
+
+TOOLS 
+
+MongoDb - Database
+React - Frontend
+Nodejs and Express Framework - Backend
+Tailwind and shadcn - css 
+Socket - for live update to all acitve employee of organization and notification
+RTK query - Client side api management
+Redux - storage
+User Authication using jwt token
+Nodemailer

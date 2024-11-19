@@ -10,6 +10,7 @@ const {
   VIEW_PROJECT,
   CREATE_PROJECT,
 } = require("../utils/constant");
+const User = require("../models/user.model");
 const { isValidObjectId } = mongoose;
 
 // Create a project service
@@ -28,7 +29,27 @@ const createProject = async (session, body, user) => {
       const errors = error.details.map((detail) => detail.message);
       return { isSuccess: false, message: errors, code: 400 };
     }
-
+    if (value.manager && value.manager.length > 0) {
+      for (let i = 0; i < value.manager.length; i++) {
+        if (!value.members.includes(value.manager[i])) {
+          value.members.push(value.manager[i]);
+        }
+      }
+    }
+    if (value.members && value.members.length > 0) {
+      const memberIds = value.members;
+      const members = await User.find({
+        _id: { $in: memberIds },
+        organization_id: organization_id,
+      });
+      if (members.length !== memberIds.length) {
+        return {
+          isSuccess: false,
+          message: "Some members not found",
+          code: 404,
+        };
+      }
+    }
     const boardBody = { name: value.name };
     const response = await boardService.createBoard(
       session,

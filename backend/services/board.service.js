@@ -135,7 +135,7 @@ const updateBoardTag = async (
       const { oldtag, newtag } = body;
       const tagIndex = board.tags.indexOf(oldtag);
       if (tagIndex === -1) {
-        return { isSuccess: false, message: "old Tag not found", code: 400 };
+        return { isSuccess: false, message: "old Tag not found", code: 404 };
       }
       if (board.tags.includes(newtag)) {
         return {
@@ -154,7 +154,7 @@ const updateBoardTag = async (
       const { tag } = value;
       const tagIndex = board.tags.indexOf(tag);
       if (tagIndex === -1) {
-        return { isSuccess: false, message: "Tag not found", code: 400 };
+        return { isSuccess: false, message: "Tag not found", code: 404 };
       }
       board.tags.splice(tagIndex, 1);
       for (let i = 0; i < board.tasks.length; i++) {
