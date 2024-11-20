@@ -1,7 +1,24 @@
 import AvatarGroup from "@/components/ui/AvatarGroup";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Modal from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Users, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useDeleteProjectMutation } from "@/services/project.service";
+import {
+  Calendar,
+  Users,
+  Clock,
+  EllipsisVertical,
+  Edit2,
+  ExternalLink,
+  Trash,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const ProjectCardSkeleton = () => {
   return (
@@ -50,6 +67,10 @@ const ProjectCardSkeleton = () => {
 };
 
 const ProjectCard = ({ project }) => {
+  const navigate = useNavigate();
+  const [deleteProject] = useDeleteProjectMutation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const formatDate = (date) => {
     if (!date) return "Not set";
     return new Date(date).toLocaleDateString("en-US", {
@@ -59,26 +80,63 @@ const ProjectCard = ({ project }) => {
     });
   };
 
-  const getStatusColor = (isActive) => {
-    return isActive
-      ? "bg-green-100 text-green-800 dark:text-green-500 dark:bg-green-500/20"
-      : "bg-red-100 text-red-800";
+  const handleEdit = () => {
+    navigate(`/projects/${project._id}/edit`);
+  };
+
+  const handleGoToProject = () => {
+    navigate(`/projects/${project._id}/board/${project.board_id}`);
+  };
+
+  const handleDelete = () => {
+    setIsModalOpen(true); // Show the modal
+  };
+
+  const confirmDelete = () => {
+    deleteProject(project._id); // Perform the delete action
+    setIsModalOpen(false); // Close the modal after deletion
   };
 
   return (
-    <div className="flex flex-col h-full p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+    <div className="flex flex-col h-full p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
       {/* Project Status Badge */}
       <div className="flex justify-between items-start mb-2">
-        <Link to={`/projects/${project._id}/board/${project.board_id}`} className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1 hover:underline">
+        <Link
+          to={`/projects/${project._id}/board/${project.board_id}`}
+          className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-1 hover:underline"
+        >
           {project.name}
         </Link>
-        <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-            project.is_active
-          )}`}
-        >
-          {project.is_active ? "Active" : "Inactive"}
-        </span>
+
+        {/* Dropdown for edit, go to project and delete project options */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="relative left-2 -top-1">
+            <EllipsisVertical className="w-[30px] h-7 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 dark:focus:bg-white/10 cursor-pointer p-1 rounded-md transition-all" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-white dark:bg-slate-900">
+            <DropdownMenuItem
+              className="hover:bg-gray-100 dark:hover:bg-slate-600/50 cursor-pointer"
+              onClick={handleEdit}
+            >
+              <Edit2 className="w-4 h-4 mr-3" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="hover:bg-gray-100 dark:hover:bg-slate-600/50 cursor-pointer"
+              onClick={handleGoToProject}
+            >
+              <ExternalLink className="w-4 h-4 mr-3" />
+              Go to Project
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-red-600 hover:text-red-600 hover:bg-red-200/40 dark:text-red-400 dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-200/40 focus:text-red-600"
+              onClick={handleDelete}
+            >
+              <Trash className="w-4 h-4 mr-3" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Project Description */}
@@ -113,10 +171,23 @@ const ProjectCard = ({ project }) => {
         </div>
 
         {/* Avatar group for managers of project */}
-        <div className="absolute -bottom-2 -right-2">
+        <div className="absolute -bottom-1 -right-2">
           <AvatarGroup users={project.manager} limit={2} />
         </div>
       </div>
+
+      {/* Modal for confirming deletion */}
+      <Modal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title="Confirm Deletion"
+        description="Are you sure you want to delete this project? This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        confirmVariant="destructive"
+      >
+        <p>This will permanently delete the project and all related data.</p>
+      </Modal>
     </div>
   );
 };

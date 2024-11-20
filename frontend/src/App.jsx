@@ -51,6 +51,7 @@ function App() {
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
               <Route path="/projects" element={<AllProjects />} />
               <Route path="/projects/add" element={<AddUpdateProject />} />
+              <Route path="/projects/:id/edit" element={<AddUpdateProject />} />
               <Route path="/projects/:projectId/board/:boardId" element={<BoardPage />} />
               <Route
                 path="/employees"

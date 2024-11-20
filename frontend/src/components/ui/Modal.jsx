@@ -35,7 +35,7 @@ const Modal = ({
         {React.isValidElement(children) && React.cloneElement(children, {
           className: `${children.props.className || ""} pr-0 pl-6`.trim(),
         })}
-        <DialogFooter className="px-6">
+        <DialogFooter className="px-6 mt-2">
           {shoudlShowCancel && (
             <Button
               variant="outline"
