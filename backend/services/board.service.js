@@ -52,7 +52,7 @@ const updateBoard = async (session, id, organization_id, body, user = null) => {
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(id)) {
+    if (user && !user?.board_ids?.includes(id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const updatedBoard = await Board.findByIdAndUpdate(
@@ -122,7 +122,7 @@ const updateBoardTag = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(id)) {
+    if (user && !user?.board_ids?.includes(id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (request === "add") {
@@ -209,7 +209,7 @@ const addBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(id)) {
+    if (user && !user?.board_ids?.includes(id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (board.tags.indexOf(value.tag) === -1) {
@@ -258,7 +258,7 @@ const updateBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(board_id)) {
+    if (user && !user?.board_ids?.includes(board_id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     if (body.tag && board.tags.indexOf(body.tag) === -1) {
@@ -304,7 +304,7 @@ const updateBoardTaskAttachment = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(board_id)) {
+    if (user && !user?.board_ids?.includes(board_id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await taskservice.updateTaskAttachment(
@@ -432,7 +432,7 @@ const deleteBoardTask = async (
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(board_id)) {
+    if (user && !user?.board_ids?.includes(board_id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await taskservice.deleteTask(session, task_id);
@@ -468,7 +468,7 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
     if (!board) {
       return { isSuccess: false, message: "Board not found", code: 404 };
     }
-    if (!user?.board_ids?.includes(id)) {
+    if (user && !user.board_ids?.includes(id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     await Board.findByIdAndDelete(id, { session });
@@ -482,7 +482,7 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
 // Get All Tasks of a Board
 const getBoardTasks = async (board_id, req_query, user = null) => {
   try {
-    if (!user?.board_ids?.includes(board_id)) {
+    if (user && !user?.board_ids?.includes(board_id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const {

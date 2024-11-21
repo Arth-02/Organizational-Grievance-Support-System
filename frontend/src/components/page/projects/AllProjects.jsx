@@ -13,6 +13,7 @@ const AllProjects = () => {
   const userPermissions = useSelector((state) => state.user.permissions);
 
   const canSeeAllProjects = userPermissions.includes("VIEW_PROJECT");
+  const canCreateProject = userPermissions.includes("CREATE_PROJECT");
 
   // filter projects into my projects and other projects
   const myProjects = projectsData?.data?.projects?.filter((project) =>
@@ -32,8 +33,8 @@ const AllProjects = () => {
   return (
     <MainLayout
       title={"All Projects"}
-      buttonLink={"/projects/add"}
-      buttonTitle={"Create New Project"}
+      buttonLink={canCreateProject ? "/projects/add" : undefined}
+      buttonTitle={canCreateProject ? "Create New Project" : undefined}
     >
       <div className="space-y-6">
         {(shouldShowMyProjects || projectsLoading) && (
