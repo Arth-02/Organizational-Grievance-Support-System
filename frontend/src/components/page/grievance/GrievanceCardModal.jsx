@@ -123,7 +123,7 @@ function GrievanceModal() {
     userPermissions.includes("UPDATE_GRIEVANCE") ||
     user._id === grievance?.data?.reported_by?._id;
   const canEditAssignee = userPermissions.includes("UPDATE_GRIEVANCE_ASSIGNEE");
-  const canEditAttachments = user._id === grievance?.data?.reported_by?._id;
+  const canEditAttachments = user._id.toString() === grievance?.data?.reported_by?._id.toString();
   const canEditGrievance = userPermissions.includes("UPDATE_GRIEVANCE");
   const canEditTitleAndDescription =
     user._id === grievance?.data?.reported_by?._id;
