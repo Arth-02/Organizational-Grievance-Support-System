@@ -63,9 +63,8 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    image_id:{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Attachment",
+    avatar:{
+      type: String,
     },
     is_deleted: {
       type: Boolean,
