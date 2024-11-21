@@ -485,7 +485,15 @@ const getProjectById = async (id, user) => {
     const project = await Project.findOne({
       _id: id,
       organization_id,
-    });
+    })
+      .populate({
+        path: "members",
+        select: "username email",
+      })
+      .populate({
+        path: "manager",
+        select: "username email",
+      });
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }

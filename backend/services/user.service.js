@@ -25,6 +25,7 @@ const bcrypt = require("bcryptjs");
 const Joi = require("joi");
 const { ObjectId } = require("mongoose").Types;
 const boardService = require("./board.service");
+const uploadFiles = require("../utils/cloudinary");
 
 // User login service
 const userLogin = async (body) => {
@@ -34,7 +35,7 @@ const userLogin = async (body) => {
     });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
-      return { isSuccess: false, message: error, code: 400 };
+      return { isSuccess: false, message: errors, code: 400 };
     }
 
     const { email, username, password, rememberMe } = value;
@@ -174,21 +175,15 @@ const createUser = async (session, body, userData, files) => {
       special_permissions,
     });
     if (files && files.length > 0) {
-      const response = await attachmentService.createAttachment(
-        session,
-        newUser._id,
-        organization_id,
-        files
-      );
-      if (!response.isSuccess) {
-        await session.abortTransaction();
+      const result = await uploadFiles(files[0], organization_id);
+      if (!result) {
         return {
           isSuccess: false,
-          message: response.message,
-          code: response.code,
+          message: "Error uploading attachments",
+          code: 400,
         };
       }
-      newUser.image_id = response.attachmentIds[0];
+      newUser.avatar = result.secure_url;
     }
     await newUser.save({ session });
 
@@ -244,7 +239,6 @@ const getUserDetails = async (user_id, userData) => {
       user = await User.findOne(query)
         .populate("role")
         .populate("department")
-        .populate({ path: "image_id", select: "filename public_id url" })
         .select("-createdAt -updatedAt -last_login -is_active -is_deleted")
         .lean();
       user.role.permissions = user.role.permissions
@@ -298,20 +292,15 @@ const updateUserDetails = async (user_id, userData, body, files) => {
       query.organization_id = organization_id;
     }
     if (files && files.length > 0) {
-      const response = await attachmentService.createAttachment(
-        null,
-        id,
-        organization_id,
-        files
-      );
-      if (!response.isSuccess) {
+      const result = await uploadFiles(files[0], organization_id);
+      if (!result) {
         return {
           isSuccess: false,
-          message: response.message,
-          code: response.code,
+          message: "Error uploading attachments",
+          code: 400,
         };
       }
-      value.image_id = response.attachmentIds[0];
+      value.avatar = result.secure_url;
     }
     const user = await User.findOneAndUpdate(query, value, {
       new: true,
@@ -473,20 +462,15 @@ const createSuperAdmin = async (session, body, files) => {
       organization_id,
     });
     if (files && files.length > 0) {
-      const response = await attachmentService.createAttachment(
-        session,
-        superAdmin._id,
-        organization_id,
-        files
-      );
-      if (!response.isSuccess) {
+      const result = await uploadFiles(files[0], organization_id);
+      if (!result) {
         return {
           isSuccess: false,
-          message: response.message,
-          code: response.code,
+          message: "Error uploading attachments",
+          code: 400,
         };
       }
-      superAdmin.image_id = response.attachmentIds[0];
+      superAdmin.avatar = result.secure_url;
     }
     await superAdmin.save({ session });
     const payload = {
@@ -900,17 +884,22 @@ const addBoardToUser = async (session, body, userData) => {
 // Get User name And id service
 const getUserNamesAndIds = async (organization_id) => {
   try {
-    if(!organization_id) {
-      return { isSuccess: false, message: "Organization id is required", code: 400 };
+    if (!organization_id) {
+      return {
+        isSuccess: false,
+        message: "Organization id is required",
+        code: 400,
+      };
     }
     if (!isValidObjectId(organization_id)) {
-      return { isSuccess: false, message: "Invalid organization id", code: 400 };
+      return {
+        isSuccess: false,
+        message: "Invalid organization id",
+        code: 400,
+      };
     }
-    const users = await User.find(
-      { organization_id },
-      "username"
-    );
-    return { isSuccess: true, data: users};
+    const users = await User.find({ organization_id }, "username");
+    return { isSuccess: true, data: users };
   } catch (err) {
     console.error("Get Users Error:", err.message);
     return { isSuccess: false, message: "Internal server error", code: 500 };

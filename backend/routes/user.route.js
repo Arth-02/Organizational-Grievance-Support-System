@@ -43,7 +43,7 @@ router.post("/login", login);
 router.post(
   "/create",
   checkPermission([CREATE_USER.slug]),
-  upload.array("image", 1),
+  upload.array("avatar", 1),
   createUser
 );
 router.get("/profile", isLoggedIn, getUser);
@@ -52,7 +52,7 @@ router.get("/all", checkPermission([VIEW_USER.slug]), getAllUsers);
 router.patch(
   "/profile/update",
   isLoggedIn,
-  upload.array("image", 1),
+  upload.array("avatar", 1),
   updateUser
 );
 router.patch("/update/:id", checkPermission([UPDATE_USER.slug]), updateUser);
