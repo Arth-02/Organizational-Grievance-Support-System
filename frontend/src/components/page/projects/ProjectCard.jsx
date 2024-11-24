@@ -97,6 +97,16 @@ const ProjectCard = ({ project }) => {
     setIsModalOpen(false); // Close the modal after deletion
   };
 
+  const formattedUserList = project.members?.map((user) => {
+    return {
+      _id: user._id,
+      avatar: user.avatar,
+      email: user.email,
+      username: user.username,
+      role: project.manager.includes(user._id) ? "Manager" : "Member",
+    }
+  });
+
   return (
     <div className="flex flex-col h-full p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
       {/* Project Status Badge */}
@@ -172,7 +182,7 @@ const ProjectCard = ({ project }) => {
 
         {/* Avatar group for managers of project */}
         <div className="absolute -bottom-1 -right-2">
-          <AvatarGroup users={project.members} limit={2} avatarType={"Members"} />
+          <AvatarGroup users={formattedUserList} limit={2} avatarType={"Members"} />
         </div>
       </div>
 

@@ -38,6 +38,17 @@ const AvatarGroup = ({
     large: "-space-x-5",
   };
 
+  const getRoleBadgeClasses = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'manager':
+        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-500 hover:bg-green-200 dark:hover:bg-green-800/30';
+      case 'member':
+        return 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-500 hover:bg-cyan-200 dark:hover:bg-cyan-800/30';
+      default:
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/30';
+    }
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -145,7 +156,7 @@ const AvatarGroup = ({
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={`Search ${avatarType.toLowerCase()}...`}
                 className="w-full rounded-md border border-slate-200 dark:border-slate-700 pl-8 pr-4 py-2 text-sm 
                   bg-transparent focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400
                   text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
@@ -154,46 +165,46 @@ const AvatarGroup = ({
               />
             </div>
 
-            <ScrollArea className="h-[250px] pr-4">
+            <ScrollArea className="h-[250px] pr-4 w-[105%]">
               <div className="space-y-1">
                 {filteredUsers.length > 0 &&
                   filteredUsers.map((user) => (
                     <div
                       key={user._id}
                       onClick={() => onUserClick?.(user)}
-                      className="flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-800/50 
-                      rounded-lg transition-colors cursor-pointer group"
+                      className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100/70 dark:hover:bg-slate-800/50 rounded-lg transition-colors cursor-pointer"
                     >
-                      <div className="relative">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage
-                            src={user.avatar}
-                            alt={user.username}
-                            className="object-cover"
-                          />
-                          <AvatarFallback
-                            className="bg-gradient-to-br from-slate-100 to-slate-200 
-                          dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-200 font-medium"
-                          >
-                            {user.username.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                          {user.username}
-                        </span>
-                        {user.email && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                            {user.email}
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage
+                              src={user.avatar}
+                              alt={user.username}
+                              className="object-cover"
+                            />
+                            <AvatarFallback
+                              className="bg-gradient-to-br from-slate-100 to-slate-200 
+                            dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-200 font-medium"
+                            >
+                              {user.username.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {user.username}
                           </span>
-                        )}
+                          {user.email && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                              {user.email}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {user.role && (
                         <Badge
                           variant="secondary"
-                          className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity
-                          bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          className={`transition-opacity ${getRoleBadgeClasses(user.role)}`}
                         >
                           {user.role}
                         </Badge>
