@@ -123,7 +123,7 @@ const ProjectCard = ({ project }) => {
           <DropdownMenuTrigger asChild className="relative left-2 -top-1">
             <EllipsisVertical className="w-[30px] h-7 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 dark:focus:bg-white/10 cursor-pointer p-1 rounded-md transition-all" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white dark:bg-slate-900 space-y-[2px]">
+          <DropdownMenuContent className="bg-white dark:bg-slate-900">
             <DropdownMenuItem
               className="hover:bg-gray-100 dark:hover:bg-slate-600/50 cursor-pointer"
               onClick={handleEdit}

@@ -104,13 +104,13 @@ const AddUpdateProject = () => {
     </CommandItem>
   );
 
-  console.log(watch('start_date'));
-
   useEffect(() => {
     if (project?.data) {
       Object.keys(project.data).forEach((key) => {
         if (key === "start_date" || key === "end_date") {
           setValue(key, new Date(project.data[key]));
+        } else if (key === "manager" || key === "members") {
+          setValue(key, formatUsersData(project.data[key]));
         } else {
           setValue(key, project.data[key]);
         }

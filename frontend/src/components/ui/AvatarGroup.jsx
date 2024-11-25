@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { RefreshCcw, Search } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 const AvatarGroup = ({
   users,
@@ -23,6 +25,8 @@ const AvatarGroup = ({
   size = "default",
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [filterRole, setFilterRole] = React.useState("All");
+
   const visibleUsers = users.slice(0, limit);
   const remainingCount = users.length - limit;
 
@@ -40,20 +44,27 @@ const AvatarGroup = ({
 
   const getRoleBadgeClasses = (role) => {
     switch (role?.toLowerCase()) {
-      case 'manager':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-500 hover:bg-green-200 dark:hover:bg-green-800/30';
-      case 'member':
-        return 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-500 hover:bg-cyan-200 dark:hover:bg-cyan-800/30';
+      case "manager":
+        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-500 hover:bg-green-200 dark:hover:bg-green-800/30";
+      case "member":
+        return "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-500 hover:bg-cyan-200 dark:hover:bg-cyan-800/30";
       default:
-        return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/30';
+        return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/30";
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users
+    .filter(
+      (user) =>
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((user) => (filterRole === "All" ? true : user.role === filterRole));
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterRole("All");
+  };
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -152,6 +163,38 @@ const AvatarGroup = ({
               </h4>
             </div>
 
+            {/* Role Filter Buttons */}
+            <div className="flex gap-2 my-1">
+              {["All", "Manager", "Member"].map((role) => (
+                <Button
+                  key={role}
+                  size="xs"
+                  variant={filterRole === role ? "solid" : "outline"}
+                  className={`px-3 py-1 text-sm ${
+                    filterRole === role
+                      ? "bg-slate-500 dark:bg-slate-600 text-white dark:text-slate-200 border-slate-500 dark:border-slate-600"
+                      : "bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
+                  }`}
+                  onClick={() => setFilterRole(role)}
+                >
+                  {role}
+                </Button>
+              ))}
+
+              {/* Reset Button */}
+              {(searchQuery || filterRole !== "All") && (
+                <Button
+                  size="xs"
+                  variant="outline"
+                  className="px-3 py-1 text-sm bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
+                  onClick={() => resetFilters()}
+                >
+                  {/* Icon for reset */}
+                  <RefreshCcw className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
               <input
@@ -195,7 +238,7 @@ const AvatarGroup = ({
                             {user.username}
                           </span>
                           {user.email && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 max-w-32 truncate">
                               {user.email}
                             </span>
                           )}
@@ -204,7 +247,9 @@ const AvatarGroup = ({
                       {user.role && (
                         <Badge
                           variant="secondary"
-                          className={`transition-opacity ${getRoleBadgeClasses(user.role)}`}
+                          className={`transition-opacity ${getRoleBadgeClasses(
+                            user.role
+                          )}`}
                         >
                           {user.role}
                         </Badge>
