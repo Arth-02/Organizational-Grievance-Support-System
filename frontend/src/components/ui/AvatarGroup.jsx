@@ -87,14 +87,14 @@ const AvatarGroup = ({
                       alt={user.username}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-200 font-medium">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-700 dark:text-slate-200 font-medium">
                       {user.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </TooltipTrigger>
                 <TooltipContent
                   sideOffset={10}
-                  className="dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800"
+                  className="dark:bg-slate-700 dark:text-slate-100 dark:border-slate-800"
                 >
                   <p className="font-medium">{user.username}</p>
                 </TooltipContent>
@@ -121,14 +121,14 @@ const AvatarGroup = ({
                       e.currentTarget.style.transform = "scale(1)";
                     }}
                   >
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-700 dark:text-slate-200 font-medium">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-700 dark:text-slate-200 font-medium">
                       +{remainingCount}
                     </AvatarFallback>
                   </Avatar>
                 </TooltipTrigger>
                 <TooltipContent
                   sideOffset={10}
-                  className="dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800"
+                  className="dark:bg-slate-700 dark:text-slate-100 dark:border-slate-800"
                 >
                   <p>
                     +{remainingCount} more {avatarType.toLowerCase()}
