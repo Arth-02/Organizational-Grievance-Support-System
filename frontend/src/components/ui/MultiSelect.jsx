@@ -1,173 +1,3 @@
-// import * as React from "react"
-// import { Check, ChevronDown, X } from "lucide-react"
-// import { cn } from "@/lib/utils"
-// import { useController } from "react-hook-form"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Badge } from "@/components/ui/badge"
-// import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
-// import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
-// const MultiSelect = React.forwardRef(({ 
-//   label, 
-//   options = [], 
-//   control, 
-//   name, 
-//   rules,
-//   placeholder = "Select options...",
-//   className,
-//   maxSelections,
-// }, ref) => {
-//   const [open, setOpen] = React.useState(false)
-
-//   const {
-//     field: { onChange, value = [] },
-//     fieldState: { error }
-//   } = useController({
-//     name,
-//     control,
-//     rules,
-//   })
-
-//   const selectedValues = Array.isArray(value) ? value : []
-
-//   const handleSelect = (itemValue) => {
-//     const isSelected = selectedValues.includes(itemValue)
-//     let newSelected
-
-//     if (isSelected) {
-//       newSelected = selectedValues.filter(id => id !== itemValue)
-//     } else {
-//       if (maxSelections && selectedValues.length >= maxSelections) {
-//         return
-//       }
-//       newSelected = [...selectedValues, itemValue]
-//     }
-
-//     onChange(newSelected)
-//   }
-
-//   const handleRemove = (itemValue, e) => {
-//     e.preventDefault()
-//     e.stopPropagation()
-//     const newSelected = selectedValues.filter(id => id !== itemValue)
-//     onChange(newSelected)
-//   }
-
-//   const selectedOptions = options.filter(option => 
-//     selectedValues.includes(option.value)
-//   )
-
-//   return (
-//     <div className="space-y-1">
-//       {label && (
-//         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-//           {label}
-//         </label>
-//       )}
-      
-//       <Popover open={open} onOpenChange={setOpen}>
-//         <PopoverTrigger asChild>
-//           <div
-//             role="combobox"
-//             ref={ref}
-//             aria-expanded={open}
-//             className={cn(
-//               "flex min-h-10 w-full items-center justify-between rounded-md border border-input/50 bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none hover:bg-muted dark:hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-50",
-//               error ? "border-destructive" : "",
-//               className
-//             )}
-//           >
-//             <div className="flex flex-wrap gap-1">
-//               {selectedOptions.map((option) => (
-//                 <Badge
-//                   key={option.value}
-//                   variant="secondary"
-//                   className="rounded-sm px-1 py-0 text-xs"
-//                 >
-//                   <div className="flex items-center gap-1 py-1">
-//                     {option.avatar ? (
-//                       <div className="flex items-center gap-1">
-//                         <Avatar className="h-4 w-4">
-//                           <AvatarImage src={option.avatar} alt={option.label} />
-//                           <AvatarFallback>{option.label.slice(0, 2).toUpperCase()}</AvatarFallback>
-//                         </Avatar>
-//                         <span>{option.label}</span>
-//                       </div>
-//                     ) : (
-//                       <span>{option.label}</span>
-//                     )}
-//                     <button
-//                       className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-//                       onMouseDown={(e) => e.preventDefault()}
-//                       onClick={(e) => handleRemove(option.value, e)}
-//                     >
-//                       <X className="h-3 w-3" />
-//                     </button>
-//                   </div>
-//                 </Badge>
-//               ))}
-//               {selectedValues.length === 0 && (
-//                 <span className="text-muted-foreground">{placeholder}</span>
-//               )}
-//             </div>
-//             <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-//           </div>
-//         </PopoverTrigger>
-//         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-//           <Command className="max-h-[300px] overflow-auto">
-//             <CommandList>
-
-//             <CommandGroup>
-//               {options.map((option) => {
-//                 const isSelected = selectedValues.includes(option.value)
-//                 return (
-//                   <CommandItem
-//                     key={option.value}
-//                     onSelect={() => handleSelect(option.value)}
-//                     className="flex items-center gap-2 cursor-pointer"
-//                   >
-//                     <div className="flex h-4 w-4 items-center justify-center">
-//                       {isSelected ? <Check className="h-4 w-4" /> : null}
-//                     </div>
-//                     {option.avatar ? (
-//                       <div className="flex items-center gap-2">
-//                         <Avatar className="h-6 w-6">
-//                           <AvatarImage src={option.avatar} alt={option.label} />
-//                           <AvatarFallback>{option.label.slice(0, 2).toUpperCase()}</AvatarFallback>
-//                         </Avatar>
-//                         <div className="flex flex-col">
-//                           <span>{option.label}</span>
-//                           {option.description && (
-//                             <span className="text-muted-foreground text-xs">
-//                               {option.description}
-//                             </span>
-//                           )}
-//                         </div>
-//                       </div>
-//                     ) : (
-//                       <span>{option.label}</span>
-//                     )}
-//                   </CommandItem>
-//                 )
-//               })}
-//             </CommandGroup>
-//             </CommandList>
-//           </Command>
-//         </PopoverContent>
-//       </Popover>
-
-//       {error && (
-//         <p className="text-sm font-medium text-destructive">{error.message}</p>
-//       )}
-//     </div>
-//   )
-// })
-
-// MultiSelect.displayName = "MultiSelect"
-
-// export default MultiSelect
-
-
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { Command as CommandPrimitive, useCommandState } from 'cmdk';
 import { X } from 'lucide-react';
@@ -482,7 +312,7 @@ const MultipleSelector = React.forwardRef(({
     >
       <div
         className={cn(
-          'min-h-10 rounded-md border border-input text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+          'min-h-10 rounded-md border-gray-300 border  dark:border-secondary/40 focus:border-primary dark:focus:border-primary text-sm',
           {
             'px-3 py-2': selected.length !== 0,
             'cursor-text': !disabled && selected.length !== 0,
@@ -497,7 +327,9 @@ const MultipleSelector = React.forwardRef(({
           {selected.map(option => (
             <Badge
               key={option.value}
+              variant={'secondary'}
               className={cn(
+                'cursor-default py-[6px] dark:text-gray-100 tracking-wider',
                 'data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
                 'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground',
                 badgeClassName
@@ -508,7 +340,7 @@ const MultipleSelector = React.forwardRef(({
               {option.label}
               <button
                 className={cn(
-                  'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                  'ml-2 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
                   (disabled || option.fixed) && 'hidden'
                 )}
                 onKeyDown={e => {
@@ -578,7 +410,7 @@ const MultipleSelector = React.forwardRef(({
       <div className="relative">
         {open && (
           <CommandList
-            className="absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in"
+            className="absolute top-1 z-10 w-full rounded-md border border-gray-300 dark:border-secondary/40 focus:border-primary dark:focus:border-primary bg-popover text-popover-foreground shadow-md outline-none animate-in"
             onMouseLeave={() => setOnScrollbar(false)}
             onMouseEnter={() => setOnScrollbar(true)}
             onMouseUp={() => inputRef?.current?.focus()}
