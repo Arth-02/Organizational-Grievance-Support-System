@@ -114,6 +114,7 @@ export const {
   useGetProjectByIdQuery,
   useDeleteProjectMutation,
   useGetAllProjectsQuery,
+  useGetProjectBoardTasksQuery,
   useAddProjectBoardTagMutation,
   useUpdateProjectBoardTagMutation,
   useDeleteProjectBoardTagMutation,

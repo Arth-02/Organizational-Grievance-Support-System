@@ -588,6 +588,23 @@ const getBoardTasks = async (board_id, req_query, user = null) => {
   }
 };
 
+// Get All Tags of a Board
+const getBoardTags = async (board_id, user = null) => {
+  try {
+    if (user && !user?.board_ids?.includes(board_id)) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    const board = await Board.findOne({ _id: board_id });
+    if (!board) {
+      return { isSuccess: false, message: "Board not found", code: 404 };
+    }
+    return { tags: board.tags, isSuccess: true };
+  } catch (err) {
+    console.error("Get Board Tags Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 module.exports = {
   createBoard,
   updateBoard,
@@ -601,4 +618,5 @@ module.exports = {
   deleteBoardTask,
   deleteBoard,
   getBoardTasks,
+  getBoardTags
 };

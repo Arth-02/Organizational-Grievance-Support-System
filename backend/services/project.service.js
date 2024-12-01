@@ -573,6 +573,38 @@ const deleteProject = async (session, id, organization_id) => {
   }
 };
 
+// Get all project board tags
+const getAllProjectBoardTags = async (project_id, user) => {
+  try {
+    const { organization_id, role, special_permissions, _id } = user;
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required", code: 400 };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id", code: 400 };
+    }
+    const permissions = [...role.permissions, ...special_permissions];
+    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    });
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+    const isProjectMember = project.members.includes(_id) || project.created_by.toString() === _id.toString();
+    
+    if (!hasPermission && !isProjectMember) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+
+    return await boardService.getBoardTags(project.board_id);
+  } catch (err) {
+    console.error("Get All Project Board Tags Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 module.exports = {
   createProject,
   updateProjectBoardTag,
@@ -586,4 +618,5 @@ module.exports = {
   getProjectById,
   getAllProjectBoardTasks,
   deleteProject,
+  getAllProjectBoardTags,
 };

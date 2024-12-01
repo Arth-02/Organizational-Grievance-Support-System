@@ -14,6 +14,7 @@ const {
   updateProjectBoardTaskSubmission,
   updateProjectBoardTaskFinish,
   getAllProjectBoardTasks,
+  getAllProjectBoardTags,
 } = require("../controllers/project.controller");
 const {
   checkPermission,
@@ -38,9 +39,11 @@ router.delete(
   deleteProject
 );
 
+// Project tag releated routes
 router.post("/add-board-tag/:id", isLoggedIn, addProjectBoardTag);
 router.patch("/update-board-tag/:id", isLoggedIn, updateProjectBoardTag);
 router.delete("/delete-board-tag/:id", isLoggedIn, deleteProjectBoardTag);
+router.get("/all-board-tags/:id", isLoggedIn, getAllProjectBoardTags);
 
 router.post(
   "/add-board-task/:id",
