@@ -148,7 +148,7 @@ const updateProjectBoardTag = async (session, id, body, user, request) => {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
     if (
-      !project.manager.includes(userId) ||
+      !project.manager.includes(userId) &&
       project.created_by.toString() === userId.toString()
     ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
@@ -200,7 +200,7 @@ const addProjectBoardTask = async (session, id, body, user, files) => {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
     if (
-      !project.manager.includes(userId) ||
+      !project.manager.includes(userId) &&
       project.created_by.toString() === userId.toString()
     ) {
       return { isSuccess: false, message: "Permission denied", code: 403 };

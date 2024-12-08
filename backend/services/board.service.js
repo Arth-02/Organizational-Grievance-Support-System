@@ -511,6 +511,63 @@ const getBoardTasks = async (board_id, req_query, user = null) => {
           localField: "tasks",
           foreignField: "_id",
           as: "tasks",
+          pipeline: [
+            {
+              $lookup: {
+                from: "users",
+                localField: "assignee_to",
+                foreignField: "_id",
+                as: "assignee_to",
+              },
+            },
+            {
+              $lookup: {
+                from: "users",
+                localField: "created_by",
+                foreignField: "_id",
+                as: "created_by",
+              },
+            },
+            {
+              $unwind: {
+                path: "$assignee_to",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $unwind: {
+                path: '$created_by',
+                preserveNullAndEmptyArrays: true
+              }
+            },
+            {
+              $project: {
+                _id: 1,
+                tag: 1,
+                title: 1,
+                description: 1,
+                due_date: 1,
+                assignee_to: {
+                  _id: 1,
+                  username: 1,
+                  email: 1,
+                  avatar: 1,
+                },
+                attachments: 1,
+                created_by: {
+                  _id: 1,
+                  username: 1,
+                  email: 1,
+                  avatar: 1,
+                },
+                priority: 1,
+                created_at: 1,
+                updated_at: 1,
+                is_submitted: 1,
+                is_finished: 1,
+              },
+            },
+          ],
         },
       },
       {
@@ -618,5 +675,5 @@ module.exports = {
   deleteBoardTask,
   deleteBoard,
   getBoardTasks,
-  getBoardTags
+  getBoardTags,
 };

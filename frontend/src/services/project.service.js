@@ -105,6 +105,12 @@ export const projectApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    getProjectBoardTags: builder.query({
+      query: (id) => ({
+        url: `projects/all-board-tags/${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -124,4 +130,5 @@ export const {
   useUpdateProjectBoardTaskSubmissionMutation,
   useUpdateProjectBoardTaskFinishMutation,
   useDeleteProjectBoardTaskMutation,
+  useGetProjectBoardTagsQuery,
 } = projectApi;
