@@ -144,25 +144,40 @@ const updateBoardTag = async (
           code: 400,
         };
       }
-      board.tags[tagIndex] = newtag;
-      for (let i = 0; i < board.tasks.length; i++) {
-        if (board.tasks[i].tag === oldtag) {
-          board.tasks[i].tag = newtag;
-        }
+      const response = await taskservice.updateTaskTag(
+        session,
+        board.tasks,
+        oldtag,
+        newtag
+      );
+      if (!response.isSuccess) {
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
+      board.tags[tagIndex] = newtag;
     } else if (request === "delete") {
       const { tag } = value;
       const tagIndex = board.tags.indexOf(tag);
       if (tagIndex === -1) {
         return { isSuccess: false, message: "Tag not found", code: 404 };
       }
-      board.tags.splice(tagIndex, 1);
-      for (let i = 0; i < board.tasks.length; i++) {
-        if (board.tasks[i].tag === tag) {
-          board.tasks.splice(i, 1);
-          i--;
+      if (board.tasks.length !== 0) {
+        const response = await taskservice.deleteMultipleTask(
+          session,
+          board.tasks
+        );
+        if (!response.isSuccess) {
+          return {
+            isSuccess: false,
+            message: response.message,
+            code: response.code,
+          };
         }
       }
+      board.tags.splice(tagIndex, 1);
     }
     const updatedBoard = await board.save({ session });
     return { updatedBoard, isSuccess: true };
@@ -530,9 +545,9 @@ const getBoardTasks = async (board_id, req_query, user = null) => {
             },
             {
               $unwind: {
-                path: '$created_by',
-                preserveNullAndEmptyArrays: true
-              }
+                path: "$created_by",
+                preserveNullAndEmptyArrays: true,
+              },
             },
             {
               $project: {

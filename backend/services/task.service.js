@@ -83,6 +83,27 @@ const updateTask = async (session, id, body) => {
   }
 };
 
+// Update a Task Tag Service
+const updateTaskTag = async (session, ids, oldtag, newtag) => {
+  try {
+    const updatemultiple = await Task.updateMany(
+      { _id: { $in: ids }, tag: oldtag },
+      { $set: { tag: newtag } }
+    ).session(session);
+    if (updatemultiple.nModified === 0) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    return {
+      isSuccess: true,
+      message: "Task tag updated successfully",
+      code: 200,
+    };
+  } catch (error) {
+    console.log("Update Task Tag Error: ", error);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 // Update a Task Attachment service
 const updateTaskAttachment = async (session, id, body, user, files) => {
   try {
@@ -270,11 +291,32 @@ const deleteTask = async (session, id) => {
   }
 };
 
+const deleteMultipleTask = async (session, ids) => {
+  try {
+    const deleteMultiple = await Task.deleteMany({ _id: { $in: ids } }).session(
+      session
+    );
+    if (deleteMultiple.deletedCount === 0) {
+      return { isSuccess: false, message: "Tasks not found", code: 404 };
+    }
+    return {
+      isSuccess: true,
+      message: "Tasks deleted successfully",
+      code: 200,
+    };
+  } catch (error) {
+    console.log("Delete Multiple Tasks Error: ", error);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   createTask,
   updateTask,
+  updateTaskTag,
   updateTaskAttachment,
   updateTaskSubmission,
   updateTaskFinish,
   deleteTask,
+  deleteMultipleTask,
 };
