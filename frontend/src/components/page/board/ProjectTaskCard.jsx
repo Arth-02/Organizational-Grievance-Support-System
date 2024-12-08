@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, AlertTriangle, Paperclip, User } from "lucide-react";
+import { Clock, Paperclip, User } from "lucide-react";
 import cn from "classnames";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
+import AvatarGroup from "@/components/ui/AvatarGroup";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -65,7 +64,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1">
                   <User className="h-[14px] w-[14px]" />
-                  <span>{task.created_by}</span>
+                  <span>{task.created_by.username}</span>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -84,25 +83,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
               </div>
 
               <div className="flex items-center gap-3">
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Avatar>
-                      <AvatarImage
-                        src={task.created_by.avatar}
-                        alt={task.created_by.username}
-                      />
-                      <AvatarFallback>
-                        {task.created_by.username}
-                      </AvatarFallback>
-                    </Avatar>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {task.created_by.username}
-                  </TooltipContent>
-                </Tooltip>
-                {task.priority === "high" && (
-                  <AlertTriangle className="h-3 w-3 text-red-500" />
-                )}
+                <AvatarGroup users={task?.assignee_to || []} limit={3} size="small" />
               </div>
             </div>
           </CardContent>

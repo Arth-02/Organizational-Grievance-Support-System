@@ -530,12 +530,6 @@ const getBoardTasks = async (board_id, req_query, user = null) => {
             },
             {
               $unwind: {
-                path: "$assignee_to",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
-            {
-              $unwind: {
                 path: '$created_by',
                 preserveNullAndEmptyArrays: true
               }
