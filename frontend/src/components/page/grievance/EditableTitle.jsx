@@ -1,13 +1,13 @@
 import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 
-const EditableTitle = ({ grievance, handleUpdateGrievance, canEditTitle }) => {
+const EditableTitle = ({ title, canEditTitle, updateTitle }) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef(null);
 
   const handleTitleChange = async (newTitle) => {
     try {
-      await handleUpdateGrievance({ title: newTitle });
+      await updateTitle({ title: newTitle });
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update title:", error);
@@ -19,7 +19,7 @@ const EditableTitle = ({ grievance, handleUpdateGrievance, canEditTitle }) => {
       {isEditing && canEditTitle ? (
         <Input
           ref={inputRef}
-          defaultValue={grievance?.data?.title}
+          defaultValue={title}
           onBlur={(e) => handleTitleChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleTitleChange(e.target.value);
@@ -33,7 +33,7 @@ const EditableTitle = ({ grievance, handleUpdateGrievance, canEditTitle }) => {
           onClick={() => setIsEditing(true)}
           className={`text-xl font-medium hover:underline text-black dark:text-white ${canEditTitle ? "cursor-pointer" : ""}`}
         >
-          {grievance?.data?.title || "Grievance Title"}
+          {title || "Title"}
         </h2>
       )}
     </div>
