@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Paperclip, User } from "lucide-react";
@@ -13,6 +13,9 @@ const PRIORITY_BADGES = {
 };
 
 const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
+
+  const { projectId, boardId } = useParams();
+
   return (
     <div
       ref={provided?.innerRef}
@@ -21,7 +24,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
       className="group"
     >
       <Link
-        to={`/tasks/${task.id}`}
+        to={`/projects/${projectId}/board/${boardId}/task/${task.id}`}
         state={{ background: location }}
         className="block"
       >
