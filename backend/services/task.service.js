@@ -46,6 +46,31 @@ const createTask = async (session, body, user, files) => {
   }
 };
 
+// Get a Task service
+const getTaskById = async(task_id) => {
+  try {
+    if (!task_id) {
+      return { isSuccess: false, message: "Task ID is required", code: 400 };
+    }
+    if (!isValidObjectId(task_id)) {
+      return { isSuccess: false, message: "Invalid Task ID", code: 400 };
+    }
+    const task = await Task.findById(task_id);
+    if (!task) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    return {
+      isSuccess: true,
+      message: "Task found",
+      data: task,
+      code: 200,
+    };
+  } catch (error) {
+    console.log("Get Task Error: ", error);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 // Update a Task service
 const updateTask = async (session, id, body) => {
   try {
@@ -312,6 +337,7 @@ const deleteMultipleTask = async (session, ids) => {
 
 module.exports = {
   createTask,
+  getTaskById,
   updateTask,
   updateTaskTag,
   updateTaskAttachment,

@@ -570,9 +570,9 @@ const deleteBoardTask = async (req, res) => {
 };
 
 // get User Borad Tasks
-const getBoardTasks = async (req, res) => {
+const getAllBoardTasks = async (req, res) => {
   try {
-    const response = await boardService.getBoardTasks(
+    const response = await boardService.getAllBoardTasks(
       req.params.id,
       req.query,
       req.user
@@ -617,5 +617,5 @@ module.exports = {
   updateBoardTask,
   updateBoardTaskAttachment,
   deleteBoardTask,
-  getBoardTasks,
+  getAllBoardTasks,
 };

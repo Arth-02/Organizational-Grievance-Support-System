@@ -489,6 +489,28 @@ const getAllProjectBoardTasks = async (req, res) => {
   }
 };
 
+// get Project Board Task by id
+const getProjectBoardTaskById = async (req, res) => {
+  try {
+    const response = await projectService.getProjectBoardTaskById(
+      req.params.project_id,
+      req.params.task_id,
+      req.user
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(
+      res,
+      response.data,
+      "Project board task fetched successfully"
+    );
+  } catch (err) {
+    console.error("Get Project Board Task Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 // Get all project's board's tags
 const getAllProjectBoardTags = async (req, res) => {
   try {
@@ -523,5 +545,6 @@ module.exports = {
   deleteProject,
   getAllProjects,
   getAllProjectBoardTasks,
+  getProjectBoardTaskById,
   getAllProjectBoardTags,
 };

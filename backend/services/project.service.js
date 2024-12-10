@@ -147,10 +147,10 @@ const updateProjectBoardTag = async (session, id, body, user, request) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (
-      !project.manager.includes(userId) &&
-      project.created_by.toString() === userId.toString()
-    ) {
+    const canUpdate =
+      project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString();
+    if (!canUpdate) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTag(
@@ -199,10 +199,12 @@ const addProjectBoardTask = async (session, id, body, user, files) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (
-      !project.manager.includes(userId) &&
-      project.created_by.toString() === userId.toString()
-    ) {
+
+    const canAdd =
+      project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString();
+
+    if (!canAdd) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.addBoardTask(
@@ -251,10 +253,12 @@ const updateProjectBoardTask = async (
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (
-      !project.manager.includes(userId) ||
-      project.created_by.toString() === userId.toString()
-    ) {
+
+    const canUpdate =
+      project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString();
+
+    if (!canUpdate) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTask(
@@ -302,10 +306,12 @@ const updateProjectBoardTaskAttachment = async (
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (
-      !project.manager.includes(userId) ||
-      project.created_by.toString() === userId.toString()
-    ) {
+
+    const canUpdate =
+      project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString();
+
+    if (!canUpdate) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.updateBoardTaskAttachment(
@@ -443,10 +449,12 @@ const deleteProjectBoardTask = async (session, project_id, task_id, user) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    if (
-      !project.manager.includes(userId) ||
-      project.created_by.toString() === userId.toString()
-    ) {
+
+    const canDelete =
+      project.manager.includes(userId) ||
+      project.created_by.toString() === userId.toString();
+
+    if (!canDelete) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
     const response = await boardService.deleteBoardTask(
@@ -535,9 +543,54 @@ const getAllProjectBoardTasks = async (project_id, user, req_query) => {
     if (!hasPermission && !isProjectMember) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
-    return await boardService.getBoardTasks(project.board_id, req_query);
+    return await boardService.getAllBoardTasks(project.board_id, req_query);
   } catch (err) {
     console.error("Get All Project Board Tasks Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+// Get Project Board Task By ID
+const getProjectBoardTaskById = async (project_id, task_id, user) => {
+  try {
+    const { organization_id, role, special_permissions, _id } = user;
+    if (!project_id) {
+      return { isSuccess: false, message: "Project ID is required", code: 400 };
+    }
+    if (!isValidObjectId(project_id)) {
+      return { isSuccess: false, message: "Invalid Project id", code: 400 };
+    }
+    if (!task_id) {
+      return { isSuccess: false, message: "Task ID is required", code: 400 };
+    }
+    if (!isValidObjectId(task_id)) {
+      return { isSuccess: false, message: "Invalid Task id", code: 400 };
+    }
+    const permissions = [...role.permissions, ...special_permissions];
+    const hasPermission = permissions.includes(VIEW_PROJECT.slug);
+    const project = await Project.findOne({
+      _id: project_id,
+      organization_id,
+    });
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+    const isProjectMember =
+      project.members.includes(_id) ||
+      project.created_by.toString() === _id.toString();
+    if (!hasPermission && !isProjectMember) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    const response = await boardService.getBoardTaskById(
+      project.board_id,
+      task_id
+    );
+    if (!response.isSuccess) {
+      return { isSuccess: false, message: response.message, code: 400 };
+    }
+    return { data: response.data, isSuccess: true };
+  } catch (err) {
+    console.error("Get Project Board Task By ID Error:", err.message);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
@@ -592,8 +645,10 @@ const getAllProjectBoardTags = async (project_id, user) => {
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
-    const isProjectMember = project.members.includes(_id) || project.created_by.toString() === _id.toString();
-    
+    const isProjectMember =
+      project.members.includes(_id) ||
+      project.created_by.toString() === _id.toString();
+
     if (!hasPermission && !isProjectMember) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
     }
@@ -617,6 +672,7 @@ module.exports = {
   deleteProjectBoardTask,
   getProjectById,
   getAllProjectBoardTasks,
+  getProjectBoardTaskById,
   deleteProject,
   getAllProjectBoardTags,
 };

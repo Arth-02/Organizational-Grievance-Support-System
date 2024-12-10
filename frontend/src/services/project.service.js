@@ -105,6 +105,12 @@ export const projectApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    getProjectBoardTaskById: builder.query({
+      query: ({ project_id, task_id }) => ({
+        url: `projects/${project_id}/task/${task_id}`,
+        method: "GET",
+      }),
+    }),
     getProjectBoardTags: builder.query({
       query: (id) => ({
         url: `projects/all-board-tags/${id}`,
@@ -130,5 +136,6 @@ export const {
   useUpdateProjectBoardTaskSubmissionMutation,
   useUpdateProjectBoardTaskFinishMutation,
   useDeleteProjectBoardTaskMutation,
+  useGetProjectBoardTaskByIdQuery,
   useGetProjectBoardTagsQuery,
 } = projectApi;

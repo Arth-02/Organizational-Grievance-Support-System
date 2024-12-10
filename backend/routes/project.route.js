@@ -15,6 +15,7 @@ const {
   updateProjectBoardTaskFinish,
   getAllProjectBoardTasks,
   getAllProjectBoardTags,
+  getProjectBoardTaskById,
 } = require("../controllers/project.controller");
 const {
   checkPermission,
@@ -79,5 +80,6 @@ router.delete(
 );
 
 router.get("/all-board-tasks/:id", isLoggedIn, getAllProjectBoardTasks);
+router.get("/:project_id/task/:task_id", isLoggedIn, getProjectBoardTaskById);
 
 module.exports = router;

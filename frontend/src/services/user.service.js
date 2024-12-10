@@ -166,7 +166,7 @@ export const userApi = baseApi.injectEndpoints({
         method: "DELETE",
       }),
     }),
-    getBoardTasks: builder.query({
+    getAllBoardTasks: builder.query({
       query: (id) => ({
         url: `users/all-board-tasks/${id}`,
         method: "GET",

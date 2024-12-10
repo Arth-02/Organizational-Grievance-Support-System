@@ -495,7 +495,7 @@ const deleteBoard = async (session, id, organization_id, user = null) => {
 };
 
 // Get All Tasks of a Board
-const getBoardTasks = async (board_id, req_query, user = null) => {
+const getAllBoardTasks = async (board_id, req_query, user = null) => {
   try {
     if (user && !user?.board_ids?.includes(board_id)) {
       return { isSuccess: false, message: "Permission denied", code: 403 };
@@ -654,6 +654,30 @@ const getBoardTasks = async (board_id, req_query, user = null) => {
   }
 };
 
+// Get Board Task by ID
+const getBoardTaskById = async (board_id, task_id, user = null) => {
+  try {
+    if (user && !user?.board_ids?.includes(board_id)) {
+      return { isSuccess: false, message: "Permission denied", code: 403 };
+    }
+    const board = await Board.findOne({ _id: board_id });
+    if (!board) {
+      return { isSuccess: false, message: "Board not found", code: 404 };
+    }
+    if (!board.tasks.includes(task_id)) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    const task = await taskservice.getTaskById(task_id);
+    if (!task) {
+      return { isSuccess: false, message: "Task not found", code: 404 };
+    }
+    return { data: task.data, isSuccess: true };
+  } catch (err) {
+    console.error("Get Board Task By ID Error:", err.message);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 // Get All Tags of a Board
 const getBoardTags = async (board_id, user = null) => {
   try {
@@ -683,6 +707,7 @@ module.exports = {
   updateBoardTaskFinish,
   deleteBoardTask,
   deleteBoard,
-  getBoardTasks,
+  getBoardTaskById,
+  getAllBoardTasks,
   getBoardTags,
 };
