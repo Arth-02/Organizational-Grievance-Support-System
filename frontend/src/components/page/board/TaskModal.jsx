@@ -1,32 +1,61 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  // DialogFooter,
-  // DialogContent,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Paperclip, Users, AlertTriangle, X, Loader2 } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Clock,
+  Paperclip,
+  Users,
+  AlertTriangle,
+  X,
+  Loader2,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ActionComboBoxButton from "../grievance/ActionComboBoxButton";
 import EditableDescription from "../grievance/EditableDescription";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import EditableTitle from "../grievance/EditableTitle";
 import { useGetAllUserNamesQuery } from "@/services/user.service";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RoutableModal } from "@/components/ui/RoutedModal";
 import AttachmentManager from "../grievance/MediaManager";
 import useSocket from "@/utils/useSocket";
-import { useUpdateProjectBoardTaskMutation, useDeleteProjectBoardTaskMutation, useGetProjectBoardTaskByIdQuery } from "@/services/project.service";
+import {
+  useUpdateProjectBoardTaskMutation,
+  useDeleteProjectBoardTaskMutation,
+  useGetProjectBoardTaskByIdQuery,
+} from "@/services/project.service";
 import GrievanceModalSkeleton from "../grievance/GreievanceCardModalSkeleton";
+import AvatarGroup from "@/components/ui/AvatarGroup";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -34,14 +63,13 @@ const PRIORITY_BADGES = {
   high: { color: "bg-red-500/10 text-red-500", label: "High" },
 };
 
-const STATUS_BADGES = {
-  submitted: { color: "bg-blue-500/10 text-blue-500", label: "Submitted" },
-  "in-progress": {
+const TAG_BADGES = {
+  todo: { color: "bg-blue-500/10 text-blue-500", label: "Todo" },
+  in_progress: {
     color: "bg-yellow-500/10 text-yellow-500",
     label: "In Progress",
   },
-  resolved: { color: "bg-green-500/10 text-green-500", label: "Resolved" },
-  dismissed: { color: "bg-slate-500/10 text-slate-500", label: "Dismissed" },
+  done: { color: "bg-green-500/10 text-green-500", label: "Done" },
 };
 
 const TaskModal = () => {
@@ -50,14 +78,20 @@ const TaskModal = () => {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
+  const [isTagSelectOpen, setIsTagSelectOpen] = useState(false);
   const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
 
-  // const [addTask] = useAddProjectBoardTaskMutation();
   const [updateTask] = useUpdateProjectBoardTaskMutation();
   const [deleteTask] = useDeleteProjectBoardTaskMutation();
   const { data: users } = useGetAllUserNamesQuery();
-  const { data: taskData, isLoading, refetch, } = useGetProjectBoardTaskByIdQuery({ project_id: projectId, task_id: taskId });
+  const {
+    data: taskData,
+    isLoading,
+    refetch,
+  } = useGetProjectBoardTaskByIdQuery({
+    project_id: projectId,
+    task_id: taskId,
+  });
 
   const task = taskData?.data;
 
@@ -65,16 +99,16 @@ const TaskModal = () => {
 
   const socket = useSocket();
 
-  const userPermissions = useSelector((state) => state.user.permissions);
-  const user = useSelector((state) => state.user.user);
+  // const userPermissions = useSelector((state) => state.user.permissions);
+  // const user = useSelector((state) => state.user.user);
 
-  const canEditStatus = userPermissions.includes("UPDATE_TASK");
-  const canEditPriority = userPermissions.includes("UPDATE_TASK") || user._id === task?.created_by?._id;
-  const canEditAssignee = userPermissions.includes("UPDATE_TASK_ASSIGNEE");
-  const canEditAttachments = user._id.toString() === task?.created_by?.toString();
-  const canEditTask = userPermissions.includes("UPDATE_TASK");
-  const canEditTitleAndDescription = user._id === task?.created_by?.toString();
-  const canDeleteTask = userPermissions.includes("DELETE_TASK");
+  const canEditTag = true;
+  const canEditPriority = true;
+  const canEditAssignee = true;
+  const canEditAttachments = true;
+  const canEditTask = true;
+  const canEditTitleAndDescription = true;
+  const canDeleteTask = true;
 
   const handleUpdateTask = async (data) => {
     try {
@@ -96,27 +130,14 @@ const TaskModal = () => {
       const response = await updateTask({
         project_id: projectId,
         task_id: taskId,
-        data: { assigned_to: assigneeId },
+        data: {
+          assignee_to: assigneeId,
+        },
       }).unwrap();
       refetch();
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update assignee:", error);
-      toast.error(error.data.message);
-    }
-  };
-
-  const handleUpdateTaskStatus = async (status) => {
-    try {
-      const response = await updateTask({
-        project_id: projectId,
-        task_id: taskId,
-        data: { status },
-      }).unwrap();
-      refetch();
-      toast.success(response.message);
-    } catch (error) {
-      console.error("Failed to update status:", error);
       toast.error(error.data.message);
     }
   };
@@ -136,35 +157,35 @@ const TaskModal = () => {
   };
 
   const handleClose = () => {
-    if (!isStatusSelectOpen && !isPrioritySelectOpen) {
+    if (!isTagSelectOpen && !isPrioritySelectOpen) {
       navigate(-1);
     }
   };
 
   const usersList = users?.data
-    ?.map((user) => {
-      return {
-        label: user.username,
-        value: user._id,
-        image: user.avatar,
-      };
-    })
-    .filter((user) => {
-      return user.value !== task?.assigned_to?._id && user.value !== task?.created_by?._id;
-    });
+    ?.map((user) => ({
+      label: user.username,
+      value: user._id,
+      image: user.avatar,
+    }))
+    .filter(
+      (u) =>
+        !task?.assignee_to?.some((assigned) => assigned._id === u.value) &&
+        u.value !== task?.created_by?._id
+    );
 
   useEffect(() => {
     socket.on("update_task", handleUpdateTask);
     socket.on("update_task_assignee", handleUpdateTask);
-    socket.on("update_task_status", handleUpdateTask);
+    socket.on("update_task_tag", handleUpdateTask);
     socket.on("delete_task", handleCloseTask);
     return () => {
       socket.off("update_task", handleUpdateTask);
       socket.off("update_task_assignee", handleUpdateTask);
-      socket.off("update_task_status", handleUpdateTask);
+      socket.off("update_task_tag", handleUpdateTask);
       socket.off("delete_task", handleCloseTask);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
   return (
@@ -173,7 +194,7 @@ const TaskModal = () => {
       width="max-w-4xl"
       shouldRemoveCloseIcon={true}
       onPointerDownOutside={(e) => {
-        if (isStatusSelectOpen || isPrioritySelectOpen) {
+        if (isTagSelectOpen || isPrioritySelectOpen) {
           e.preventDefault();
         }
       }}
@@ -190,6 +211,13 @@ const TaskModal = () => {
                   updateTitle={handleUpdateTask}
                 />
                 <div className="flex items-center gap-2 mt-3">
+                  {task?.tag && (
+                    <Badge
+                      className={cn("font-medium", TAG_BADGES[task.tag].color)}
+                    >
+                      {TAG_BADGES[task.tag].label}
+                    </Badge>
+                  )}
                   {task?.priority && (
                     <Badge
                       className={cn(
@@ -198,16 +226,6 @@ const TaskModal = () => {
                       )}
                     >
                       {PRIORITY_BADGES[task.priority].label}
-                    </Badge>
-                  )}
-                  {task?.status && (
-                    <Badge
-                      className={cn(
-                        "font-medium",
-                        STATUS_BADGES[task.status].color
-                      )}
-                    >
-                      {STATUS_BADGES[task.status].label}
                     </Badge>
                   )}
                 </div>
@@ -244,7 +262,7 @@ const TaskModal = () => {
                               alt={task?.created_by?.username}
                             />
                             <AvatarFallback>
-                              {task?.created_by?.username}
+                              {task?.created_by?.username[0]}
                             </AvatarFallback>
                           </Avatar>
                         </TooltipTrigger>
@@ -257,31 +275,13 @@ const TaskModal = () => {
                       </span>
                     </div>
                   </div>
-                  {task?.assigned_to && (
+                  {task?.assignee_to?.length > 0 && (
                     <div>
                       <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
                         Assigned To
                       </h3>
                       <div className="flex items-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Avatar>
-                              <AvatarImage
-                                src={task?.assigned_to?.avatar}
-                                alt={task?.assigned_to?.username}
-                              />
-                              <AvatarFallback>
-                                {task?.assigned_to?.username[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {task?.assigned_to?.username}
-                          </TooltipContent>
-                        </Tooltip>
-                        <span className="text-gray-700 dark:text-slate-300">
-                          {task.assigned_to.username}
-                        </span>
+                        <AvatarGroup users={task.assignee_to} />
                       </div>
                     </div>
                   )}
@@ -296,16 +296,12 @@ const TaskModal = () => {
                   }}
                 />
 
-                {/* Attachments section remains the same */}
                 <AttachmentManager
                   taskId={taskId}
                   existingAttachments={task?.attachments || []}
                   uploadModal={attachmentModalOpen}
                   setUploadModal={setAttachmentModalOpen}
                   canEdit={canEditAttachments}
-                  // onUpdate={(updatedTask) => {
-                  //   // Handle the updated task data
-                  // }}
                 />
               </div>
 
@@ -313,22 +309,22 @@ const TaskModal = () => {
               <div className="w-48 space-y-4">
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400">
-                    Status
+                    Tag
                   </h4>
-                  {canEditStatus ? (
+                  {canEditTag ? (
                     <Select
-                      value={task?.status}
+                      value={task?.tag}
                       modal={false}
                       onValueChange={(value) => {
-                        handleUpdateTaskStatus(value);
+                        handleUpdateTask({ tag: value });
                       }}
-                      onOpenChange={setIsStatusSelectOpen}
+                      onOpenChange={setIsTagSelectOpen}
                     >
                       <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder="Select tag" />
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-slate-900">
-                        {Object.entries(STATUS_BADGES).map(
+                        {Object.entries(TAG_BADGES).map(
                           ([value, { label, color }]) => (
                             <SelectItem
                               key={value}
@@ -348,10 +344,10 @@ const TaskModal = () => {
                   ) : (
                     <div
                       className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
-                        STATUS_BADGES[task?.status]?.color
+                        TAG_BADGES[task?.tag]?.color
                       }`}
                     >
-                      {STATUS_BADGES[task?.status]?.label}
+                      {TAG_BADGES[task?.tag]?.label}
                     </div>
                   )}
 
@@ -424,13 +420,25 @@ const TaskModal = () => {
                         buttonLabel="Change Assignee"
                         buttonIcon={Users}
                         shouldShowUserAvatar={true}
+                        multiSelect={true}
+                        // Pass existing assignees as initial selected options
+                        selectedOptions={
+                          task?.assignee_to?.map((assignee) => ({
+                            label: assignee.username,
+                            value: assignee._id,
+                            image: assignee.avatar,
+                          })) || []
+                        }
                         options={usersList}
-                        onSelect={(option) => {
-                          handleUpdateTaskAssignee(option.value);
+                        onSelect={(selectedOptions) => {
+                          const selectedUserIds = selectedOptions.map(
+                            (option) => option.value
+                          );
+                          handleUpdateTaskAssignee(selectedUserIds);
                         }}
                       />
                     )}
-                    {canDeleteTask && task?.is_active && (
+                    {canDeleteTask && (
                       <Button
                         variant="ghost"
                         className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-200/30 dark:text-red-400 dark:hover:bg-red-500/10"
@@ -447,8 +455,7 @@ const TaskModal = () => {
                 <div className="pt-4 border-t border-gray-200 dark:border-slate-700 !mb-2">
                   <div className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Created{" "}
-                    {new Date(task?.created_at).toLocaleDateString()}
+                    Created {new Date(task?.created_at).toLocaleDateString()}
                   </div>
                 </div>
               </div>
@@ -462,10 +469,10 @@ const TaskModal = () => {
       >
         <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Close Task</AlertDialogTitle>
+            <AlertDialogTitle>Finish Task</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to close &quot;
-              {task?.title}&quot;? This action cannot be undone.
+              Are you sure you want to mark &quot;
+              {task?.title}&quot; as finished? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -478,7 +485,7 @@ const TaskModal = () => {
               disabled={deleting}
             >
               {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Delete
+              Finish
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

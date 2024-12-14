@@ -543,9 +543,9 @@ function GrievanceModal() {
                         buttonLabel="Change Department"
                         buttonIcon={Building2}
                         options={departmentsList}
-                        onSelect={(option) => {
+                        onSelect={(selectedOption) => {
                           handleUpdateGrievance({
-                            department_id: option.value,
+                            department_id: selectedOption.value,
                           });
                         }}
                       />
