@@ -25,7 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RoutableModal } from "@/components/ui/RoutedModal";
 import AttachmentManager from "../grievance/MediaManager";
 import useSocket from "@/utils/useSocket";
-import { useUpdateProjectBoardTaskMutation, useDeleteProjectBoardTaskMutation, useGetProjectBoardTasksQuery } from "@/services/project.service";
+import { useUpdateProjectBoardTaskMutation, useDeleteProjectBoardTaskMutation, useGetProjectBoardTaskByIdQuery } from "@/services/project.service";
+import GrievanceModalSkeleton from "../grievance/GreievanceCardModalSkeleton";
 
 const PRIORITY_BADGES = {
   low: { color: "bg-green-500/10 text-green-500", label: "Low" },
@@ -46,7 +47,6 @@ const STATUS_BADGES = {
 const TaskModal = () => {
   const { projectId, boardId, taskId } = useParams();
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
-  const [task, setTask] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -57,35 +57,24 @@ const TaskModal = () => {
   const [updateTask] = useUpdateProjectBoardTaskMutation();
   const [deleteTask] = useDeleteProjectBoardTaskMutation();
   const { data: users } = useGetAllUserNamesQuery();
+  const { data: taskData, isLoading, refetch, } = useGetProjectBoardTaskByIdQuery({ project_id: projectId, task_id: taskId });
+
+  const task = taskData?.data;
+
   const navigate = useNavigate();
 
   const socket = useSocket();
 
-  const {
-    data: taskData,
-    isLoading,
-    refetch,
-  } = useGetProjectBoardTasksQuery(projectId, {
-    skip: !taskId,
-  });
-
-  useEffect(() => {
-    if (taskData) {
-      const task = taskData.data.tasks.find((t) => t.id === taskId);
-      setTask(task);
-    }
-  }, [taskData, taskId]);
-
   const userPermissions = useSelector((state) => state.user.permissions);
   const user = useSelector((state) => state.user.user);
 
-  const canEditStatus = userPermissions.includes("UPDATE_TASK") || user._id === task?.assigned_to?._id.toString();
+  const canEditStatus = userPermissions.includes("UPDATE_TASK");
   const canEditPriority = userPermissions.includes("UPDATE_TASK") || user._id === task?.created_by?._id;
   const canEditAssignee = userPermissions.includes("UPDATE_TASK_ASSIGNEE");
-  const canEditAttachments = user._id.toString() === task?.created_by?._id.toString();
+  const canEditAttachments = user._id.toString() === task?.created_by?.toString();
   const canEditTask = userPermissions.includes("UPDATE_TASK");
-  const canEditTitleAndDescription = user._id === task?.created_by?._id;
-  const canDeleteTask = userPermissions.includes("DELETE_TASK") || user._id === task?.assigned_to?._id.toString();
+  const canEditTitleAndDescription = user._id === task?.created_by?.toString();
+  const canDeleteTask = userPermissions.includes("DELETE_TASK");
 
   const handleUpdateTask = async (data) => {
     try {
@@ -95,7 +84,6 @@ const TaskModal = () => {
         data,
       }).unwrap();
       refetch();
-      setTask(taskData);
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update task:", error);
@@ -111,7 +99,6 @@ const TaskModal = () => {
         data: { assigned_to: assigneeId },
       }).unwrap();
       refetch();
-      setTask(taskData);
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update assignee:", error);
@@ -127,7 +114,6 @@ const TaskModal = () => {
         data: { status },
       }).unwrap();
       refetch();
-      setTask(taskData);
       toast.success(response.message);
     } catch (error) {
       console.error("Failed to update status:", error);
@@ -192,13 +178,14 @@ const TaskModal = () => {
         }
       }}
     >
+      {isLoading && <GrievanceModalSkeleton />}
       {!isLoading && (
         <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] focus:border-red-700 focus-within:border-red-700 focus-visible:border-red-700 overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="p-4 flex items-start justify-between border-gray-200 dark:border-slate-700">
               <div className="flex-1">
                 <EditableTitle
-                  title={task?.data?.title}
+                  title={task?.title}
                   canEditTitle={canEditTitleAndDescription}
                   updateTitle={handleUpdateTask}
                 />
@@ -257,7 +244,7 @@ const TaskModal = () => {
                               alt={task?.created_by?.username}
                             />
                             <AvatarFallback>
-                              {task?.created_by?.username[0]}
+                              {task?.created_by?.username}
                             </AvatarFallback>
                           </Avatar>
                         </TooltipTrigger>

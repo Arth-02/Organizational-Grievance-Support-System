@@ -55,7 +55,11 @@ const getTaskById = async(task_id) => {
     if (!isValidObjectId(task_id)) {
       return { isSuccess: false, message: "Invalid Task ID", code: 400 };
     }
-    const task = await Task.findById(task_id);
+    const task = await Task.findById(task_id)
+      .populate({ path: "created_by", select: "username avatar _id" })
+      .populate({ path: "assignee_to", select: "username avatar _id" })
+      .populate({ path: "attachments", select: "filename url _id" })
+      .exec();
     if (!task) {
       return { isSuccess: false, message: "Task not found", code: 404 };
     }
