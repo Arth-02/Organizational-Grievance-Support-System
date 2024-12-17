@@ -92,6 +92,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
                   users={task?.assignee_to || []}
                   limit={3}
                   size="medium"
+                  shoudlShowFilters={false}
                 />
               </div>
             </div>
