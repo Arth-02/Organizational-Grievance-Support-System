@@ -23,6 +23,7 @@ const AvatarGroup = ({
   avatarType = "Users",
   onUserClick,
   size = "default",
+  shoudlShowFilters = true,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [filterRole, setFilterRole] = React.useState("All");
@@ -32,14 +33,23 @@ const AvatarGroup = ({
 
   const sizeClasses = {
     small: "h-8 w-8 -space-x-3",
+    medium: "h-9 w-9 -space-x-4",
     default: "h-10 w-10 -space-x-4",
     large: "h-12 w-12 -space-x-5",
   };
 
   const stackClasses = {
     small: "-space-x-3",
+    medium: "-space-x-4",
     default: "-space-x-4",
     large: "-space-x-5",
+  };
+
+  const fontSizeClasses = {
+    small: "text-xs",
+    medium: "text-xs",
+    default: "text-base",
+    large: "text-lg",
   };
 
   const getRoleBadgeClasses = (role) => {
@@ -66,11 +76,71 @@ const AvatarGroup = ({
     setFilterRole("All");
   };
 
+  // Render Filters
+  const renderFilters = () => {
+    return (
+      <>
+        {/* Role Filter Buttons */}
+        <div className="flex gap-2 my-1">
+          {["All", "Manager", "Member"].map((role) => (
+            <Button
+              key={role}
+              size="xs"
+              variant={filterRole === role ? "solid" : "outline"}
+              className={`px-3 py-1 text-sm ${
+                filterRole === role
+                  ? "bg-slate-500 dark:bg-slate-600 text-white dark:text-slate-200 border-slate-500 dark:border-slate-600"
+                  : "bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setFilterRole(role);
+              }}
+            >
+              {role}
+            </Button>
+          ))}
+
+          {/* Reset Button */}
+          {(searchQuery || filterRole !== "All") && (
+            <Button
+              size="xs"
+              variant="outline"
+              className="px-3 py-1 text-sm bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
+              onClick={(e) => {
+                e.stopPropagation();
+                resetFilters();
+              }}
+            >
+              {/* Icon for reset */}
+              <RefreshCcw className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
+          <input
+            type="text"
+            placeholder={`Search ${avatarType.toLowerCase()}...`}
+            className="w-full rounded-md border border-slate-200 dark:border-slate-700 pl-8 pr-4 py-2 text-sm 
+                  bg-transparent focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400
+                  text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </>
+    );
+  };
+
   return (
     <TooltipProvider delayDuration={100}>
       <Popover>
-        <PopoverTrigger asChild>
-          <div className={`flex relative cursor-pointer ${stackClasses[size]}`}>
+        <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`flex relative cursor-pointer ${stackClasses[size]} popover-trigger`}
+          >
             {visibleUsers.map((user, index) => (
               <Tooltip key={user._id}>
                 <TooltipTrigger>
@@ -98,7 +168,9 @@ const AvatarGroup = ({
                       alt={user.username}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-700 dark:text-slate-200 font-medium">
+                    <AvatarFallback
+                      className={`bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 text-slate-700 dark:text-slate-200 ${fontSizeClasses[size]}`}
+                    >
                       {user.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -149,7 +221,10 @@ const AvatarGroup = ({
             )}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-4 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800">
+        <PopoverContent
+          onClick={(e) => e.stopPropagation()}
+          className="w-80 p-4 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800"
+        >
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-slate-900 dark:text-slate-100">
@@ -163,50 +238,7 @@ const AvatarGroup = ({
               </h4>
             </div>
 
-            {/* Role Filter Buttons */}
-            <div className="flex gap-2 my-1">
-              {["All", "Manager", "Member"].map((role) => (
-                <Button
-                  key={role}
-                  size="xs"
-                  variant={filterRole === role ? "solid" : "outline"}
-                  className={`px-3 py-1 text-sm ${
-                    filterRole === role
-                      ? "bg-slate-500 dark:bg-slate-600 text-white dark:text-slate-200 border-slate-500 dark:border-slate-600"
-                      : "bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
-                  }`}
-                  onClick={() => setFilterRole(role)}
-                >
-                  {role}
-                </Button>
-              ))}
-
-              {/* Reset Button */}
-              {(searchQuery || filterRole !== "All") && (
-                <Button
-                  size="xs"
-                  variant="outline"
-                  className="px-3 py-1 text-sm bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
-                  onClick={() => resetFilters()}
-                >
-                  {/* Icon for reset */}
-                  <RefreshCcw className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
-              <input
-                type="text"
-                placeholder={`Search ${avatarType.toLowerCase()}...`}
-                className="w-full rounded-md border border-slate-200 dark:border-slate-700 pl-8 pr-4 py-2 text-sm 
-                  bg-transparent focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400
-                  text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            {shoudlShowFilters && renderFilters()}
 
             <ScrollArea className="h-[250px] pr-4 w-[105%]">
               <div className="space-y-1">
@@ -214,7 +246,10 @@ const AvatarGroup = ({
                   filteredUsers.map((user) => (
                     <div
                       key={user._id}
-                      onClick={() => onUserClick?.(user)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUserClick?.(user);
+                      }}
                       className="flex items-center justify-between gap-3 p-2 hover:bg-gray-100/70 dark:hover:bg-slate-800/50 rounded-lg transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3">

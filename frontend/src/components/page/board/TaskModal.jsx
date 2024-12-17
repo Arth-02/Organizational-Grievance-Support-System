@@ -127,7 +127,7 @@ const TaskModal = () => {
 
   const handleUpdateTaskAssignee = async (assigneeId) => {
     try {
-      const response = await updateTask({
+      await updateTask({
         project_id: projectId,
         task_id: taskId,
         data: {
@@ -135,7 +135,7 @@ const TaskModal = () => {
         },
       }).unwrap();
       refetch();
-      toast.success(response.message);
+      // toast.success(response.message);
     } catch (error) {
       console.error("Failed to update assignee:", error);
       toast.error(error.data.message);
@@ -281,7 +281,7 @@ const TaskModal = () => {
                         Assigned To
                       </h3>
                       <div className="flex items-center gap-2">
-                        <AvatarGroup users={task.assignee_to} />
+                        <AvatarGroup users={task.assignee_to} shoudlShowFilters={false} />
                       </div>
                     </div>
                   )}

@@ -127,7 +127,7 @@ export default function ActionComboBoxButton({
             {/* Show selected items at the top */}
             {multiSelect && selectedOptions.length > 0 && (
               <>
-                <CommandGroup heading="Selected">
+                <CommandGroup heading="Selected" className="mb-2">
                   {selectedOptions.map((option) => (
                     <CommandItem
                       key={`selected-${option.value}`}
@@ -154,7 +154,7 @@ export default function ActionComboBoxButton({
 
             {/* Available options to select */}
             <CommandEmpty>No items found.</CommandEmpty>
-            <CommandGroup heading="Add Options">
+            <CommandGroup heading="Others">
               {availableOptions.map((option) => (
                 <CommandItem
                   key={option.value}

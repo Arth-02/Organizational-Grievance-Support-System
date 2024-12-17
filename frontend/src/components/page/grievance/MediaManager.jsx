@@ -410,29 +410,31 @@ const AttachmentManager = ({
           </div>
         )}
 
-        <div className="flex overflow-x-auto space-x-4 p-2 max-w-[645px]">
-          {existingAttachments.map((attachment) => (
-            <div
-              key={attachment._id}
-              className={`relative shrink-0 group w-32 rounded-lg ${
-                canEdit ? "cursor-pointer" : "cursor-default"
-              }`}
-              onClick={
-                canEdit
-                  ? () => toggleSelectAttachment(attachment._id)
-                  : undefined
-              }
-            >
-              {attachment.filetype?.startsWith("image/") ||
-              attachment.filetype?.startsWith("video/")
-                ? handleImageVideoRender(attachment)
-                : handleFileRender(attachment)}
-            </div>
-          ))}
-        </div>
+        {existingAttachments.length > 0 && (
+          <div className="flex overflow-x-auto space-x-4 p-2 max-w-[645px]">
+            {existingAttachments.map((attachment) => (
+              <div
+                key={attachment._id}
+                className={`relative shrink-0 group w-32 rounded-lg ${
+                  canEdit ? "cursor-pointer" : "cursor-default"
+                }`}
+                onClick={
+                  canEdit
+                    ? () => toggleSelectAttachment(attachment._id)
+                    : undefined
+                }
+              >
+                {attachment.filetype?.startsWith("image/") ||
+                attachment.filetype?.startsWith("video/")
+                  ? handleImageVideoRender(attachment)
+                  : handleFileRender(attachment)}
+              </div>
+            ))}
+          </div>
+        )}
 
         {existingAttachments.length === 0 && (
-          <div className="text-gray-500 !mt-4 ml-6 dark:text-slate-400 text-sm">
+          <div className="text-gray-500 !my-6 ml-6 dark:text-slate-400 text-sm">
             No attachments found
           </div>
         )}
