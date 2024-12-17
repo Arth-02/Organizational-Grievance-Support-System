@@ -148,7 +148,7 @@ export default function ActionComboBoxButton({
                     </CommandItem>
                   ))}
                 </CommandGroup>
-                <CommandSeparator />
+                <CommandSeparator className="w-[95%] bg-slate-600/90 m-auto" />
               </>
             )}
 
