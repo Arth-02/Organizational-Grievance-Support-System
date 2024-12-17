@@ -26,8 +26,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import ActionComboBoxButton from "../grievance/ActionComboBoxButton";
-import EditableDescription from "../grievance/EditableDescription";
+import ActionComboBoxButton from "../../ui/ActionComboBoxButton";
+import EditableDescription from "../../ui/EditableDescription";
 import {
   Tooltip,
   TooltipContent,
@@ -36,7 +36,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import EditableTitle from "../grievance/EditableTitle";
+import EditableTitle from "../../ui/EditableTitle";
 import { useGetAllUserNamesQuery } from "@/services/user.service";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RoutableModal } from "@/components/ui/RoutedModal";
-import AttachmentManager from "../grievance/MediaManager";
+import AttachmentManager from "../../ui/MediaManager";
 import useSocket from "@/utils/useSocket";
 import {
   useUpdateProjectBoardTaskMutation,

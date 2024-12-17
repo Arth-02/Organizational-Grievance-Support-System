@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import TextEditor from './TextEditor';
 import { Menu, Edit2 } from 'lucide-react';
+import RichTextEditor from './TextEditor';
 
 const EditableDescription = ({ 
   description, 
@@ -30,7 +30,7 @@ const EditableDescription = ({
       </div>
       
       {isEditing ? (
-        <TextEditor
+        <RichTextEditor
           initialContent={description || ""}
           onSave={handleDescriptionSave}
           className={canEdit ? "border dark:border-slate-700" : "border-none"}

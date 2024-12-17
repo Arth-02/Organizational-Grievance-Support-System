@@ -18,11 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import TextEditor from "./TextEditor";
+import TextEditor from "../../ui/TextEditor";
 import toast from "react-hot-toast";
 import { useCreateGrievanceMutation } from "@/services/grievance.service";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
-import FileUploadComponent from "./FileUpload";
+import FileUploadComponent from "../../ui/FileUpload";
 
 const PRIORITY_OPTIONS = [
   { value: "low", label: "Low" },
