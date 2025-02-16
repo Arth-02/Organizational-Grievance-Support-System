@@ -678,7 +678,7 @@ const getAllUsers = async (req_query, userData) => {
       );
     }
 
-    if (canViewRoles) {
+    if (canViewRoles || canViewPermissions) {
       pipeline.push(
         {
           $lookup: {
@@ -805,6 +805,7 @@ const getAllUsers = async (req_query, userData) => {
     if (!users.length) {
       return { isSuccess: false, message: "Users not Found", code: 404 };
     }
+    console.log(users);
     if (canViewPermissions) {
       for (let i = 0; i < users.length; i++) {
         users[i].role_permissions = users[i].role_permissions
