@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import GrievanceModalSkeleton from "./GreievanceCardModalSkeleton";
-import AttachmentManager from "./MediaManager";
+import AttachmentManager from "@/components/ui/MediaManager";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import {
@@ -48,17 +48,17 @@ import {
   useUpdateGrievanceMutation,
   useUpdateGrievanceStatusMutation,
 } from "@/services/grievance.service";
-import EditableDescription from "./EditableDescription";
+import EditableDescription from "../../ui/EditableDescription";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import ActionComboBoxButton from "./ActionComboBoxButton";
+import ActionComboBoxButton from "../../ui/ActionComboBoxButton";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
 import { useGetAllUserNamesQuery } from "@/services/user.service";
-import EditableTitle from "./EditableTitle";
+import EditableTitle from "../../ui/EditableTitle";
 import useSocket from "@/utils/useSocket";
 
 const PRIORITY_BADGES = {
@@ -543,9 +543,9 @@ function GrievanceModal() {
                         buttonLabel="Change Department"
                         buttonIcon={Building2}
                         options={departmentsList}
-                        onSelect={(option) => {
+                        onSelect={(selectedOption) => {
                           handleUpdateGrievance({
-                            department_id: option.value,
+                            department_id: selectedOption.value,
                           });
                         }}
                       />

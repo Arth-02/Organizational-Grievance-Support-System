@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Paperclip, User } from "lucide-react";
@@ -13,8 +13,15 @@ const PRIORITY_BADGES = {
 };
 
 const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
-
   const { projectId, boardId } = useParams();
+  const navigate = useNavigate(); // Hook to navigate programmatically
+
+  const handleCardClick = (e) => {
+    e.stopPropagation(); // Prevent any parent handlers
+    navigate(`/projects/${projectId}/board/${boardId}/task/${task.id}`, {
+      state: { background: location },
+    });
+  };
 
   return (
     <div
@@ -23,10 +30,9 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
       {...provided?.dragHandleProps}
       className="group"
     >
-      <Link
-        to={`/projects/${projectId}/board/${boardId}/task/${task.id}`}
-        state={{ background: location }}
-        className="block"
+      <div
+        onClick={handleCardClick} // Navigate when the card is clicked
+        className="block cursor-pointer"
       >
         <Card
           className={cn(
@@ -44,10 +50,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
               </h4>
               {task.priority && (
                 <Badge
-                  className={cn(
-                    "ml-2",
-                    PRIORITY_BADGES[task.priority].color
-                  )}
+                  className={cn("ml-2", PRIORITY_BADGES[task.priority].color)}
                 >
                   {PRIORITY_BADGES[task.priority].label}
                 </Badge>
@@ -72,9 +75,7 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
 
                 <div className="flex items-center gap-1">
                   <Clock className="h-[14px] w-[14px]" />
-                  <span>
-                    {new Date(task.created_at).toLocaleDateString()}
-                  </span>
+                  <span>{new Date(task.created_at).toLocaleDateString()}</span>
                 </div>
 
                 {task.attachments?.length > 0 && (
@@ -86,12 +87,18 @@ const ProjectTaskCard = ({ task, provided, snapshot, location }) => {
               </div>
 
               <div className="flex items-center gap-3">
-                <AvatarGroup users={task?.assignee_to || []} limit={3} size="small" />
+                {/* AvatarGroup */}
+                <AvatarGroup
+                  users={task?.assignee_to || []}
+                  limit={3}
+                  size="medium"
+                  shoudlShowFilters={false}
+                />
               </div>
             </div>
           </CardContent>
         </Card>
-      </Link>
+      </div>
     </div>
   );
 };
