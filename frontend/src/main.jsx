@@ -14,6 +14,7 @@ createRoot(document.getElementById("root")).render(
     <TooltipProvider>
       <BrowserRouter>
         <App />
+        
       </BrowserRouter>
       <Toaster position="top-right" />
     </TooltipProvider>
