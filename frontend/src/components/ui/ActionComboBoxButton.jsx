@@ -135,15 +135,27 @@ export default function ActionComboBoxButton({
                       onSelect={() => removeSelectedOption(option)}
                       className="cursor-pointer"
                     >
-                      {shouldShowUserAvatar && (
-                        <Avatar className="mr-2">
-                          <AvatarImage src={option.image} alt={option.label} />
-                          <AvatarFallback>
-                            {option.label.toUpperCase()[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <span>{option.label}</span>
+                      <div className="flex items-center">
+                        {shouldShowUserAvatar && (
+                          <Avatar className="mr-2">
+                            <AvatarImage
+                              src={option.image}
+                              alt={option.label}
+                            />
+                            <AvatarFallback>
+                              {option.label.toUpperCase()[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className="flex flex-col gap-[2px]">
+                          <span className="font-medium">{option.label}</span>
+                          {option.email && (
+                            <span className="text-xs max-w-[190px] truncate text-gray-500 dark:text-slate-400">
+                              {option.email}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       <X className="ml-auto h-4 w-4 text-red-500" />
                     </CommandItem>
                   ))}
@@ -162,15 +174,24 @@ export default function ActionComboBoxButton({
                   onSelect={() => handleSelect(option)}
                   className="cursor-pointer"
                 >
-                  {shouldShowUserAvatar && (
-                    <Avatar className="mr-2">
-                      <AvatarImage src={option.image} alt={option.label} />
-                      <AvatarFallback>
-                        {option.label.toUpperCase()[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <span>{option.label}</span>
+                  <div className="flex items-center">
+                    {shouldShowUserAvatar && (
+                      <Avatar className="mr-2">
+                        <AvatarImage src={option.image} alt={option.label} />
+                        <AvatarFallback>
+                          {option.label.toUpperCase()[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="flex flex-col gap-[2px]">
+                      <span className="font-medium">{option.label}</span>
+                      {option.email && (
+                        <span className="text-xs max-w-[190px] truncate text-gray-500 dark:text-slate-400">
+                          {option.email}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   {multiSelect && (
                     <Check
                       className={cn(

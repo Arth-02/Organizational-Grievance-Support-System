@@ -898,7 +898,7 @@ const getUserNamesAndIds = async (organization_id) => {
         code: 400,
       };
     }
-    const users = await User.find({ organization_id }, "username");
+    const users = await User.find({ organization_id }, "username email avatar");
     return { isSuccess: true, data: users };
   } catch (err) {
     console.error("Get Users Error:", err.message);

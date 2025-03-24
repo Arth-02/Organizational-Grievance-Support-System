@@ -167,6 +167,7 @@ const TaskModal = () => {
       label: user.username,
       value: user._id,
       image: user.avatar,
+      email: user.email,
     }))
     .filter(
       (u) =>
@@ -421,12 +422,12 @@ const TaskModal = () => {
                         buttonIcon={Users}
                         shouldShowUserAvatar={true}
                         multiSelect={true}
-                        // Pass existing assignees as initial selected options
                         selectedOptions={
                           task?.assignee_to?.map((assignee) => ({
                             label: assignee.username,
                             value: assignee._id,
                             image: assignee.avatar,
+                            email: assignee.email,
                           })) || []
                         }
                         options={usersList}
