@@ -25,13 +25,13 @@ const EditableTitle = ({ title, canEditTitle, updateTitle }) => {
             if (e.key === "Enter") handleTitleChange(e.target.value);
             if (e.key === "Escape") setIsEditing(false);
           }}
-          className="text-xl font-medium bg-transparent border-slate-700 text-black dark:text-white"
+          className="text-xl font-medium bg-transparent border-slate-700 text-gray-800 dark:text-gray-200"
           autoFocus
         />
       ) : (
         <h2
           onClick={() => setIsEditing(true)}
-          className={`text-xl font-medium hover:underline text-black dark:text-white ${canEditTitle ? "cursor-pointer" : ""}`}
+          className={`text-xl font-medium hover:underline text-gray-800 dark:text-gray-200 ${canEditTitle ? "cursor-pointer" : ""}`}
         >
           {title || "Title"}
         </h2>

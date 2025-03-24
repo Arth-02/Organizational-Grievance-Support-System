@@ -111,7 +111,7 @@ export default function ActionComboBoxButton({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50"
+          className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-gray-200 dark:hover:bg-slate-700/50"
           onClick={() => setOpen(!open)}
         >
           {renderButtonContent()}

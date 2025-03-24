@@ -89,7 +89,7 @@ const AvatarGroup = ({
               variant={filterRole === role ? "solid" : "outline"}
               className={`px-3 py-1 text-sm ${
                 filterRole === role
-                  ? "bg-slate-500 dark:bg-slate-600 text-white dark:text-slate-200 border-slate-500 dark:border-slate-600"
+                  ? "bg-slate-500 dark:bg-slate-600 text-gray-200 dark:text-slate-200 border-slate-500 dark:border-slate-600"
                   : "bg-transparent text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800/50"
               }`}
               onClick={(e) => {

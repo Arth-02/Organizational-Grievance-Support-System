@@ -39,7 +39,7 @@ const AllProjects = () => {
       <div className="space-y-6">
         {(shouldShowMyProjects || projectsLoading) && (
           <section>
-            <h1 className="text-lg text-gray-800 dark:text-white">
+            <h1 className="text-lg text-gray-800 dark:text-gray-200">
               My Projects
             </h1>
             <ProjectList
@@ -56,7 +56,7 @@ const AllProjects = () => {
 
         {(shouldShowOtherProjects || projectsLoading) && (
           <section>
-            <h1 className="text-lg text-gray-800 dark:text-white">
+            <h1 className="text-lg text-gray-800 dark:text-gray-200">
               Other Projects (Not a member)
             </h1>
             <ProjectList

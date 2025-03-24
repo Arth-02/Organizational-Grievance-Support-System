@@ -314,7 +314,7 @@ const AttachmentManager = ({
           </div>
         </div>
         <Tooltip>
-          <TooltipTrigger className="w-full text-black dark:text-white text-xs my[6px] text-center p-1 truncate">
+          <TooltipTrigger className="w-full text-gray-800 dark:text-gray-200 text-xs my[6px] text-center p-1 truncate">
             {attachment.filename}
           </TooltipTrigger>
           <TooltipContent>{attachment.filename}</TooltipContent>
@@ -371,7 +371,7 @@ const AttachmentManager = ({
           </div>
         </div>
         <Tooltip>
-          <TooltipTrigger className="w-full text-black dark:text-white text-xs my[6px] text-center p-1 truncate">
+          <TooltipTrigger className="w-full text-gray-800 dark:text-gray-200 text-xs my[6px] text-center p-1 truncate">
             {attachment.filename}
           </TooltipTrigger>
           <TooltipContent>{attachment.filename}</TooltipContent>
@@ -442,7 +442,7 @@ const AttachmentManager = ({
 
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
         <DialogContent className="bg-white dark:bg-gray-900 max-w-xl">
-          <DialogTitle className="text-gray-900 dark:text-white">
+          <DialogTitle className="text-gray-900 dark:text-gray-200">
             Upload Attachments
           </DialogTitle>
           <DialogDescription className="text-gray-500 dark:text-gray-400">

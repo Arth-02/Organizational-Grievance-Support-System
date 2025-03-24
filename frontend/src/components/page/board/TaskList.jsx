@@ -163,7 +163,7 @@ const ProjectList = ({
                 />
                 <Button
                   onClick={handleAddTask}
-                  className="bg-blue-500 text-white"
+                  className="bg-blue-500 text-gray-200"
                 >
                   Add Task
                 </Button>

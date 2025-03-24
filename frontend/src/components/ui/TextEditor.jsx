@@ -156,7 +156,7 @@ const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
       size="icon"
       className={cn(
         "h-8 w-8 transition-colors hover:bg-black/20 dark:hover:bg-white/20",
-        isActive && "bg-gray-400/50 dark:bg-slate-700 dark:text-white",
+        isActive && "bg-gray-400/50 dark:bg-slate-700 dark:text-gray-200",
         disabled && "opacity-50 cursor-not-allowed"
       )}
       onClick={(e) => {
@@ -387,7 +387,7 @@ const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
           type="button"
           size="sm"
           onClick={handleSave}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-gray-200"
         >
           Save
         </Button>

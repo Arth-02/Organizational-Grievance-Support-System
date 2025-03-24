@@ -101,7 +101,7 @@ export default function AddGrievanceModal() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-600/50"
+              className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-600/50"
               onClick={handleClose}
             >
               <X className="h-5 w-5" />
