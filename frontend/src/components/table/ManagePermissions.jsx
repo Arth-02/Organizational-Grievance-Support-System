@@ -33,7 +33,7 @@ const ManagePermissions = ({
   const hasEditPermission =
     (isEditable &&
       edit === "employee" &&
-      userPermissions.includes("UPDATE_USER")) ||
+      (userPermissions.includes("UPDATE_USER")|| userPermissions.includes("UPDATE_PERMISSION"))) ||
     (isEditable && edit === "role" && userPermissions.includes("UPDATE_ROLE"));
 
   const handleSavePermissions = async (newPermissions) => {
