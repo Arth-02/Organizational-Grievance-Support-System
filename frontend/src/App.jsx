@@ -25,6 +25,7 @@ import TaskModal from "./components/page/board/TaskModal";
 
 function App() {
   useSocket();
+  console.log("App Rendered");
 
   const location = useLocation();
   const background = location.state && location.state.background;
