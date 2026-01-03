@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
 import { useSelector } from "react-redux";
 import { useDeleteDepartmentMutation, useGetAllDepartmentsQuery } from "@/services/department.service";
+import DepartmentDialog from "./DepartmentDialog";
 
 const Departments = () => {
   const [filters, setFilters] = useState({});
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
 
-  const { data, isLoading, isFetching, error } = useGetAllDepartmentsQuery(filters);
+  const { data, isLoading, isFetching, error, refetch } = useGetAllDepartmentsQuery(filters);
   const [deleteDepartment] = useDeleteDepartmentMutation();
-
-  const navigate = useNavigate();
 
   const userPermissions = useSelector(
     (state) => state.user.permissions
@@ -45,7 +45,17 @@ const Departments = () => {
   };
 
   const handleEdit = (id) => {
-    navigate(`/departments/update/${id}`);
+    setEditId(id);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditId(null);
+    setDialogOpen(true);
+  };
+
+  const handleDialogSuccess = () => {
+    refetch();
   };
 
   const searchOptions = [
@@ -69,29 +79,38 @@ const Departments = () => {
   ];
 
   return (
-    <MainLayout
-      title={"Departments"}
-      buttonTitle={canCreate ? "Add Department" : undefined}
-      buttonLink={canCreate ? "/departments/add" : undefined}
-    >
-      <GeneralTable
-        data={data?.data?.departments || []}
-        tableTitle={"Departments"}
-        columns={columns}
-        filters={filters}
-        setFilters={setFilters}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        pagination={data?.data?.pagination}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-        searchOptions={searchOptions}
-        customFilters={customFilters}
-        canUpdate={canUpdate}
-        canDelete={canDelete}
+    <>
+      <MainLayout
+        title={"Departments"}
+        buttonTitle={canCreate ? "Add Department" : undefined}
+        onButtonClick={canCreate ? handleAdd : undefined}
+      >
+        <GeneralTable
+          data={data?.data?.departments || []}
+          tableTitle={"Departments"}
+          columns={columns}
+          filters={filters}
+          setFilters={setFilters}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          error={error}
+          pagination={data?.data?.pagination}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          searchOptions={searchOptions}
+          customFilters={customFilters}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+        />
+      </MainLayout>
+
+      <DepartmentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editId={editId}
+        onSuccess={handleDialogSuccess}
       />
-    </MainLayout>
+    </>
   );
 };
 

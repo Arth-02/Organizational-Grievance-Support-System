@@ -7,8 +7,6 @@ import Employees from "./components/page/employees/Employees";
 import Departments from "./components/page/departments/Departments";
 import Roles from "./components/page/roles/Roles";
 import AddUpdateEmployee from "./components/page/employees/AddUpdateEmployee";
-import AddUpdateDepartment from "./components/page/departments/AddUpdateDepartment";
-import AddUpdateRole from "./components/page/roles/AddUpdateRole";
 import PrivateRoute from "./PrivateRoute";
 import Unauthorized from "./Unauthorized";
 import PermissionGuard from "./PermissionGuard";
@@ -89,22 +87,6 @@ function App() {
                 }
               />
               <Route
-                path="/departments/add"
-                element={
-                  <PermissionGuard requiredPermissions={["CREATE_DEPARTMENT"]}>
-                    <AddUpdateDepartment />
-                  </PermissionGuard>
-                }
-              />
-              <Route
-                path="/departments/update/:id"
-                element={
-                  <PermissionGuard requiredPermissions={["UPDATE_DEPARTMENT"]}>
-                    <AddUpdateDepartment />
-                  </PermissionGuard>
-                }
-              />
-              <Route
                 path="/roles"
                 element={
                   <PermissionGuard requiredPermissions={["VIEW_ROLE"]}>
@@ -112,31 +94,17 @@ function App() {
                   </PermissionGuard>
                 }
               />
-              <Route
-                path="/roles/add"
-                element={
-                  <PermissionGuard requiredPermissions={["CREATE_ROLE"]}>
-                    <AddUpdateRole />
-                  </PermissionGuard>
-                }
-              />
-              <Route
-                path="/roles/update/:id"
-                element={
-                  <PermissionGuard requiredPermissions={["UPDATE_ROLE"]}>
-                    <AddUpdateRole />
-                  </PermissionGuard>
-                }
-              />
             </Route>
             <Route path="*" element={<Unauthorized />} />
           </Routes>
+          
+          {/* Modal routes - render when navigating with background state */}
           {background && (
-          <Routes>
-            <Route path="/grievances/:id" element={<PrivateRoute><GrievanceModal /></PrivateRoute>} />
-            <Route path="/projects/:projectId/board/:boardId/task/:taskId" element={<PrivateRoute><TaskModal /></PrivateRoute>} />
-          </Routes>
-        )}
+            <Routes>
+              <Route path="/grievances/:id" element={<PrivateRoute><GrievanceModal /></PrivateRoute>} />
+              <Route path="/projects/:projectId/board/:boardId/task/:taskId" element={<PrivateRoute><TaskModal /></PrivateRoute>} />
+            </Routes>
+          )}
         </ModalProvider>
       </ThemeProvider>
     </>

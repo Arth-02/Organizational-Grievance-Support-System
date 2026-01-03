@@ -1,16 +1,16 @@
 import { useState } from "react";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
-import { useNavigate } from "react-router-dom";
 import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
 import { useDeleteRoleMutation, useGetAllRolesQuery } from "@/services/role.service";
 import { useGetAllPermissionsQuery } from "@/services/user.service";
+import RoleDialog from "./RoleDialog";
 
 const Roles = () => {
   const [filters, setFilters] = useState({});
-
-  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const userPermissions = useSelector((state) => state.user.permissions);
 
@@ -19,7 +19,7 @@ const Roles = () => {
   const canDelete = userPermissions.includes("DELETE_ROLE");
   const canViewPermission = userPermissions.includes("VIEW_PERMISSION");
 
-  const { data, isLoading, isFetching, error } = useGetAllRolesQuery(filters);
+  const { data, isLoading, isFetching, error, refetch } = useGetAllRolesQuery(filters);
   const [deleteRole] = useDeleteRoleMutation();
   const { data: allPermissions } = useGetAllPermissionsQuery({
     skip: !canViewPermission,
@@ -69,14 +69,18 @@ const Roles = () => {
     deleteRole(id);
   };
 
-  // const handleDeleteAll = (ids) => {
-  //   if (ids.length > 0) {
-  //     deleteAllRoles({ ids });
-  //   }
-  // };
-
   const handleEdit = (id) => {
-    navigate(`/roles/update/${id}`);
+    setEditId(id);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditId(null);
+    setDialogOpen(true);
+  };
+
+  const handleDialogSuccess = () => {
+    refetch();
   };
 
   const searchOptions = [
@@ -112,30 +116,38 @@ const Roles = () => {
   ];
 
   return (
-    <MainLayout
-      title={"Roles"}
-      buttonTitle={canCreate ? "Add Role" : undefined}
-      buttonLink={canCreate ? "/roles/add" : undefined}
-    >
-      <GeneralTable
-        data={data?.data?.roles || []}
-        tableTitle={"Roles"}
-        columns={columns}
-        filters={filters}
-        setFilters={setFilters}
-        customFilters={customFilters}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        pagination={data?.data?.pagination}
-        onDelete={handleDelete}
-        // onDeleteAll={handleDeleteAll}
-        onEdit={handleEdit}
-        searchOptions={searchOptions}
-        canUpdate={canUpdate}
-        canDelete={canDelete}
+    <>
+      <MainLayout
+        title={"Roles"}
+        buttonTitle={canCreate ? "Add Role" : undefined}
+        onButtonClick={canCreate ? handleAdd : undefined}
+      >
+        <GeneralTable
+          data={data?.data?.roles || []}
+          tableTitle={"Roles"}
+          columns={columns}
+          filters={filters}
+          setFilters={setFilters}
+          customFilters={customFilters}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          error={error}
+          pagination={data?.data?.pagination}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          searchOptions={searchOptions}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+        />
+      </MainLayout>
+
+      <RoleDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editId={editId}
+        onSuccess={handleDialogSuccess}
       />
-    </MainLayout>
+    </>
   );
 };
 
