@@ -5,19 +5,15 @@ import * as z from "zod";
 import { useParams, useNavigate } from "react-router-dom";
 import { CustomInput } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  CustomSelect,
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CustomSelect } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, BadgeCheck, BadgeAlert } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, BadgeCheck, BadgeAlert, User, Mail, Briefcase, Shield, Check, X } from "lucide-react";
 import { CustomTooltip } from "@/components/ui/tooltip";
 import useDebounce from "@/hooks/useDebounce";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useCheckEmailMutation,
   useCheckUsernameMutation,
@@ -59,6 +55,17 @@ const schema = z
       path: ["confirmpassword"],
     }
   );
+
+// Section component for visual grouping
+const FormSection = ({ icon: Icon, title, children }) => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2 pb-2 border-b border-border">
+      <Icon size={18} className="text-primary" />
+      <h3 className="font-medium text-foreground">{title}</h3>
+    </div>
+    {children}
+  </div>
+);
 
 const AddUpdateEmployee = () => {
   const { id } = useParams();
@@ -146,21 +153,23 @@ const AddUpdateEmployee = () => {
       setUsername(user.data.username);
       setEmail(user.data.email);
       setRoleId(user.data.role);
+      // Set availability to true for existing values in edit mode
+      setIsUsernameAvailable(true);
+      setIsEmailAvailable(true);
     }
   }, [user, reset]);
 
   useEffect(() => {
-    if (roleData?.data) {
-      setPermissionOptions(
-        permissionOptions.filter(
-          (permission) =>
-            !roleData.data.permissions.some(
-              (rolePermission) => rolePermission === permission.value
-            )
-        )
+    if (roleData?.data && permissionOptions?.length > 0) {
+      const filteredOptions = permissionOptions.filter(
+        (permission) =>
+          !roleData.data.permissions.some(
+            (rolePermission) => rolePermission === permission.value
+          )
       );
-      setSelectedPermissions(
-        selectedPermissions.filter(
+      setPermissionOptions(filteredOptions);
+      setSelectedPermissions((prev) =>
+        prev.filter(
           (permission) =>
             !roleData.data.permissions.some(
               (rolePermission) => rolePermission === permission
@@ -168,7 +177,8 @@ const AddUpdateEmployee = () => {
         )
       );
     }
-  }, [permissionOptions, roleData, selectedPermissions]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleData]);
 
   const checkIfUsernameExists = useCallback(
     async (username) => {
@@ -271,7 +281,11 @@ const AddUpdateEmployee = () => {
   }, [selectedPermissions, setValue]);
 
   if (isUserLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
   }
 
   const handleToggle = (value) => {
@@ -282,217 +296,236 @@ const AddUpdateEmployee = () => {
     );
   };
 
-  const handleToggleAll = () => {
-    if (selectedPermissions.length === permissionOptions?.length) {
-      setSelectedPermissions([]);
-    } else {
-      setSelectedPermissions(permissionOptions?.map((item) => item.value));
-    }
+  const handleSelectAll = () => {
+    setSelectedPermissions(permissionOptions?.map((item) => item.value) || []);
   };
 
-  const selectedLabels = permissionOptions
-    ?.filter((option) => selectedPermissions.includes(option.value))
-    .map((option) => option.label) || ["Select permissions"];
+  const handleRemoveAll = () => {
+    setSelectedPermissions([]);
+  };
+
+  const allSelected = selectedPermissions.length === permissionOptions?.length;
+  const noneSelected = selectedPermissions.length === 0;
 
   return (
     <AddUpdatePageLayout title={id ? "Update Employee" : "Add Employee"}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            label="First Name"
-            {...register("firstname")}
-            error={errors.firstname}
-          />
-          <CustomInput
-            label="Last Name"
-            {...register("lastname")}
-            error={errors.lastname}
-          />
-        </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-12 max-w-4xl">
+        {/* Personal Information */}
+        <FormSection icon={User} title="Personal Information">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CustomInput
+              label="First Name"
+              placeholder="Enter first name"
+              {...register("firstname")}
+              error={errors.firstname}
+            />
+            <CustomInput
+              label="Last Name"
+              placeholder="Enter last name"
+              {...register("lastname")}
+              error={errors.lastname}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CustomInput
+              label="Employee ID"
+              placeholder="Enter employee ID"
+              {...register("employee_id")}
+              error={errors.employee_id}
+            />
+            <CustomInput
+              label="Phone Number"
+              placeholder="Enter phone number"
+              {...register("phone_number")}
+              error={errors.phone_number}
+            />
+          </div>
+        </FormSection>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            label="Username"
-            {...register("username", {
-              onChange: (e) => setUsername(e.target.value),
-            })}
-            error={errors.username}
-          />
-          {username && (
-            <div className="absolute right-2 top-8">
-              {isUsernameAvailable === undefined || checkingUsername ? (
-                <Loader2 size={20} className="animate-spin text-primary" />
-              ) : isUsernameAvailable ? (
-                <CustomTooltip content="Username is available">
-                  <BadgeCheck className="text-green-500" size={20} />
-                </CustomTooltip>
-              ) : (
-                <CustomTooltip
-                  content={
-                    errors.username?.message || "Username is not available"
-                  }
-                >
-                  <BadgeAlert className="text-red-500" size={20} />
-                </CustomTooltip>
-              )}
-            </div>
-          )}
-        </div>
-        {!id && (
-          <>
+        {/* Account Information */}
+        <FormSection icon={Mail} title="Account Information">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <CustomInput
-                label="Email"
-                {...register("email", {
-                  onChange: (e) => setEmail(e.target.value),
+                label="Username"
+                placeholder="Enter username"
+                {...register("username", {
+                  onChange: (e) => setUsername(e.target.value),
                 })}
-                error={errors.email}
+                error={errors.username}
               />
-              {email && (
-                <div className="absolute right-2 top-8">
-                  {isEmailAvailable === undefined || checkingEmail ? (
-                    <Loader2 size={20} className="animate-spin text-primary" />
-                  ) : isEmailAvailable ? (
-                    <CustomTooltip content="Email is available">
-                      <BadgeCheck className="text-green-500" size={20} />
+              {username && (
+                <div className="absolute right-3 top-9">
+                  {isUsernameAvailable === undefined || checkingUsername ? (
+                    <Loader2 size={18} className="animate-spin text-primary" />
+                  ) : isUsernameAvailable ? (
+                    <CustomTooltip content="Username is available">
+                      <BadgeCheck className="text-green-500" size={18} />
                     </CustomTooltip>
                   ) : (
                     <CustomTooltip
-                      content={
-                        errors.email?.message || "Email is not available"
-                      }
+                      content={errors.username?.message || "Username is not available"}
                     >
-                      <BadgeAlert className="text-red-500" size={20} />
+                      <BadgeAlert className="text-red-500" size={18} />
                     </CustomTooltip>
                   )}
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            {!id && (
+              <div className="relative">
+                <CustomInput
+                  label="Email"
+                  placeholder="Enter email address"
+                  {...register("email", {
+                    onChange: (e) => setEmail(e.target.value),
+                  })}
+                  error={errors.email}
+                />
+                {email && (
+                  <div className="absolute right-3 top-9">
+                    {isEmailAvailable === undefined || checkingEmail ? (
+                      <Loader2 size={18} className="animate-spin text-primary" />
+                    ) : isEmailAvailable ? (
+                      <CustomTooltip content="Email is available">
+                        <BadgeCheck className="text-green-500" size={18} />
+                      </CustomTooltip>
+                    ) : (
+                      <CustomTooltip
+                        content={errors.email?.message || "Email is not available"}
+                      >
+                        <BadgeAlert className="text-red-500" size={18} />
+                      </CustomTooltip>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {!id && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <CustomInput
                 label="Password"
                 type="password"
+                placeholder="Enter password"
                 {...register("password")}
                 error={errors.password}
               />
               <CustomInput
                 label="Confirm Password"
                 type="password"
+                placeholder="Confirm password"
                 {...register("confirmpassword")}
                 error={errors.confirmpassword}
               />
             </div>
-          </>
-        )}
+          )}
+        </FormSection>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomSelect
-            label="Role"
-            name="role"
-            rules={{
-              required: "Role is required",
-              onChange: (e) => handleFetchRole(e.target.value),
-            }}
-            control={control}
-            options={roles?.data?.map((role) => ({
-              label: role.name,
-              value: role._id,
-            }))}
-            placeholder="Select a role"
-            error={errors.role}
-          />
-          <CustomSelect
-            label="Department"
-            name="department"
-            rules={{ required: "Department is required" }}
-            control={control}
-            options={departments?.data?.map((dept) => ({
-              label: dept.name,
-              value: dept._id,
-            }))}
-            placeholder="Select a department"
-            error={errors.department}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="">
-            <label
-              htmlFor="special-permissions"
-              className="block text-sm font-medium mb-2"
-            >
-              Special Permissions
-            </label>
-            <Select id="special-permissions">
-              <SelectTrigger className="w-full h-auto">
-                <div className="flex flex-wrap gap-2">
-                  {selectedLabels.length > 0 ? (
-                    selectedLabels.map((label) => (
-                      <div
-                        key={label}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-2 py-1 rounded flex items-center space-x-1"
-                      >
-                        <span>{label}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <SelectValue placeholder="Select special permissions" />
-                  )}
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <div className="flex items-center space-x-2">
-                  <Controller
-                    control={control}
-                    name="special_permissions"
-                    render={({ field }) => (
-                      <Checkbox
-                        checked={
-                          field.value.length === permissionOptions?.length
-                        }
-                        onCheckedChange={() => handleToggleAll()}
-                      />
-                    )}
-                  />
-                  {selectedPermissions.length === permissionOptions?.length ? (
-                    <label htmlFor="unselect_all">Unselect All</label>
-                  ) : (
-                    <label htmlFor="select_all">Select All</label>
-                  )}
-                </div>
-                {permissionOptions?.map((item) => (
-                  <div className="flex items-center space-x-2" key={item.value}>
-                    <Controller
-                      control={control}
-                      name="special_permissions"
-                      render={({ field }) => (
-                        <Checkbox
-                          checked={field.value.includes(item.value)}
-                          onCheckedChange={() => handleToggle(item.value)}
-                        />
-                      )}
-                    />
-                    <label htmlFor={item.value}>{item.label}</label>
-                  </div>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Role & Department */}
+        <FormSection icon={Briefcase} title="Role & Department">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CustomSelect
+              label="Role"
+              name="role"
+              rules={{
+                required: "Role is required",
+                onChange: (e) => handleFetchRole(e.target.value),
+              }}
+              control={control}
+              options={roles?.data?.map((role) => ({
+                label: role.name,
+                value: role._id,
+              }))}
+              placeholder="Select a role"
+              error={errors.role}
+            />
+            <CustomSelect
+              label="Department"
+              name="department"
+              rules={{ required: "Department is required" }}
+              control={control}
+              options={departments?.data?.map((dept) => ({
+                label: dept.name,
+                value: dept._id,
+              }))}
+              placeholder="Select a department"
+              error={errors.department}
+            />
           </div>
-        </div>
+        </FormSection>
 
-        <div className="grid grid-cols-2 gap-4">
-          <CustomInput
-            label="Employee ID"
-            {...register("employee_id")}
-            error={errors.employee_id}
-          />
-          <CustomInput
-            label="Phone Number"
-            {...register("phone_number")}
-            error={errors.phone_number}
-          />
-        </div>
+        {/* Special Permissions - only show when role is selected */}
+        {roleId && (
+        <FormSection icon={Shield} title="Special Permissions">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Select additional permissions beyond the role permissions.
+                {selectedPermissions.length > 0 && (
+                  <span className="ml-2 text-foreground font-medium">
+                    ({selectedPermissions.length} selected)
+                  </span>
+                )}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  onClick={handleSelectAll}
+                  disabled={allSelected || !permissionOptions?.length}
+                >
+                  <Check size={12} className="mr-1" />
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  onClick={handleRemoveAll}
+                  disabled={noneSelected}
+                >
+                  <X size={12} className="mr-1" />
+                  Remove All
+                </Button>
+              </div>
+            </div>
 
-        <div className="flex items-center space-x-2">
+            <ScrollArea className="h-[180px] rounded-lg border border-border p-3">
+              <div className="flex flex-wrap gap-2">
+                {permissionOptions?.length > 0 ? (
+                  permissionOptions.map((item) => {
+                    const isSelected = selectedPermissions.includes(item.value);
+                    return (
+                      <Badge
+                        key={item.value}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`cursor-pointer py-1.5 px-3 dark:bg-muted text-sm transition-all ${
+                          isSelected
+                            ? "bg-primary dark:bg-primary hover:bg-primary/90"
+                            : "hover:bg-muted"
+                        }`}
+                        onClick={() => handleToggle(item.value)}
+                      >
+                        {isSelected && <Check size={12} className="mr-1.5" />}
+                        {item.label}
+                      </Badge>
+                    );
+                  })
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    {roleId ? "All permissions are included in the selected role." : "Select a role first to see available permissions."}
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </FormSection>
+        )}
+        {/* Status */}
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
           <Controller
             name="is_active"
             control={control}
@@ -504,10 +537,18 @@ const AddUpdateEmployee = () => {
               />
             )}
           />
-          <label htmlFor="is_active">Is Active</label>
+          <div>
+            <label htmlFor="is_active" className="font-medium cursor-pointer">
+              Active Status
+            </label>
+            <p className="text-sm text-muted-foreground">
+              Enable to allow this employee to access the system
+            </p>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
+        {/* Form Actions */}
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
@@ -516,10 +557,10 @@ const AddUpdateEmployee = () => {
             Cancel
           </Button>
           <Button type="submit" disabled={isCreating || isUpdating}>
-            {id ? "Update" : "Add"} Employee
             {(isCreating || isUpdating) && (
-              <Loader2 className="ml-2 animate-spin" size={20} />
+              <Loader2 className="mr-2 animate-spin" size={16} />
             )}
+            {id ? "Update" : "Create"} Employee
           </Button>
         </div>
       </form>

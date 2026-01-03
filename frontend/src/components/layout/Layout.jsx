@@ -4,28 +4,32 @@ import Header from "./Header";
 import { Outlet } from "react-router-dom";
 
 const Layout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
-  
-    return (
-      <div className="h-screen">
-        <Header setIsSidebarOpen={setIsSidebarOpen} />
-        <div className="flex overflow-hidden h-[calc(100vh-50px)] ">
-            <Sidebar isSidebarOpen={isSidebarOpen} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-            {isSidebarOpen && (
-                <div 
-                onClick={() => setIsSidebarOpen(false)}
-                className="fixed inset-0 bg-black bg-opacity-50 z-10"
-                />
-            )}
-            <main className="flex-1 overflow-y-auto py-4 px-6 h-full bg-secondary/30">
-                <div className="p-4 bg-white dark:bg-black shadow-lg dark:shadow-white/10 rounded-md min-h-full relative">
-                  <Outlet />
-                </div>
-            </main>
-        </div>
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  return (
+    <div className="h-screen bg-muted/30">
+      <Header setIsSidebarOpen={setIsSidebarOpen} />
+      <div className="flex overflow-hidden h-[calc(100vh-56px)]">
+        <Sidebar
+          isSidebarOpen={isSidebarOpen}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
+        {isSidebarOpen && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-10 lg:hidden"
+          />
+        )}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div className="bg-card border border-border/50 shadow-sm dark:shadow-none rounded-xl min-h-full p-5">
+            <Outlet />
+          </div>
+        </main>
       </div>
-    );
-  };
-  
-  export default Layout;
+    </div>
+  );
+};
+
+export default Layout;

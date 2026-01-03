@@ -1,16 +1,15 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 
 const MainLayout = ({ title, buttonTitle, buttonLink, onButtonClick, children }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleButtonClick = () => {
     if (onButtonClick) {
       onButtonClick();
     } else if (buttonLink) {
-      navigate(buttonLink, { state: { background: location } });
+      navigate(buttonLink);
     }
   };
 

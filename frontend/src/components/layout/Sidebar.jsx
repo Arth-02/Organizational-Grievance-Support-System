@@ -20,26 +20,27 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
       <>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-between w-full p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-gray-200 ${
+          className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg transition-all duration-200 ${
             isActive
-              ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
-              : "hover:bg-primary/10"
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
         >
           <span className="flex items-center">
             <span
               className={`transition-all duration-300 flex justify-center items-center ${
-                isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2"
+                isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
               }`}
             >
               {React.cloneElement(item.icon, {
-                size: isCollapsed ? 24 : 20,
+                size: isCollapsed ? 22 : 18,
+                strokeWidth: 1.75,
               })}
             </span>
-            {!isCollapsed && item.label}
+            {!isCollapsed && <span className="text-sm">{item.label}</span>}
           </span>
           <ChevronDown
-            size={20}
+            size={16}
             className={`transition-transform duration-300 ${
               isOpen && "rotate-180"
             }`}
@@ -55,10 +56,10 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
               <Link
                 key={index}
                 to={child.path}
-                className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary ${
+                className={`flex items-center p-2 rounded-lg text-sm transition-all duration-200 ${
                   location.pathname === child.path
-                    ? "bg-primary/10 hover:bg-primary/15 text-primary font-medium"
-                    : "hover:bg-primary/10"
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <span
@@ -67,7 +68,8 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
                   }`}
                 >
                   {React.cloneElement(child.icon, {
-                    size: isCollapsed ? 24 : 20,
+                    size: isCollapsed ? 22 : 16,
+                    strokeWidth: 1.75,
                   })}
                 </span>
                 {!isCollapsed && child.label}
@@ -82,22 +84,23 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
   return (
     <Link
       to={item.path}
-      className={`flex items-center p-2 rounded-lg text-gray-700 hover:text-primary dark:text-gray-400 dark:hover:text-gray-50 ${
+      className={`flex items-center px-2.5 py-1.5 rounded-lg transition-all duration-200 ${
         isActive
-          ? "bg-primary/10 hover:bg-primary/15 text-primary dark:!text-gray-50 dark:bg-white/10 font-medium"
-          : "hover:bg-primary/10 dark:hover:bg-white/10"
+          ? "bg-primary/10 text-primary font-medium"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted"
       }`}
     >
       <span
         className={`transition-all duration-300 flex justify-center items-center ${
-          isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2"
+          isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
         }`}
       >
         {React.cloneElement(item.icon, {
-          size: isCollapsed ? 24 : 20,
+          size: isCollapsed ? 22 : 18,
+          strokeWidth: 1.75,
         })}
       </span>
-      {!isCollapsed && item.label}
+      {!isCollapsed && <span className="text-sm">{item.label}</span>}
     </Link>
   );
 };
@@ -106,36 +109,47 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const userPermissions = useSelector((state) => state.user.permissions);
 
-  const createMenuItem = (icon, label, path, permission) => 
+  const createMenuItem = (icon, label, path, permission) =>
     userPermissions.includes(permission) ? [{ icon, label, path }] : [];
-  
+
   const menuItems = [
     { icon: <Home />, label: "Dashboard", path: "/" },
     { icon: <FolderOpenDot />, label: "Projects", path: "/projects" },
-    { icon: <MessageSquareWarning /> , label: "Grievances", path: "/grievances"},
+    { icon: <MessageSquareWarning />, label: "Grievances", path: "/grievances" },
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
     ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
   ];
-  
 
   return (
-    <aside className={`fixed lg:relative transition-all duration-300 mt-2 z-20 h-screen bg-white dark:bg-black top-0 left-0 ${
-      isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-    } lg:translate-x-0`}>
-      <button className="hidden lg:block p-1 z-30 absolute top-0 -right-4 bg-white dark:bg-white/10 dark:hover:bg-white/15 shadow-md text-primary/80 dark:text-gray-200 hover:text-primary hover:bg-primary/15 transition-all backdrop-blur-3xl duration-200 rounded-full" onClick={() => setIsCollapsed((prev) => !prev)}>
-        <ChevronLeft size={28} className={`transition-all duration-300 ${isCollapsed ? 'rotate-180 ml-[2px]' : 'rotate-0 mr-[2px]'}`} />
-      </button>
-    <div
-      className={`pt-5 h-full shadow-lg dark:shadow-white/10 lg:h-full bg-white dark:bg-black z-40 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${isCollapsed ? "w-[84px]" : "w-[256px]"}`}
+    <aside
+      className={`fixed lg:relative transition-all duration-300 z-20 h-full ${
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}
     >
-      <div className="p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item, index) => {
-            if (item.children && isCollapsed) return null;
-            return (
-              <li key={index}>
+      <button
+        className="hidden lg:flex items-center justify-center w-6 h-6 absolute top-4 -right-3 bg-card border border-border shadow-sm text-muted-foreground hover:text-foreground transition-all duration-200 rounded-full z-10"
+        onClick={() => setIsCollapsed((prev) => !prev)}
+      >
+        <ChevronLeft
+          size={14}
+          className={`transition-transform duration-300 ${
+            isCollapsed ? "rotate-180" : "rotate-0"
+          }`}
+        />
+      </button>
+      <div
+        className={`h-full bg-card border-r border-border/50 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${
+          isCollapsed ? "w-[72px]" : "w-[240px]"
+        }`}
+      >
+        <div className="p-3">
+          <nav className="space-y-1">
+            {menuItems.map((item, index) => {
+              if (item.children && isCollapsed) return null;
+              return (
                 <MenuItem
+                  key={index}
                   item={item}
                   isCollapsed={isCollapsed}
                   isActive={
@@ -146,12 +160,11 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
                       ))
                   }
                 />
-              </li>
-            );
-          })}
-        </ul>
+              );
+            })}
+          </nav>
+        </div>
       </div>
-    </div>
     </aside>
   );
 };

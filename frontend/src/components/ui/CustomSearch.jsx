@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import debounce from "lodash/debounce";
 
 const AdvancedSearch = ({ onSearch, searchOptions }) => {
@@ -54,54 +54,51 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
 
   return (
     <div
-      className={`relative flex items-center justify-around h-9 rounded-md border dark:border-input/50 bg-background py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all duration-300 ease-in-out ${
-        selectedOption ? "px-3 pr-1 w-[350px]" : " px-1 w-[250px]"
+      className={`relative flex items-center h-9 rounded-lg border border-border bg-transparent text-sm transition-all duration-200 ${
+        selectedOption ? "px-3 pr-1 w-[350px]" : "px-1 w-[250px]"
       }`}
     >
       {selectedOption ? (
         <div className="flex items-center gap-2 w-full">
-          <span className="text-sm font-medium text-nowrap">
-            {selectedOption.label} :{" "}
+          <span className="text-sm font-medium text-nowrap text-muted-foreground">
+            {selectedOption.label}:
           </span>
           <Input
-            placeholder="Search"
+            placeholder="Search..."
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus
-            className={`border-none bg-transparent focus:outline-none min-w-48 px-1 py-0`}
+            className="border-none bg-transparent shadow-none focus-visible:ring-0 focus:ring-0 focus:border-none min-w-48 px-1 py-0 h-7"
           />
           {searchOptions?.length > 1 && (
-            <X
-              size={20}
-              className="w-9 h-7 cursor-pointer p-1 hover:bg-secondary/30 rounded-md transition-all duration-300"
+            <button
               onClick={handleClearSearch}
-            />
+              className="p-1 hover:bg-muted rounded-md transition-colors"
+            >
+              <X size={16} className="text-muted-foreground" />
+            </button>
           )}
         </div>
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger className="w-full focus:outline-none border-none bg-transparent">
-            <Input
-              placeholder="Search"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="border-none bg-transparent focus:outline-none w-full h-full"
-            />
+          <DropdownMenuTrigger className="w-full h-full focus:outline-none border-none bg-transparent flex items-center gap-2 px-2">
+            <Search size={16} className="text-muted-foreground" />
+            <span className="text-muted-foreground">Search...</span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="text-nowrap min-w-64">
+          <DropdownMenuContent className="min-w-64">
             {searchOptions?.map((option) => (
               <DropdownMenuItem
                 key={option.value}
-                className={"cursor-pointer"}
+                className="cursor-pointer"
                 onSelect={() => handleOptionSelect(option)}
               >
-                <div className="flex items-center hover:bg-secondary/15 px-1 py-1 rounded-md">
+                <div className="flex items-center gap-2">
                   {option.icon}
-                  <span className="text-sm font-medium ml-2">
-                    {option.label}
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-muted-foreground">:</span>
+                  <span className="text-xs text-muted-foreground">
+                    {option.example}
                   </span>
-                  <span className="text-sm font-medium ml-1">:</span>
-                  <span className="text-xs ml-2">{option.example}</span>
                 </div>
               </DropdownMenuItem>
             ))}

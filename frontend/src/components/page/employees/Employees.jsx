@@ -3,7 +3,7 @@ import { User, Mail, IdCard } from "lucide-react";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
-import ManagePermissions from "../../table/ManagePermissions";
+import CombinedPermissions from "../../table/CombinedPermissions";
 import { useSelector } from "react-redux";
 import { useDeleteAllUsersMutation, useDeleteUserMutation, useGetAllPermissionsQuery, useGetAllUsersQuery } from "@/services/user.service";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
@@ -47,35 +47,21 @@ const Employees = () => {
       hideable: false,
     },
     { accessorKey: "email", header: "Email", sortable: true },
-    { accessorKey: "firstname", header: "First Name", sortable: true },
-    { accessorKey: "lastname", header: "Last Name", sortable: true },
-    { accessorKey: "employee_id", header: "Employee ID", sortable: false },
-    { accessorKey: "phone_number", header: "Phone", sortable: false },
+    { accessorKey: "firstname", header: "First Name", sortable: true, hiddenByDefault: true },
+    { accessorKey: "lastname", header: "Last Name", sortable: true, hiddenByDefault: true },
+    { accessorKey: "employee_id", header: "Employee ID", sortable: false, hiddenByDefault: true },
+    { accessorKey: "phone_number", header: "Phone", sortable: false, hiddenByDefault: true },
     ...(canViewPermission
       ? [
           {
-            accessorKey: "role_permissions",
+            accessorKey: "permissions",
             header: "Permissions",
             sortable: false,
             cell: ({ row }) => (
-              <ManagePermissions
-                permissions={row.original.role_permissions}
-                removePermissions={row.original.special_permissions}
-                edit="employee"
-              />
-            ),
-          },
-          {
-            accessorKey: "special_permissions",
-            header: "Special Permissions",
-            sortable: false,
-            cell: ({ row }) => (
-              <ManagePermissions
-                permissions={row.original.special_permissions}
-                removePermissions={row.original.role_permissions}
-                id={row.original._id}
-                isEditable={true}
-                edit="employee"
+              <CombinedPermissions
+                rolePermissions={row.original.role_permissions || []}
+                specialPermissions={row.original.special_permissions || []}
+                userId={row.original._id}
               />
             ),
           },
@@ -97,6 +83,7 @@ const Employees = () => {
       accessorKey: "last_login",
       header: "Last Login",
       sortable: true,
+      hiddenByDefault: true,
       cell: ({ row }) =>
         row.original.last_login
           ? new Date(row.original.last_login).toLocaleString()
@@ -106,6 +93,7 @@ const Employees = () => {
       accessorKey: "created_at",
       header: "Created At",
       sortable: true,
+      hiddenByDefault: true,
       cell: ({ row }) =>
         row.original.created_at
           ? new Date(row.original.created_at).toLocaleString()

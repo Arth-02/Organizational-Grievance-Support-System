@@ -9,13 +9,13 @@ const Input = React.forwardRef(({ className, type, error, ...props }, ref) => {
       <input
         type={type}
         className={cn(
-          "flex h-9 w-full rounded-md border bg-background px-3 py-2 text-sm transition-colors duration-200",
+          "flex h-10 w-full rounded-lg border bg-transparent px-3 py-2 text-sm transition-colors duration-200",
           "placeholder:text-muted-foreground",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "focus:outline-none",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20",
           error
             ? "border-red-500 focus:border-red-500"
-            : "border-gray-300 dark:border-secondary/40 focus:border-primary dark:focus:border-primary",
+            : "border-border hover:border-muted-foreground/50 focus:border-primary",
           className
         )}
         ref={ref}
@@ -37,8 +37,8 @@ const CustomInput = React.forwardRef(({ label, error, type, ...props }, ref) => 
   };
 
   return (
-    <div className="space-y-1 relative">
-      <label htmlFor={props.id} className="block text-sm font-medium">
+    <div className="space-y-1.5 relative">
+      <label htmlFor={props.id} className="block text-sm font-medium text-foreground">
         {label}
       </label>
       <div className="relative">
@@ -46,19 +46,19 @@ const CustomInput = React.forwardRef(({ label, error, type, ...props }, ref) => 
           ref={ref}
           error={error}
           type={showPassword && type === "password" ? "text" : type}
-          className={"bg-secondary/15 dark:bg-black"}
+          className="bg-muted/30"
           {...props}
         />
         {type === "password" && (
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute top-2 right-2 flex items-center text-sm leading-5"
+            className="absolute top-2.5 right-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
             {showPassword ? (
-              <EyeOff className="text-gray-400" size={19} />
+              <EyeOff size={18} />
             ) : (
-              <Eye className="text-gray-400" size={19} />
+              <Eye size={18} />
             )}
           </button>
         )}

@@ -63,6 +63,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useDispatch, useSelector } from "react-redux";
 import { Separator } from "../ui/separator";
+import { Skeleton } from "../ui/skeleton";
 import { resetUserFilter, setUserFilter } from "@/features/userSlice";
 import { resetRoleFilter, setRoleFilter } from "@/features/roleSlice";
 import {
@@ -96,18 +97,20 @@ const GeneralTable = ({
     {
       accessorKey: "select",
       header: () => (
-        <Checkbox
-          checked={selectedRows.length === data.length && data.length > 0}
-          onCheckedChange={handleSelectAll}
-          className="mt-1 ml-1 mr-2"
-        />
+        <div className="flex items-center justify-center w-8">
+          <Checkbox
+            checked={selectedRows.length === data.length && data.length > 0}
+            onCheckedChange={handleSelectAll}
+          />
+        </div>
       ),
       cell: ({ row }) => (
-        <Checkbox
-          checked={selectedRows.includes(row.original._id)}
-          onCheckedChange={() => handleRowSelect(row.original._id)}
-          className="mt-1 ml-1 mr-2"
-        />
+        <div className="flex items-center justify-center w-8">
+          <Checkbox
+            checked={selectedRows.includes(row.original._id)}
+            onCheckedChange={() => handleRowSelect(row.original._id)}
+          />
+        </div>
       ),
       hideable: false,
     },
@@ -212,7 +215,9 @@ const GeneralTable = ({
 
   const [selectedRows, setSelectedRows] = useState([]);
   const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((col) => col.accessorKey)
+    allColumns
+      .filter((col) => !col.hiddenByDefault)
+      .map((col) => col.accessorKey)
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -369,13 +374,30 @@ const GeneralTable = ({
   const showNoDataMessage =
     !isLoading && !isFetching && (data.length === 0 || error);
 
-  const renderLoadingState = () => (
-    <TableRow>
-      <TableCell colSpan={filteredColumns.length} className="h-24 text-center">
-        Loading...
-      </TableCell>
-    </TableRow>
-  );
+  const renderLoadingState = () => {
+    // Create skeleton rows based on expected row count
+    const skeletonRows = Array.from({ length: 5 }, (_, index) => (
+      <TableRow key={`skeleton-${index}`}>
+        {filteredColumns.map((col, colIndex) => (
+          <TableCell key={`skeleton-cell-${index}-${colIndex}`} className="py-3">
+            {col.accessorKey === "select" ? (
+              <div className="flex items-center justify-center w-8">
+                <Skeleton className="h-[18px] w-[18px] rounded" />
+              </div>
+            ) : col.accessorKey === "actions" ? (
+              <div className="flex gap-2 ml-2">
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </div>
+            ) : (
+              <Skeleton className="h-4 w-[80%] rounded" />
+            )}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+    return skeletonRows;
+  };
 
   const renderNoDataMessage = () => (
     <TableRow>
