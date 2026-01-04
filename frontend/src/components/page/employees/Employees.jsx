@@ -3,7 +3,7 @@ import { User, Mail, IdCard } from "lucide-react";
 import GeneralTable from "@/components/table/CustomTable";
 import MainLayout from "@/components/layout/MainLayout";
 import { useNavigate } from "react-router-dom";
-import CombinedPermissions from "../../table/CombinedPermissions";
+import ManagePermissions from "../../table/ManagePermissions";
 import { useSelector } from "react-redux";
 import { useDeleteAllUsersMutation, useDeleteUserMutation, useGetAllPermissionsQuery, useGetAllUsersQuery } from "@/services/user.service";
 import { useGetAllDepartmentNameQuery } from "@/services/department.service";
@@ -58,10 +58,13 @@ const Employees = () => {
             header: "Permissions",
             sortable: false,
             cell: ({ row }) => (
-              <CombinedPermissions
+              <ManagePermissions
+                permissions={row.original.special_permissions || []}
+                removePermissions={row.original.role_permissions || []}
                 rolePermissions={row.original.role_permissions || []}
-                specialPermissions={row.original.special_permissions || []}
-                userId={row.original._id}
+                isEditable={true}
+                id={row.original._id}
+                edit="employee"
               />
             ),
           },

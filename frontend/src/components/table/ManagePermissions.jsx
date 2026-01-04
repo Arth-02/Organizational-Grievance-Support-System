@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 const ManagePermissions = ({
   permissions,
   removePermissions = [],
+  rolePermissions = [],
   isEditable = false,
   id = "none",
   edit = "none",
@@ -60,8 +61,8 @@ const ManagePermissions = ({
   };
 
   // Get the display permissions (show first 2, then "+X more")
-  const displayPermissions = permissions.slice(0, 2);
-  const remainingCount = permissions.length - 2;
+  const displayPermissions = permissions.slice(0, 1);
+  const remainingCount = permissions.length - 1;
 
   return (
     <div className="min-w-[280px]">
@@ -162,6 +163,7 @@ const ManagePermissions = ({
           onClose={() => setIsModalOpen(false)}
           initialPermissions={permissions}
           removePermissions={removePermissions}
+          rolePermissions={rolePermissions}
           onSave={handleSavePermissions}
           isLoading={isUpdating}
         />
