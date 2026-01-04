@@ -7,6 +7,7 @@ import {
   useUpdateProjectBoardTagMutation,
   useAddProjectBoardTagMutation,
   useGetProjectBoardTagsQuery,
+  useUpdateProjectBoardTaskMutation,
 } from "@/services/project.service";
 import ProjectList from "./TaskList";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +20,7 @@ const ProjectBoardView = () => {
   const { projectId } = useParams();
   const [createProjectList] = useAddProjectBoardTagMutation();
   const [updateProjectListName] = useUpdateProjectBoardTagMutation();
+  const [updateTask] = useUpdateProjectBoardTaskMutation();
 
   const { data: boardData } = useGetProjectBoardTasksQuery(projectId);
   const { data: boardTags } = useGetProjectBoardTagsQuery(projectId);
@@ -121,14 +123,19 @@ const ProjectBoardView = () => {
       originalTasks = JSON.parse(JSON.stringify(tasks));
       originalTasksCount = JSON.parse(JSON.stringify(totalTasksCount));
 
-      let destinationTasks = [...tasks[newStatus]];
+      // Get the previous and next task ranks in the destination list
+      let destinationTasks = [...(tasks[newStatus] || [])];
       const destinationIndex = destinationDraggableProps.index;
       destinationTasks = destinationTasks.filter((task) => task.id !== taskId);
+      
       const prevRank =
-        destinationIndex > 0 ? destinationTasks[destinationIndex - 1].rank : null;
+        destinationIndex > 0
+          ? destinationTasks[destinationIndex - 1]?.rank
+          : null;
+
       const nextRank =
         destinationIndex < destinationTasks.length
-          ? destinationTasks[destinationIndex].rank
+          ? destinationTasks[destinationIndex]?.rank
           : null;
 
       const updatedTasks = Object.keys(tasks).reduce((acc, status) => {
@@ -169,13 +176,22 @@ const ProjectBoardView = () => {
       setTasks(updatedTasks);
       handleCardMoveCount(oldStatus, newStatus);
 
-      const updatedTask = prevRank + nextRank / 2;
+      // Call API to persist the tag and position change
+      const response = await updateTask({
+        project_id: projectId,
+        task_id: taskId,
+        data: { 
+          tag: newStatus,
+          prevRank,
+          nextRank,
+        },
+      }).unwrap();
 
-      if (updatedTask) {
+      // Update the task rank in the destination list with the response
+      if (response) {
         setTasks((prevTasks) => {
-          const newStatus = updatedTask.tag;
           const updatedNewList = prevTasks[newStatus].map((task) =>
-            task.id === updatedTask.id ? { ...task, rank: updatedTask.rank } : task
+            task.id === taskId ? { ...task, rank: response.rank } : task
           );
 
           return {

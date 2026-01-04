@@ -19,6 +19,8 @@ const updateTaskSchema = Joi.object({
   assignee_to: Joi.array().items(Joi.string().custom(objectIdValidation).label("assignee_to")),
   created_by: Joi.string().custom(objectIdValidation).label("created_by"),
   priority: Joi.string().valid("low", "medium", "high"),
+  prevRank: Joi.string().allow(null),
+  nextRank: Joi.string().allow(null),
 });
 
 const updateTaskAttachmentchema = Joi.object({

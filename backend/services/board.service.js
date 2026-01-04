@@ -504,8 +504,6 @@ const getAllBoardTasks = async (board_id, req_query, user = null) => {
       page = 1,
       limit = 10,
       tag,
-      sort_by = "created_at",
-      order = "desc",
     } = req_query;
 
     const pageNumber = Number.isInteger(parseInt(page, 10))
@@ -574,6 +572,7 @@ const getAllBoardTasks = async (board_id, req_query, user = null) => {
                 updated_at: 1,
                 is_submitted: 1,
                 is_finished: 1,
+                rank: 1,
               },
             },
           ],
@@ -590,7 +589,7 @@ const getAllBoardTasks = async (board_id, req_query, user = null) => {
           tasks: [
             { $unwind: "$tasks" },
             ...(tag ? [{ $match: { "tasks.tag": tag } }] : []),
-            { $sort: { [`tasks.${sort_by}`]: order === "desc" ? -1 : 1 } },
+            { $sort: { "tasks.rank": 1 } },
             { $skip: skip },
             { $limit: limitNumber },
             {
@@ -609,6 +608,7 @@ const getAllBoardTasks = async (board_id, req_query, user = null) => {
                 updated_at: "$tasks.updated_at",
                 is_submitted: "$tasks.is_submitted",
                 is_finished: "$tasks.is_finished",
+                rank: "$tasks.rank",
               },
             },
           ],

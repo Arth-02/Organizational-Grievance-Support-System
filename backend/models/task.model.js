@@ -40,6 +40,10 @@ const taskSchema = new mongoose.Schema(
     is_finished: {
       type: Boolean,
     },
+    rank: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: {

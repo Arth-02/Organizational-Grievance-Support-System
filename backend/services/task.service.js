@@ -6,6 +6,7 @@ const {
   updateTaskFinishSchema,
 } = require("../validators/task.validator");
 const attachmentService = require("./attachment.service");
+const LexoRank = require("./lexorank.service");
 const { isValidObjectId } = require("mongoose");
 
 // Create a Task service
@@ -29,9 +30,19 @@ const createTask = async (session, body, user, files) => {
       const attachmentIds = response.attachmentIds;
       body.attachments = attachmentIds;
     }
+
+    // Generate rank for new task
+    const lastTask = await Task.findOne({ tag: body.tag })
+      .sort({ rank: -1 })
+      .session(session);
+    const rank = lastTask?.rank
+      ? LexoRank.generateNextRank(lastTask.rank)
+      : LexoRank.getInitialRank();
+
     const newTask = new Task({
       ...body,
       created_by: user._id,
+      rank,
     });
     const task = await newTask.save({ session: session });
     return {
@@ -95,9 +106,33 @@ const updateTask = async (session, id, body) => {
       const errors = error.details.map((detail) => detail.message);
       return { isSuccess: false, message: errors, code: 400 };
     }
+
+    // Calculate new rank if prevRank or nextRank is provided
+    let newRank = task.rank;
+    if (value.prevRank || value.nextRank) {
+      // At least one rank is provided, calculate middle rank
+      newRank = LexoRank.getMiddleRank(
+        value.prevRank || null,
+        value.nextRank || null
+      );
+    } else if (value.tag && value.tag !== task.tag) {
+      // Moving to a new tag without position info (empty list or end of list)
+      const lastTask = await Task.findOne({ tag: value.tag })
+        .sort({ rank: -1 })
+        .session(session);
+      newRank = lastTask?.rank
+        ? LexoRank.generateNextRank(lastTask.rank)
+        : LexoRank.getInitialRank();
+    }
+
+    // Remove prevRank and nextRank from update data
+    const updateData = { ...value, rank: newRank };
+    delete updateData.prevRank;
+    delete updateData.nextRank;
+
     const updatedTask = await Task.findByIdAndUpdate(
       id,
-      { ...value },
+      updateData,
       { new: true }
     ).session(session);
     return {
