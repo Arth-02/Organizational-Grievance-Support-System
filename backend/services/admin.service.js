@@ -1323,6 +1323,27 @@ const getAuditLogById = async (id) => {
   }
 };
 
+// Clear old audit logs
+const clearOldAuditLogs = async (daysToKeep = 30) => {
+  try {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+    const result = await AuditLog.deleteMany({
+      created_at: { $lt: cutoffDate }
+    });
+
+    return { 
+      isSuccess: true, 
+      data: { deletedCount: result.deletedCount },
+      message: `Deleted ${result.deletedCount} audit logs older than ${daysToKeep} days`
+    };
+  } catch (err) {
+    console.error("Clear Old Audit Logs Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getRecentActivity,
@@ -1359,4 +1380,5 @@ module.exports = {
   getAuditLogStats,
   getAuditLogActionTypes,
   getAuditLogById,
+  clearOldAuditLogs,
 };

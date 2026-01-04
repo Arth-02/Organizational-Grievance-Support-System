@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Board = require("../models/board.model");
+const Task = require("../models/task.model");
 const taskservice = require("./task.service");
 const {
   updateBoardTagSchema,
@@ -164,16 +165,18 @@ const updateBoardTag = async (
       if (tagIndex === -1) {
         return { isSuccess: false, message: "Tag not found", code: 404 };
       }
+      // Check if any tasks exist with this tag
       if (board.tasks.length !== 0) {
-        const response = await taskservice.deleteMultipleTask(
-          session,
-          board.tasks
-        );
-        if (!response.isSuccess) {
+        const tasksWithTag = await Task.countDocuments({
+          _id: { $in: board.tasks },
+          tag: tag,
+        }).session(session);
+
+        if (tasksWithTag > 0) {
           return {
             isSuccess: false,
-            message: response.message,
-            code: response.code,
+            message: "Cannot delete list with tasks. Please move or delete all tasks first.",
+            code: 400,
           };
         }
       }

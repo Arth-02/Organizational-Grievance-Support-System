@@ -35,6 +35,7 @@ const {
   getAuditLogStats,
   getAuditLogActionTypes,
   getAuditLogById,
+  clearOldAuditLogs,
 } = require("../controllers/admin.controller");
 const { checkRole } = require("../middlewares/auth.middleware");
 const { DEV } = require("../utils/constant");
@@ -85,6 +86,7 @@ router.get("/audit-logs", checkRole([DEV]), getAuditLogs);
 router.get("/audit-logs/stats", checkRole([DEV]), getAuditLogStats);
 router.get("/audit-logs/action-types", checkRole([DEV]), getAuditLogActionTypes);
 router.get("/audit-logs/:id", checkRole([DEV]), getAuditLogById);
+router.delete("/audit-logs/clear", checkRole([DEV]), clearOldAuditLogs);
 
 // Legacy route (keep for backward compatibility)
 router.post("/verify-organization", checkRole([DEV]), approveOrganization);

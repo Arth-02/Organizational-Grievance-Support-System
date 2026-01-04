@@ -68,6 +68,13 @@ const createProject = async (session, body, user) => {
     });
     const project = await newProject.save({ session });
 
+    // Add board_id to the creator's board_ids
+    await User.findByIdAndUpdate(
+      _id,
+      { $addToSet: { board_ids: board._id } },
+      { session }
+    );
+
     return { data: project, isSuccess: true };
   } catch (err) {
     console.error("Get Users Error:", err.message);
@@ -203,10 +210,9 @@ const addProjectBoardTask = async (session, id, body, user, files) => {
     const canAdd =
       project.manager.includes(userId) ||
       project.created_by.toString() === userId.toString();
-
-    if (!canAdd) {
-      return { isSuccess: false, message: "Permission denied", code: 403 };
-    }
+      if (!canAdd) {
+        return { isSuccess: false, message: "Permission denied", code: 403 };
+      }
     const response = await boardService.addBoardTask(
       session,
       project.board_id,

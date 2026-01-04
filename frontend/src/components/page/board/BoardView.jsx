@@ -8,6 +8,8 @@ import {
   useAddProjectBoardTagMutation,
   useGetProjectBoardTagsQuery,
   useUpdateProjectBoardTaskMutation,
+  useAddProjectBoardTaskMutation,
+  useDeleteProjectBoardTagMutation,
 } from "@/services/project.service";
 import ProjectList from "./TaskList";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -21,6 +23,8 @@ const ProjectBoardView = () => {
   const [createProjectList] = useAddProjectBoardTagMutation();
   const [updateProjectListName] = useUpdateProjectBoardTagMutation();
   const [updateTask] = useUpdateProjectBoardTaskMutation();
+  const [addTask] = useAddProjectBoardTaskMutation();
+  const [deleteProjectList] = useDeleteProjectBoardTagMutation();
 
   const { data: boardData } = useGetProjectBoardTasksQuery(projectId);
   const { data: boardTags } = useGetProjectBoardTagsQuery(projectId);
@@ -100,6 +104,50 @@ const ProjectBoardView = () => {
     } catch (error) {
       console.error("Error updating list name:", error);
       toast.error("Failed to update list name");
+    }
+  };
+
+  const handleAddTask = async (listId, taskTitle) => {
+    try {
+      if (!taskTitle.trim()) {
+        toast.error("Task title is required");
+        return;
+      }
+      const data = { tag: listId, title: taskTitle };
+      const response = await addTask({ id: projectId, data }).unwrap();
+      if (response?.data) {
+        setTasks((prev) => ({
+          ...prev,
+          [listId]: [...(prev[listId] || []), response.data],
+        }));
+        setTotalTasksCount((prev) => ({
+          ...prev,
+          [listId]: (prev[listId] || 0) + 1,
+        }));
+        toast.success("Task added successfully");
+      }
+    } catch (error) {
+      console.error("Error adding task:", error);
+      toast.error(error?.data?.message || "Failed to add task");
+    }
+  };
+
+  const handleDeleteList = async (listId) => {
+    try {
+      const data = { tag: listId };
+      await deleteProjectList({ id: projectId, data }).unwrap();
+      setLists((prev) => prev.filter((list) => list !== listId));
+      setTasks((prev) => {
+        const newTasks = { ...prev };
+        delete newTasks[listId];
+        return newTasks;
+      });
+      toast.success("List deleted successfully");
+      return true;
+    } catch (error) {
+      console.error("Error deleting list:", error);
+      toast.error(error?.data?.message || "Failed to delete list");
+      return false;
     }
   };
 
@@ -234,6 +282,8 @@ const ProjectBoardView = () => {
               totalTasksCount={totalTasksCount[list]}
               onPageChange={handlePageChange}
               onUpdateListName={handleUpdateListName}
+              onDeleteList={handleDeleteList}
+              onAddTask={handleAddTask}
             />
           ))}
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>

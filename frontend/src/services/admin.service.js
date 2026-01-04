@@ -349,6 +349,14 @@ export const adminApi = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: "AuditLog", id }],
     }),
+    clearOldAuditLogs: builder.mutation({
+      query: ({ daysToKeep }) => ({
+        url: "super-admin/audit-logs/clear",
+        method: "DELETE",
+        body: { daysToKeep },
+      }),
+      invalidatesTags: ["AuditLogs", "AuditLogStats"],
+    }),
   }),
 });
 
@@ -391,4 +399,5 @@ export const {
   useGetAuditLogStatsQuery,
   useGetAuditLogActionTypesQuery,
   useGetAuditLogByIdQuery,
+  useClearOldAuditLogsMutation,
 } = adminApi;

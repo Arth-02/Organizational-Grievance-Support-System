@@ -6,7 +6,7 @@ const createProjectSchema = Joi.object({
   name: Joi.string().trim().required(),
   description: Joi.string().trim().required(),
   start_date: Joi.date().default(Date.now),
-  end_date: Joi.date().optional().allow(""),
+  end_date: Joi.date().optional().allow(null, ""),
   manager: Joi.array().items(
     Joi.string().custom(objectIdValidation).label("manager")
   ),
@@ -20,7 +20,7 @@ const updateProjectSchema = Joi.object({
   name: Joi.string().trim().optional(),
   description: Joi.string().trim().optional(),
   start_date: Joi.date().optional(),
-  end_date: Joi.date().optional().allow(""),
+  end_date: Joi.date().optional().allow(null, ""),
   manager: Joi.array().items(
     Joi.string().custom(objectIdValidation).label("manager")
   ),

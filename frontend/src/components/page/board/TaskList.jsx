@@ -10,10 +10,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit2, Trash, Plus } from "lucide-react";
+import { Edit2, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Modal from "@/components/ui/Modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SkeletonCard = () => (
   <div className="bg-white dark:bg-gray-600/20 rounded-lg p-4 shadow">
@@ -80,9 +89,11 @@ const ProjectList = ({
     setIsPopoverOpen(false);
   };
 
-  const handleDeleteList = () => {
-    onDeleteList(list._id);
-    setIsModalOpen(false);
+  const handleDeleteList = async () => {
+    const success = await onDeleteList(list._id);
+    if (success) {
+      setIsModalOpen(false);
+    }
   };
 
   return (
@@ -122,7 +133,7 @@ const ProjectList = ({
                 </h3>
               )}
 
-              {/* Menu of options like delete list, update name, add new task to this list */}
+              {/* Menu of options like delete list, update name this list */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <EllipsisVertical className="w-[30px] h-7 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 dark:focus:bg-white/10 cursor-pointer p-1 rounded-md transition-all" />
@@ -136,15 +147,11 @@ const ProjectList = ({
                     Change Name
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="hover:bg-gray-100 dark:hover:bg-gray-600/50 cursor-pointer"
-                    onClick={() => setIsPopoverOpen(true)}
-                  >
-                    <Plus className="w-4 h-4 mr-3" />
-                    Add New Task
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
                     className="text-red-600 hover:text-red-600 hover:bg-red-200/40 dark:text-red-400 dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-200/40 focus:text-red-600"
-                    onClick={() => setIsModalOpen(true)}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setIsModalOpen(true);
+                    }}
                   >
                     <Trash className="w-4 h-4 mr-3" />
                     Delete List
@@ -211,20 +218,27 @@ const ProjectList = ({
               )}
             </div>
 
-            {/* Modal for confirming deletion */}
-            <Modal
-              open={isModalOpen}
-              onOpenChange={setIsModalOpen}
-              title="Confirm Deletion"
-              description="Are you sure you want to delete this list? This action cannot be undone."
-              onConfirm={handleDeleteList}
-              confirmText="Delete"
-              confirmVariant="destructive"
-            >
-              <p>
-                This will permanently delete the list and all related tasks.
-              </p>
-            </Modal>
+            {/* AlertDialog for confirming deletion */}
+            <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this list? This action cannot be undone.
+                    This will permanently delete the list and all related tasks.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={handleDeleteList}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         );
       }}

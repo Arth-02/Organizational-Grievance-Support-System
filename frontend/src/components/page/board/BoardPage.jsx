@@ -1,17 +1,27 @@
 import MainLayout from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useParams } from "react-router-dom";
 import ProjectTableView from "./ProjectBoardTableView";
 import ProjectBoardView from "./BoardView";
+import AddTaskModal from "./AddTaskModal";
+import { useGetProjectBoardTasksQuery } from "@/services/project.service";
 
 const BoardPage = () => {
+  const { projectId } = useParams();
   const [activeView, setActiveView] = useState("board");
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const { refetch } = useGetProjectBoardTasksQuery(projectId);
+
+  const handleTaskAdded = () => {
+    refetch();
+  };
 
   return (
     <MainLayout
       title={"Project Tasks"}
       buttonTitle={"Add Task"}
-      buttonLink={"/tasks/add"}
+      onButtonClick={() => setIsAddTaskModalOpen(true)}
     >
       <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
         <TabsList>
@@ -25,6 +35,13 @@ const BoardPage = () => {
           <ProjectBoardView />
         </TabsContent>
       </Tabs>
+
+      <AddTaskModal
+        open={isAddTaskModalOpen}
+        onOpenChange={setIsAddTaskModalOpen}
+        projectId={projectId}
+        onTaskAdded={handleTaskAdded}
+      />
     </MainLayout>
   );
 };

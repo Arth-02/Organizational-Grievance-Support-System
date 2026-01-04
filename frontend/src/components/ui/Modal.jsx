@@ -23,8 +23,7 @@ const Modal = ({
 }) => {
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-      {open && <div className="bg-black/80 fixed inset-0 z-50 !mt-0" />}
+    <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent className={`${className} !px-0`}>
         <DialogHeader className="px-6">
           <DialogTitle className="text-lg font-semibold leading-none tracking-tight">

@@ -39,6 +39,7 @@ import AdminGrievancesList from "./components/admin/grievances/AdminGrievancesLi
 import AdminGrievanceDetails from "./components/admin/grievances/AdminGrievanceDetails";
 import AuditLogsList from "./components/admin/audit/AuditLogsList";
 import AuditLogDetails from "./components/admin/audit/AuditLogDetails";
+import AdminSettings from "./components/admin/settings/AdminSettings";
 
 function App() {
   useSocket();
@@ -137,6 +138,7 @@ function App() {
               <Route path="grievances/:id" element={<AdminGrievanceDetails />} />
               <Route path="audit-logs" element={<AuditLogsList />} />
               <Route path="audit-logs/:id" element={<AuditLogDetails />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             <Route path="*" element={<Unauthorized />} />

@@ -5,7 +5,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Modal from "@/components/ui/Modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteProjectMutation } from "@/services/project.service";
 import {
@@ -88,13 +97,14 @@ const ProjectCard = ({ project }) => {
     navigate(`/projects/${project._id}/board/${project.board_id}`);
   };
 
-  const handleDelete = () => {
-    setIsModalOpen(true); // Show the modal
-  };
-
-  const confirmDelete = () => {
-    deleteProject(project._id); // Perform the delete action
-    setIsModalOpen(false); // Close the modal after deletion
+  const confirmDelete = async () => {
+    try {
+      await deleteProject(project._id).unwrap();
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      // Modal stays open on error
+    }
   };
 
   const formattedUserList = project.members?.map((user) => {
@@ -140,7 +150,10 @@ const ProjectCard = ({ project }) => {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-600 hover:text-red-600 hover:bg-red-200/40 dark:text-red-400 dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-200/40 focus:text-red-600"
-              onClick={handleDelete}
+              onSelect={(e) => {
+                e.preventDefault();
+                setIsModalOpen(true);
+              }}
             >
               <Trash className="w-4 h-4 mr-3" />
               Delete
@@ -186,18 +199,27 @@ const ProjectCard = ({ project }) => {
         </div>
       </div>
 
-      {/* Modal for confirming deletion */}
-      <Modal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this project? This action cannot be undone."
-        onConfirm={confirmDelete}
-        confirmText="Delete"
-        confirmVariant="destructive"
-      >
-        <p>This will permanently delete the project and all related data.</p>
-      </Modal>
+      {/* AlertDialog for confirming deletion */}
+      <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this project? This action cannot be undone.
+              This will permanently delete the project and all related data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

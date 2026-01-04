@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import { useUpdateAttachmentMutation } from "@/services/grievance.service";
+import { useUpdateProjectBoardTaskAttachmentMutation } from "@/services/project.service";
 import FileUploadComponent from "./FileUpload";
 import {
   Tooltip,
@@ -113,6 +114,8 @@ const AttachmentManager = ({
   uploadModal,
   setUploadModal,
   grievanceId,
+  projectId,
+  taskId,
   existingAttachments = [],
   onUpdate,
   canEdit,
@@ -132,7 +135,10 @@ const AttachmentManager = ({
   const [selectedAttachments, setSelectedAttachments] = useState([]);
   const [loadingMedia, setLoadingMedia] = useState({});
 
-  const [updateAttachment] = useUpdateAttachmentMutation();
+  const [updateGrievanceAttachment] = useUpdateAttachmentMutation();
+  const [updateTaskAttachment] = useUpdateProjectBoardTaskAttachmentMutation();
+
+  const isTaskContext = !!(projectId && taskId);
 
   const handleUpload = async () => {
     setUploading(true);
@@ -142,17 +148,26 @@ const AttachmentManager = ({
     files.forEach(({ file }) => formData.append("attachments", file));
 
     try {
-      const response = await updateAttachment({
-        id: grievanceId,
-        data: formData,
-      }).unwrap();
-      onUpdate(response.data);
+      let response;
+      if (isTaskContext) {
+        response = await updateTaskAttachment({
+          project_id: projectId,
+          task_id: taskId,
+          data: formData,
+        }).unwrap();
+      } else {
+        response = await updateGrievanceAttachment({
+          id: grievanceId,
+          data: formData,
+        }).unwrap();
+      }
+      onUpdate?.(response.data);
       setFiles([]);
       setUploadModal(false);
       toast.success("Attachments uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error.data.message);
+      toast.error(error?.data?.message || "Failed to upload attachments");
     } finally {
       setUploading(false);
     }
@@ -164,11 +179,20 @@ const AttachmentManager = ({
     setDeleting(true);
     try {
       const data = { delete_attachments: attachmentsToDelete };
-      const response = await updateAttachment({
-        id: grievanceId,
-        data,
-      }).unwrap();
-      onUpdate(response.data);
+      let response;
+      if (isTaskContext) {
+        response = await updateTaskAttachment({
+          project_id: projectId,
+          task_id: taskId,
+          data,
+        }).unwrap();
+      } else {
+        response = await updateGrievanceAttachment({
+          id: grievanceId,
+          data,
+        }).unwrap();
+      }
+      onUpdate?.(response.data);
       toast.success("Attachments deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);

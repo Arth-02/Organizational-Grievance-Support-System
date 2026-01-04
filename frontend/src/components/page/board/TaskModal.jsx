@@ -298,6 +298,7 @@ const TaskModal = () => {
                 />
 
                 <AttachmentManager
+                  projectId={projectId}
                   taskId={taskId}
                   existingAttachments={task?.attachments || []}
                   uploadModal={attachmentModalOpen}

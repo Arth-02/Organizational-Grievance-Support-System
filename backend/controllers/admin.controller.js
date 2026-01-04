@@ -744,6 +744,24 @@ const getAuditLogById = async (req, res) => {
   }
 };
 
+// Clear old audit logs
+const clearOldAuditLogs = async (req, res) => {
+  try {
+    const { daysToKeep = 30 } = req.body;
+    if (daysToKeep < 7) {
+      return errorResponse(res, 400, "Days to keep must be at least 7");
+    }
+    const response = await adminService.clearOldAuditLogs(daysToKeep);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(res, response.data, response.message);
+  } catch (err) {
+    console.error("Clear Old Audit Logs Error:", err);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getRecentActivity,
@@ -780,4 +798,5 @@ module.exports = {
   getAuditLogStats,
   getAuditLogActionTypes,
   getAuditLogById,
+  clearOldAuditLogs,
 };
