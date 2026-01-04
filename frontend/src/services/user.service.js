@@ -172,6 +172,27 @@ export const userApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    changePassword: builder.mutation({
+      query: (body) => ({
+        url: "users/profile/change-password",
+        method: "PATCH",
+        body,
+      }),
+    }),
+    changeEmail: builder.mutation({
+      query: (body) => ({
+        url: "users/profile/change-email",
+        method: "PATCH",
+        body,
+      }),
+    }),
+    getProfile: builder.query({
+      query: () => ({
+        url: "users/profile",
+        method: "GET",
+      }),
+      providesTags: ["Profile"],
+    }),
   }),
 });
 
@@ -198,4 +219,9 @@ export const {
   useUpdateBoardTaskMutation,
   useUpdateBoardTaskAttachmentMutation,
   useDeleteBoardTaskMutation,
+  // Profile operations
+  useChangePasswordMutation,
+  useChangeEmailMutation,
+  useGetProfileQuery,
 } = userApi;
+

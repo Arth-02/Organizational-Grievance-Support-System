@@ -21,6 +21,7 @@ import AllProjects from "./components/page/projects/AllProjects";
 import BoardPage from "./components/page/board/BoardPage";
 import AddUpdateProject from "./components/page/projects/AddUpdateProject";
 import TaskModal from "./components/page/board/TaskModal";
+import Profile from "./components/page/profile/Profile";
 
 function App() {
   useSocket();
@@ -48,6 +49,7 @@ function App() {
                 </PrivateRoute>
               }
             >
+              <Route path="/profile" element={<Profile />} />
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
               <Route path="/projects" element={<AllProjects />} />

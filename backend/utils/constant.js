@@ -62,7 +62,7 @@ const VIEW_ROLE = {
   slug: "VIEW_ROLE",
 };
 const UPDATE_PERMISSION = {
-  name: "Add or Remove Permission",
+  name: "Update Permission",
   slug: "UPDATE_PERMISSION",
 };
 const VIEW_PERMISSION = {

@@ -61,10 +61,42 @@ const superAdminSchema = Joi.object({
   otp: Joi.string().trim().required(),
 });
 
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().trim().required().messages({
+    "string.empty": "Current password is required",
+    "any.required": "Current password is required",
+  }),
+  newPassword: Joi.string().trim().min(6).required().messages({
+    "string.empty": "New password is required",
+    "string.min": "New password must be at least 6 characters",
+    "any.required": "New password is required",
+  }),
+  confirmPassword: Joi.string().trim().valid(Joi.ref("newPassword")).required().messages({
+    "string.empty": "Confirm password is required",
+    "any.only": "Passwords do not match",
+    "any.required": "Confirm password is required",
+  }),
+});
+
+const changeEmailSchema = Joi.object({
+  password: Joi.string().trim().required().messages({
+    "string.empty": "Password is required",
+    "any.required": "Password is required",
+  }),
+  newEmail: Joi.string().trim().email().lowercase().required().messages({
+    "string.empty": "New email is required",
+    "string.email": "Please enter a valid email address",
+    "any.required": "New email is required",
+  }),
+});
+
 module.exports = {
   loginSchema,
   createUserSchema,
   updateSelfUserSchema,
   updateFullUserSchema,
   superAdminSchema,
+  changePasswordSchema,
+  changeEmailSchema,
 };
+

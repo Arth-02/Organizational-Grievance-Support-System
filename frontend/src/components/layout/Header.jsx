@@ -1,10 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { logout } from "@/features/userSlice";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 const Header = ({ setIsSidebarOpen }) => {
   const user = useSelector((state) => state.user.user);
@@ -31,32 +39,56 @@ const Header = ({ setIsSidebarOpen }) => {
           Grievance System
         </h1>
       </div>
-      
+
       <div className="flex items-center gap-2">
         <ThemeToggle />
-        
+
         <div className="flex items-center gap-3 pl-2 border-l border-border/50">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatar} alt={user?.username} />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                {user?.username?.[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium text-foreground hidden md:block">
-              {user?.username}
-            </span>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut size={18} className="mr-1.5" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar} alt={user?.username} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                    {user?.username?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-foreground hidden md:block">
+                  {user?.username}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium">
+                    {user?.firstname && user?.lastname
+                      ? `${user.firstname} ${user.lastname}`
+                      : user?.username}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => navigate("/profile")}
+                className="cursor-pointer"
+              >
+                <User className="mr-2 h-4 w-4" />
+                My Profile
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer text-destructive focus:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
@@ -64,3 +96,4 @@ const Header = ({ setIsSidebarOpen }) => {
 };
 
 export default Header;
+

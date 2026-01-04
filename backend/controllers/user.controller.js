@@ -591,6 +591,34 @@ const getAllBoardTasks = async (req, res) => {
   }
 };
 
+// Change Password
+const changePassword = async (req, res) => {
+  try {
+    const response = await userService.changePassword(req.body, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(res, {}, response.message);
+  } catch (err) {
+    console.error("Change Password Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+// Change Email
+const changeEmail = async (req, res) => {
+  try {
+    const response = await userService.changeEmail(req.body, req.user);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(res, {}, response.message);
+  } catch (err) {
+    console.error("Change Email Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   login,
   createUser,
@@ -618,4 +646,7 @@ module.exports = {
   updateBoardTaskAttachment,
   deleteBoardTask,
   getAllBoardTasks,
+  changePassword,
+  changeEmail,
 };
+

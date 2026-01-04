@@ -26,6 +26,8 @@ const {
   getBoardById,
   getUserNames,
   getAllBoardTasks,
+  changePassword,
+  changeEmail,
 } = require("../controllers/user.controller");
 const {
   checkPermission,
@@ -55,6 +57,8 @@ router.patch(
   upload.array("avatar", 1),
   updateUser
 );
+router.patch("/profile/change-password", isLoggedIn, changePassword);
+router.patch("/profile/change-email", isLoggedIn, changeEmail);
 router.patch("/update/:id", checkPermission([UPDATE_USER.slug]), updateUser);
 router.delete("/delete/:id", checkPermission([DELETE_USER.slug]), deleteUser);
 router.delete("/delete", checkPermission([DELETE_USER.slug]), deleteAllUsers);
@@ -104,3 +108,4 @@ router.delete(
 router.get("/all-board-tasks/:id", isLoggedIn, getAllBoardTasks);
 
 module.exports = router;
+

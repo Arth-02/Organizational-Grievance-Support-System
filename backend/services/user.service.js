@@ -12,6 +12,8 @@ const {
   createUserSchema,
   updateFullUserSchema,
   updateSelfUserSchema,
+  changePasswordSchema,
+  changeEmailSchema,
 } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
 const { isValidObjectId } = require("mongoose");
@@ -236,16 +238,20 @@ const getUserDetails = async (user_id, userData) => {
     }
     let user;
     if (!user_id) {
+      // Getting own profile - populate role, department, and organization
       user = await User.findOne(query)
         .populate("role")
         .populate("department")
-        .select("-createdAt -updatedAt -last_login -is_active -is_deleted")
+        .populate({ path: "organization_id", select: "name logo" })
+        .select("-createdAt -updatedAt -is_deleted")
         .lean();
-      user.role.permissions = user.role.permissions
-        .map((permissionSlug) =>
-          PERMISSIONS.find((p) => p.slug === permissionSlug)
-        )
-        .filter(Boolean);
+      if (user) {
+        user.role.permissions = user.role.permissions
+          .map((permissionSlug) =>
+            PERMISSIONS.find((p) => p.slug === permissionSlug)
+          )
+          .filter(Boolean);
+      }
     } else {
       user = await User.findOne(query).select(
         "-createdAt -updatedAt -last_login -is_active -is_deleted"
@@ -907,6 +913,94 @@ const getUserNamesAndIds = async (organization_id) => {
   }
 };
 
+// Change Password service
+const changePassword = async (body, userData) => {
+  try {
+    const { error, value } = changePasswordSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+
+    const { currentPassword, newPassword } = value;
+    const userId = userData.id;
+
+    // Get user with password
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return { isSuccess: false, message: "User not found", code: 404 };
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return { isSuccess: false, message: "Current password is incorrect", code: 400 };
+    }
+
+    // Hash the new password manually
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password using findByIdAndUpdate to avoid validation on other fields
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    return { isSuccess: true, message: "Password changed successfully" };
+  } catch (err) {
+    console.error("Change Password Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
+// Change Email service
+const changeEmail = async (body, userData) => {
+  try {
+    const { error, value } = changeEmailSchema.validate(body, {
+      abortEarly: false,
+    });
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return { isSuccess: false, message: errors, code: 400 };
+    }
+
+    const { password, newEmail } = value;
+    const userId = userData.id;
+    const organizationId = userData.organization_id;
+
+    // Get user with password
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return { isSuccess: false, message: "User not found", code: 404 };
+    }
+
+    // Verify password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return { isSuccess: false, message: "Password is incorrect", code: 400 };
+    }
+
+    // Check if new email is already taken
+    const existingUser = await User.findOne({
+      email: newEmail,
+      organization_id: organizationId,
+      is_deleted: false,
+      _id: { $ne: userId },
+    });
+    if (existingUser) {
+      return { isSuccess: false, message: "Email is already in use", code: 400 };
+    }
+
+    // Update email using findByIdAndUpdate to avoid validation on other fields
+    await User.findByIdAndUpdate(userId, { email: newEmail });
+
+    return { isSuccess: true, message: "Email changed successfully" };
+  } catch (err) {
+    console.error("Change Email Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   userLogin,
   createUser,
@@ -921,4 +1015,7 @@ module.exports = {
   getAllUsersId,
   addBoardToUser,
   getUserNamesAndIds,
+  changePassword,
+  changeEmail,
 };
+
