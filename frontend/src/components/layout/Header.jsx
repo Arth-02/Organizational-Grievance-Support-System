@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { logout } from "@/features/userSlice";
-import { LogOut, Menu, User } from "lucide-react";
+import { LogOut, Menu, User, Shield } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -16,8 +16,13 @@ import {
 
 const Header = ({ setIsSidebarOpen }) => {
   const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isDev = role?.name === "DEV";
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   const handleLogout = () => {
     dispatch(logout());
@@ -36,11 +41,26 @@ const Header = ({ setIsSidebarOpen }) => {
           <Menu size={20} />
         </Button>
         <h1 className="text-lg font-semibold text-primary hidden sm:block">
-          Grievance System
+          {isAdminRoute ? "Admin Panel" : "Grievance System"}
         </h1>
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Admin Panel Toggle for DEV users */}
+        {isDev && (
+          <Button
+            variant={isAdminRoute ? "default" : "outline"}
+            size="sm"
+            onClick={() => navigate(isAdminRoute ? "/" : "/admin")}
+            className="gap-2"
+          >
+            <Shield size={16} />
+            <span className="hidden sm:inline">
+              {isAdminRoute ? "Exit Admin" : "Admin Panel"}
+            </span>
+          </Button>
+        )}
+
         <ThemeToggle />
 
         <div className="flex items-center gap-3 pl-2 border-l border-border/50">

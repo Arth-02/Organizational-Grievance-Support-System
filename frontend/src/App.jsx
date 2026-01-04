@@ -8,6 +8,7 @@ import Departments from "./components/page/departments/Departments";
 import Roles from "./components/page/roles/Roles";
 import AddUpdateEmployee from "./components/page/employees/AddUpdateEmployee";
 import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
 import Unauthorized from "./Unauthorized";
 import PermissionGuard from "./PermissionGuard";
 
@@ -22,6 +23,22 @@ import BoardPage from "./components/page/board/BoardPage";
 import AddUpdateProject from "./components/page/projects/AddUpdateProject";
 import TaskModal from "./components/page/board/TaskModal";
 import Profile from "./components/page/profile/Profile";
+
+// Admin components
+import AdminLayout from "./components/admin/layout/AdminLayout";
+import AdminDashboard from "./components/admin/dashboard/AdminDashboard";
+import OrganizationsList from "./components/admin/organizations/OrganizationsList";
+import OrganizationDetails from "./components/admin/organizations/OrganizationDetails";
+import AdminUsersList from "./components/admin/users/AdminUsersList";
+import AdminUserDetails from "./components/admin/users/AdminUserDetails";
+import AdminProjectsList from "./components/admin/projects/AdminProjectsList";
+import AdminProjectDetails from "./components/admin/projects/AdminProjectDetails";
+import AdminRolesList from "./components/admin/roles/AdminRolesList";
+import AdminRoleDetails from "./components/admin/roles/AdminRoleDetails";
+import AdminGrievancesList from "./components/admin/grievances/AdminGrievancesList";
+import AdminGrievanceDetails from "./components/admin/grievances/AdminGrievanceDetails";
+import AuditLogsList from "./components/admin/audit/AuditLogsList";
+import AuditLogDetails from "./components/admin/audit/AuditLogDetails";
 
 function App() {
   useSocket();
@@ -97,6 +114,31 @@ function App() {
                 }
               />
             </Route>
+
+            {/* Admin Routes - DEV only */}
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="organizations" element={<OrganizationsList />} />
+              <Route path="organizations/:id" element={<OrganizationDetails />} />
+              <Route path="users" element={<AdminUsersList />} />
+              <Route path="users/:id" element={<AdminUserDetails />} />
+              <Route path="projects" element={<AdminProjectsList />} />
+              <Route path="projects/:id" element={<AdminProjectDetails />} />
+              <Route path="roles" element={<AdminRolesList />} />
+              <Route path="roles/:id" element={<AdminRoleDetails />} />
+              <Route path="grievances" element={<AdminGrievancesList />} />
+              <Route path="grievances/:id" element={<AdminGrievanceDetails />} />
+              <Route path="audit-logs" element={<AuditLogsList />} />
+              <Route path="audit-logs/:id" element={<AuditLogDetails />} />
+            </Route>
+
             <Route path="*" element={<Unauthorized />} />
           </Routes>
           

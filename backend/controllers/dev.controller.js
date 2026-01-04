@@ -1,6 +1,7 @@
 const { isValidObjectId } = require("mongoose");
 const Organization = require("../models/organization.model");
 const { sendEmail } = require("../utils/mail");
+const auditService = require("../services/audit.service");
 const {
   errorResponse,
   successResponse,
@@ -9,7 +10,8 @@ const {
 
 const approveOrganization = async (req, res) => {
   try {
-    const { id } = req.body;
+    // Support both body.id (legacy) and params.id (new)
+    const id = req.params.id || req.body.id;
     if (!id) {
       return errorResponse(res, 400, "Organization id is required");
     }
@@ -33,6 +35,13 @@ const approveOrganization = async (req, res) => {
 
     organization.is_approved = true;
     await organization.save();
+
+    // Log audit
+    await auditService.logOrganizationAction(
+      "ORGANIZATION_APPROVED",
+      organization,
+      req
+    );
 
     const isMailSend = await sendEmail(
       organization.email,
