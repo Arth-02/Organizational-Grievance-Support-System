@@ -4,21 +4,21 @@ import { Separator } from "@/components/ui/separator";
 
 const GrievanceModalSkeleton = () => {
   return (
-      <div className="bg-slate-800 rounded-lg max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
+      <div className="bg-card rounded-xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-border shadow-xl" tabIndex="-1" aria-hidden="true">
         <DialogHeader>
-          <DialogTitle className="p-4 flex items-start justify-between border-slate-700">
+          <DialogTitle className="p-4 flex items-start justify-between">
             <div className="flex-1">
-              <Skeleton className="h-7 w-96 mb-3" />
+              <Skeleton className="h-7 w-96 mb-3 bg-muted" />
               <div className="flex items-center gap-2 mt-3">
-                <Skeleton className="h-5 w-16" />
-                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-16 bg-muted" />
+                <Skeleton className="h-5 w-20 bg-muted" />
               </div>
             </div>
           </DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
 
-        <Separator className="w-[97%] mx-auto dark:bg-white/10 h-[1px]" />
+        <Separator className="w-[97%] mx-auto bg-border" />
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 flex gap-6">
@@ -27,87 +27,87 @@ const GrievanceModalSkeleton = () => {
               <div className="flex flex-wrap gap-6">
                 {/* Reported By */}
                 <div>
-                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-3 w-20 mb-2 bg-muted" />
                   <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-7 w-7 rounded-full bg-muted" />
+                    <Skeleton className="h-4 w-24 bg-muted" />
                   </div>
                 </div>
 
                 {/* Assigned To */}
                 <div>
-                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-3 w-20 mb-2 bg-muted" />
                   <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-7 w-7 rounded-full bg-muted" />
+                    <Skeleton className="h-4 w-24 bg-muted" />
                   </div>
                 </div>
 
                 {/* Department */}
                 <div>
-                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-3 w-20 mb-2 bg-muted" />
                   <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-7 w-7 rounded-full bg-muted" />
+                    <Skeleton className="h-4 w-24 bg-muted" />
                   </div>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <Skeleton className="h-4 w-32 mb-4" />
-                <div className="rounded-lg border border-slate-700 overflow-hidden">
-                  <div className="p-3">
-                    <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-3 w-32 mb-3 bg-muted" />
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <div className="p-3 space-y-2">
+                    <Skeleton className="h-4 w-full bg-muted" />
+                    <Skeleton className="h-4 w-3/4 bg-muted" />
+                    <Skeleton className="h-4 w-1/2 bg-muted" />
                   </div>
                 </div>
               </div>
 
               {/* Attachments */}
               <div>
-                <Skeleton className="h-4 w-24 mb-4" />
+                <Skeleton className="h-3 w-24 mb-3 bg-muted" />
                 <div className="flex gap-3">
-                  {[...Array(4)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 rounded"
-                    >
-                      <Skeleton className="h-32 w-32 rounded-lg" />
-                    </div>
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-24 rounded-lg bg-muted" />
                   ))}
                 </div>
               </div>
             </div>
 
             {/* Right Column - Actions */}
-            <div className="w-48 space-y-12">
+            <div className="w-52 space-y-4 bg-muted/50 p-4 rounded-xl">
               {/* Status */}
-              <div className="space-y-4">
-                <Skeleton className="h-4 w-16 mb-2" />
-                <Skeleton className="h-6 w-full" />
+              <div className="space-y-3">
+                <Skeleton className="h-3 w-12 bg-muted" />
+                <Skeleton className="h-9 w-full rounded-md bg-background" />
+              </div>
 
-                <Skeleton className="h-4 w-16 mt-4 mb-2" />
-                <Skeleton className="h-6 w-full" />
+              {/* Priority */}
+              <div className="space-y-3">
+                <Skeleton className="h-3 w-14 bg-muted" />
+                <Skeleton className="h-9 w-full rounded-md bg-background" />
               </div>
 
               {/* Add to card */}
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-6 w-full" />
+              <div className="space-y-3 pt-3 border-t border-border">
+                <Skeleton className="h-3 w-20 bg-muted" />
+                <Skeleton className="h-8 w-full rounded-md bg-background" />
               </div>
 
               {/* Actions */}
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-16 mb-2" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
+              <div className="space-y-3 pt-3 border-t border-border">
+                <Skeleton className="h-3 w-14 bg-muted" />
+                <Skeleton className="h-8 w-full rounded-md bg-background" />
+                <Skeleton className="h-8 w-full rounded-md bg-background" />
               </div>
 
               {/* Created date */}
-              <div className="pt-4 border-t border-slate-700">
+              <div className="pt-3 border-t border-border">
                 <div className="flex items-center gap-2">
-                  <Skeleton className="h-5 w-4" />
-                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-4 bg-muted" />
+                  <Skeleton className="h-4 w-28 bg-muted" />
                 </div>
               </div>
             </div>

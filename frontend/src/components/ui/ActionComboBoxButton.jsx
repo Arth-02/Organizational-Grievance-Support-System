@@ -74,7 +74,7 @@ export default function ActionComboBoxButton({
     if (!multiSelect) {
       return (
         <>
-          {Icon && <Icon className="h-4 w-4 mr-2" />}
+          {Icon && <Icon className="h-4 w-4 mr-2 shrink-0" />}
           {buttonLabel}
         </>
       );
@@ -111,7 +111,7 @@ export default function ActionComboBoxButton({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-gray-200 dark:hover:bg-slate-700/50"
+          className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={() => setOpen(!open)}
         >
           {renderButtonContent()}
@@ -119,7 +119,7 @@ export default function ActionComboBoxButton({
       </PopoverTrigger>
 
       <PopoverContent asChild className="w-[300px] p-0">
-        <Command className="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-900">
+        <Command className="bg-popover border-border">
           <CommandInput
             placeholder={`Search ${buttonLabel.toLowerCase()}...`}
           />

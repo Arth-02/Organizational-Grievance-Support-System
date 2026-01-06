@@ -499,7 +499,7 @@ const GrievanceBoardView = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-220px)] p-4 pb-0">
+      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-200px)] pt-4">
         {lists.map((list) => (
           <GrievanceList
             key={list}

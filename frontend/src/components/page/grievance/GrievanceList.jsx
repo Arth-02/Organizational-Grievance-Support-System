@@ -4,14 +4,45 @@ import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import cn from "classnames";
+
+const STATUS_CONFIG = {
+  submitted: {
+    label: "Submitted",
+    textColor: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-50 dark:bg-blue-500/15",
+  },
+  "in-progress": {
+    label: "In Progress",
+    textColor: "text-amber-600 dark:text-amber-400",
+    bgColor: "bg-amber-50 dark:bg-amber-500/15",
+  },
+  resolved: {
+    label: "Resolved",
+    textColor: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-50 dark:bg-emerald-500/15",
+  },
+  dismissed: {
+    label: "Dismissed",
+    textColor: "text-slate-600 dark:text-gray-400",
+    bgColor: "bg-slate-100 dark:bg-gray-700/50",
+  },
+};
 
 const SkeletonCard = () => (
-  <div className="bg-white dark:bg-gray-600/20 rounded-lg p-4 shadow">
-    <Skeleton className="h-4 w-3/4 mb-2" />
-    <Skeleton className="h-4 w-1/2 mb-4" />
-    <div className="flex justify-between items-center">
-      <Skeleton className="h-8 w-8 rounded-full" />
-      <Skeleton className="h-6 w-16" />
+  <div className="bg-card rounded-lg p-4 shadow-sm border border-border skeleton-shimmer">
+    <div className="flex items-start justify-between gap-3 mb-3">
+      <Skeleton className="h-5 w-3/4 bg-muted" />
+      <Skeleton className="h-5 w-14 rounded-full bg-muted" />
+    </div>
+    <Skeleton className="h-4 w-full mb-2 bg-muted" />
+    <Skeleton className="h-4 w-2/3 mb-4 bg-muted" />
+    <div className="flex justify-between items-center pt-3 border-t border-border">
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-20 rounded-md bg-muted" />
+        <Skeleton className="h-6 w-16 rounded-md bg-muted" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-full bg-muted" />
     </div>
   </div>
 );
@@ -27,6 +58,7 @@ const GrievanceList = ({
   onPageChange,
 }) => {
   const containerRef = useRef(null);
+  const statusConfig = STATUS_CONFIG[list] || STATUS_CONFIG.submitted;
 
   // Track if we're currently loading
   const [isLoading, setIsLoading] = useState(false);
@@ -61,26 +93,46 @@ const GrievanceList = ({
         return (
           <div
             key={list}
-            className={`flex-shrink-0 w-[370px] bg-gray-100 dark:bg-slate-900/50 max-h-full rounded-lg flex flex-col border
-                  ${
-                    isDraggingOver ? "dark:border-white/35" : "border-white/0"
-                  } transition-all duration-200 overflow-x-hidden`}
+            className={cn(
+              "flex-shrink-0 w-[350px] max-h-full rounded-lg flex flex-col overflow-hidden",
+              "bg-secondary",
+              "border border-border",
+              isDraggingOver && "ring-2 ring-primary/30",
+              "transition-all duration-200"
+            )}
           >
-            <div className="p-4 pb-2">
-              <h3 className="font-semibold capitalize">{list} {`(${totalGrievancesCount})`}</h3>
+            <div className="p-3 border-b border-border">
+              <div className="flex items-center justify-between">
+                <h3 className={cn(
+                  "font-medium text-sm",
+                  statusConfig.textColor
+                )}>
+                  {statusConfig.label}
+                </h3>
+                <span className={cn(
+                  "px-2 py-0.5 rounded text-xs font-medium",
+                  statusConfig.bgColor,
+                  statusConfig.textColor
+                )}>
+                  {totalGrievancesCount}
+                </span>
+              </div>
             </div>
+
+            {/* Cards container */}
             <div
               ref={(node) => {
                 provided.innerRef(node);
                 containerRef.current = node;
               }}
               {...provided.droppableProps}
-              className={`flex-1 overflow-x-hidden overflow-y-auto max-h-full p-4 pt-2 transition-all duration-200`}
+              className="flex-1 overflow-x-hidden overflow-y-auto max-h-full p-3 pt-1"
             >
               <div
-                className={`space-y-4 transition-all duration-200 ${
-                  isDraggingFrom ? "opacity-50" : "opacity-100"
-                }`}
+                className={cn(
+                  "space-y-3 transition-all duration-200",
+                  isDraggingFrom ? "opacity-60" : "opacity-100"
+                )}
               >
                 {!isInisialized ? (
                   Array.from({ length: randomSkeletonCountRef.current }).map((_, index) => (
@@ -107,7 +159,11 @@ const GrievanceList = ({
                 {hasNextPage && <div ref={lastElementRef} className="h-4" />}
               </div>
               {provided.placeholder}
-              {isLoading && isInisialized && <Loader2 className="w-7 h-7 mt-4 mx-auto animate-spin" />}
+              {isLoading && isInisialized && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                </div>
+              )}
             </div>
           </div>
         );

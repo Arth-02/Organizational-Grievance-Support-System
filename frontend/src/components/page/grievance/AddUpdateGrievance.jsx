@@ -94,14 +94,14 @@ export default function AddGrievanceModal() {
         }
       }}
     >
-      <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-xl border border-border">
         <DialogHeader>
-          <DialogTitle className="p-4 flex items-center justify-between border-gray-200 dark:border-slate-700">
-            New Grievance
+          <DialogTitle className="p-4 flex items-center justify-between">
+            <span className="text-xl font-semibold text-card-foreground">New Grievance</span>
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-600/50"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={handleClose}
             >
               <X className="h-5 w-5" />
@@ -110,7 +110,7 @@ export default function AddGrievanceModal() {
           <DialogDescription className="hidden"></DialogDescription>
         </DialogHeader>
 
-        <Separator className="w-[97%] mx-auto bg-gray-200 dark:bg-white/10" />
+        <Separator className="w-[97%] mx-auto bg-border" />
 
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -119,12 +119,12 @@ export default function AddGrievanceModal() {
           <div className="p-4 space-y-6">
             {/* Title */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Title *
               </label>
               <Input
                 {...register("title", { required: "Title is required" })}
-                className="bg-white dark:bg-slate-900"
+                className="bg-background border-border focus:ring-2 focus:ring-primary/20 transition-shadow"
                 placeholder="Enter grievance title"
               />
               {errors.title && (
@@ -134,7 +134,7 @@ export default function AddGrievanceModal() {
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Description *
               </label>
               <Controller
@@ -158,7 +158,7 @@ export default function AddGrievanceModal() {
             <div className="grid grid-cols-2 gap-4">
               {/* Department */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Department *
                 </label>
                 <Controller
@@ -172,12 +172,12 @@ export default function AddGrievanceModal() {
                       open={isDepartmentSelectOpen}
                       onOpenChange={setIsDepartmentSelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-background hover:bg-muted border-border">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-slate-900">
+                      <SelectContent className="bg-popover border-border">
                         {departments?.data?.map((dept) => (
-                          <SelectItem key={dept._id} value={dept._id} className="hover:bg-gray-100 dark:hover:bg-slate-600/50">
+                          <SelectItem key={dept._id} value={dept._id}>
                             {dept.name}
                           </SelectItem>
                         ))}
@@ -194,7 +194,7 @@ export default function AddGrievanceModal() {
 
               {/* Priority */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Priority *
                 </label>
                 <Controller
@@ -208,12 +208,12 @@ export default function AddGrievanceModal() {
                       open={isPrioritySelectOpen}
                       onOpenChange={setIsPrioritySelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-background hover:bg-muted border-border">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-slate-900">
+                      <SelectContent className="bg-popover border-border">
                         {PRIORITY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value} className="hover:bg-gray-100 dark:hover:bg-slate-600/50">
+                          <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
                         ))}
@@ -232,7 +232,7 @@ export default function AddGrievanceModal() {
             {/* Attachments */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Attachments (Optional)
                 </label>
               </div>
@@ -245,16 +245,20 @@ export default function AddGrievanceModal() {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="dark:bg-transparent"
+                className="border-border hover:bg-muted transition-colors"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90 shadow-sm hover:shadow-md transition-all"
+              >
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Create Grievance
               </Button>

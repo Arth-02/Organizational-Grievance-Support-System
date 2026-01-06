@@ -161,3 +161,168 @@
   transform: translateX(100%);
   transition: opacity 500ms, transform 300ms;
 }
+
+/* Grievance UI Enhancement Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes subtle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dark .glass-subtle {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+/* Priority gradient backgrounds */
+.priority-gradient-low {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%);
+}
+
+.dark .priority-gradient-low {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, transparent 100%);
+}
+
+.priority-gradient-medium {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.05) 0%, transparent 100%);
+}
+
+.dark .priority-gradient-medium {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, transparent 100%);
+}
+
+.priority-gradient-high {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, transparent 100%);
+}
+
+.dark .priority-gradient-high {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
+}
+
+/* Card accent borders */
+.card-accent-low {
+  border-left: 3px solid rgb(34, 197, 94);
+}
+
+.card-accent-medium {
+  border-left: 3px solid rgb(234, 179, 8);
+}
+
+.card-accent-high {
+  border-left: 3px solid rgb(239, 68, 68);
+}
+
+/* Enhanced badge styles */
+.badge-glow-green {
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+.badge-glow-yellow {
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.3);
+}
+
+.badge-glow-red {
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.badge-glow-blue {
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Skeleton shimmer for loading states */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+

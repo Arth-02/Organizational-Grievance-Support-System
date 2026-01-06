@@ -62,19 +62,37 @@ import EditableTitle from "../../ui/EditableTitle";
 import useSocket from "@/utils/useSocket";
 
 const PRIORITY_BADGES = {
-  low: { color: "bg-green-500/10 text-green-500", label: "Low" },
-  medium: { color: "bg-yellow-500/10 text-yellow-500", label: "Medium" },
-  high: { color: "bg-red-500/10 text-red-500", label: "High" },
+  low: { 
+    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400", 
+    label: "Low" 
+  },
+  medium: { 
+    color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400", 
+    label: "Medium" 
+  },
+  high: { 
+    color: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400", 
+    label: "High" 
+  },
 };
 
 const STATUS_BADGES = {
-  submitted: { color: "bg-blue-500/10 text-blue-500", label: "Submitted" },
+  submitted: { 
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400", 
+    label: "Submitted" 
+  },
   "in-progress": {
-    color: "bg-yellow-500/10 text-yellow-500",
+    color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
     label: "In Progress",
   },
-  resolved: { color: "bg-green-500/10 text-green-500", label: "Resolved" },
-  dismissed: { color: "bg-slate-500/10 text-slate-500", label: "Dismissed" },
+  resolved: { 
+    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400", 
+    label: "Resolved" 
+  },
+  dismissed: { 
+    color: "bg-gray-200 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400", 
+    label: "Dismissed" 
+  },
 };
 
 function GrievanceModal() {
@@ -274,9 +292,9 @@ function GrievanceModal() {
     >
       {isLoading && <GrievanceModalSkeleton />}
       {!isLoading && (
-        <div className="bg-gray-100 dark:bg-slate-800 rounded-lg w-full max-h-[90vh] focus:border-red-700 focus-within:border-red-700 focus-visible:border-red-700 overflow-hidden flex flex-col">
+        <div className="bg-card rounded-xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-xl border border-border">
           <DialogHeader>
-            <DialogTitle className="p-4 flex items-start justify-between border-gray-200 dark:border-slate-700">
+            <DialogTitle className="p-4 flex items-start justify-between">
               <div className="flex-1">
                 <EditableTitle
                   title={grievance?.data.title}
@@ -287,7 +305,7 @@ function GrievanceModal() {
                   {grievance?.data?.priority && (
                     <Badge
                       className={cn(
-                        "font-medium",
+                        "text-xs font-semibold px-2 py-0.5 uppercase",
                         PRIORITY_BADGES[grievance.data.priority].color
                       )}
                     >
@@ -297,7 +315,7 @@ function GrievanceModal() {
                   {grievance?.data?.status && (
                     <Badge
                       className={cn(
-                        "font-medium",
+                        "text-xs font-semibold px-2 py-0.5 uppercase",
                         STATUS_BADGES[grievance.data.status].color
                       )}
                     >
@@ -309,7 +327,7 @@ function GrievanceModal() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-600/50"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 onClick={handleClose}
               >
                 <X className="h-5 w-5" />
@@ -318,7 +336,7 @@ function GrievanceModal() {
             <DialogDescription></DialogDescription>
           </DialogHeader>
 
-          <Separator className="w-[97%] mx-auto bg-gray-200 dark:bg-white/10 h-[1px]" />
+          <Separator className="w-[97%] mx-auto bg-border" />
 
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 flex gap-6">
@@ -326,18 +344,18 @@ function GrievanceModal() {
               <div className="flex-1 space-y-6">
                 <div className="flex flex-wrap gap-6">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                       Reported By
                     </h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <Tooltip>
                         <TooltipTrigger>
-                          <Avatar>
+                          <Avatar className="h-7 w-7 ring-2 ring-border shadow-sm">
                             <AvatarImage
                               src={grievance?.data?.reported_by?.avatar}
                               alt={grievance?.data?.reported_by?.username}
                             />
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                               {grievance?.data?.reported_by?.username[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -346,25 +364,25 @@ function GrievanceModal() {
                           {grievance?.data?.reported_by?.username}
                         </TooltipContent>
                       </Tooltip>
-                      <span className="text-gray-700 dark:text-slate-300">
+                      <span className="text-sm font-medium text-card-foreground">
                         {grievance?.data?.reported_by?.username || "User"}
                       </span>
                     </div>
                   </div>
                   {grievance?.data?.assigned_to && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
+                      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                         Assigned To
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <Tooltip>
                           <TooltipTrigger>
-                            <Avatar>
+                            <Avatar className="h-7 w-7 ring-2 ring-border shadow-sm">
                               <AvatarImage
                                 src={grievance?.data?.assigned_to?.avatar}
                                 alt={grievance?.data?.assigned_to?.username}
                               />
-                              <AvatarFallback>
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                                 {grievance?.data?.assigned_to?.username[0]}
                               </AvatarFallback>
                             </Avatar>
@@ -373,7 +391,7 @@ function GrievanceModal() {
                             {grievance?.data?.assigned_to?.username}
                           </TooltipContent>
                         </Tooltip>
-                        <span className="text-gray-700 dark:text-slate-300">
+                        <span className="text-sm font-medium text-card-foreground">
                           {grievance.data.assigned_to.username}
                         </span>
                       </div>
@@ -381,12 +399,14 @@ function GrievanceModal() {
                   )}
 
                   <div>
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300 mb-2">
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                       Department
                     </h3>
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-gray-400 dark:text-slate-400" />
-                      <span className="text-gray-700 dark:text-slate-300">
+                      <div className="flex items-center justify-center h-7 w-7 rounded-full bg-muted dark:bg-slate-600/50">
+                        <Building2 className="h-4 w-4 dark:text-slate-300" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {grievance?.data?.department_id?.name || "Department"}
                       </span>
                     </div>
@@ -416,9 +436,9 @@ function GrievanceModal() {
               </div>
 
               {/* Right Column - Actions */}
-              <div className="w-48 space-y-4">
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400">
+              <div className="w-56 space-y-4 bg-muted/50 border border-border p-4 rounded-xl">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Status
                   </h4>
                   {canEditStatus ? (
@@ -430,16 +450,15 @@ function GrievanceModal() {
                       }}
                       onOpenChange={setIsStatusSelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-background hover:bg-muted border-border">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-slate-900">
+                      <SelectContent className="bg-popover border-border">
                         {Object.entries(STATUS_BADGES).map(
                           ([value, { label, color }]) => (
                             <SelectItem
                               key={value}
                               value={value}
-                              className="hover:bg-gray-100 dark:hover:bg-slate-700/50"
                             >
                               <span
                                 className={`px-2 py-1 rounded text-sm ${color}`}
@@ -453,7 +472,7 @@ function GrievanceModal() {
                     </Select>
                   ) : (
                     <div
-                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
+                      className={`px-2 py-2 rounded-md w-full text-sm bg-background border border-border ${
                         STATUS_BADGES[grievance?.data?.status]?.color
                       }`}
                     >
@@ -461,7 +480,7 @@ function GrievanceModal() {
                     </div>
                   )}
 
-                  <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400 mt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4">
                     Priority
                   </h4>
                   {canEditPriority ? (
@@ -472,16 +491,15 @@ function GrievanceModal() {
                       }}
                       onOpenChange={setIsPrioritySelectOpen}
                     >
-                      <SelectTrigger className="w-full bg-white hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-900/50">
+                      <SelectTrigger className="w-full bg-background hover:bg-muted border-border">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-slate-900">
+                      <SelectContent className="bg-popover border-border">
                         {Object.entries(PRIORITY_BADGES).map(
                           ([value, { label, color }]) => (
                             <SelectItem
                               key={value}
                               value={value}
-                              className="hover:bg-gray-100 dark:hover:bg-slate-600/50"
                             >
                               <span
                                 className={`px-2 py-1 rounded text-sm ${color}`}
@@ -495,7 +513,7 @@ function GrievanceModal() {
                     </Select>
                   ) : (
                     <div
-                      className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
+                      className={`px-2 py-2 rounded-md w-full text-sm bg-background border border-border ${
                         PRIORITY_BADGES[grievance?.data?.priority]?.color
                       }`}
                     >
@@ -505,13 +523,13 @@ function GrievanceModal() {
                 </div>
 
                 {canEditAttachments && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400">
+                  <div className="space-y-3 pt-3 border-t border-border">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Add to card
                     </h4>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-slate-300 dark:hover:text-gray-200 dark:hover:bg-slate-700/50"
+                      className="w-full justify-start text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700/50 transition-colors"
                       onClick={() => setAttachmentModalOpen(true)}
                     >
                       <Paperclip className="h-4 w-4 mr-2" />
@@ -523,8 +541,8 @@ function GrievanceModal() {
                 {(canEditGrievance ||
                   canEditAssignee ||
                   canDeleteGrievance) && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-slate-400">
+                  <div className="space-y-3 pt-3 border-t border-border">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Actions
                     </h4>
                     {canEditAssignee && (
@@ -564,8 +582,8 @@ function GrievanceModal() {
                     )}
                   </div>
                 )}
-                <div className="pt-4 border-t border-gray-200 dark:border-slate-700 !mb-2">
-                  <div className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-2">
+                <div className="pt-3 border-t border-border">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Created{" "}
                     {new Date(
@@ -582,25 +600,33 @@ function GrievanceModal() {
         open={deleteDialog}
         onOpenChange={(open) => setDeleteDialog(open ? true : false)}
       >
-        <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
+        <AlertDialogContent className="bg-card border border-border dark:border-secondary shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Close Grievance</AlertDialogTitle>
-            <AlertDialogDescription>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-full bg-red-100 dark:bg-red-500/20">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <AlertDialogTitle className="text-lg font-semibold text-card-foreground">
+                Close Grievance
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to close &quot;
-              {grievance?.data?.title}&quot;? This action cannot be undone.
+              <span className="font-medium text-foreground">{grievance?.data?.title}</span>
+              &quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="dark:bg-transparent dark:hover:bg-slate-800/50">
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="border-border hover:bg-muted">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloseGrievance}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-red-600 hover:bg-red-700 text-white"
               disabled={deleting}
             >
               {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Delete
+              Close Grievance
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -81,27 +81,23 @@ const FILE_TYPES = {
 };
 
 const MediaTypeIndicator = ({ type }) => {
-  let icon = <FileText className="w-4 h-4" />;
+  let icon = <FileText className="w-4 h-4 text-white" />;
   let label = "File";
-  let bgColor = "bg-gray-500";
 
   if (type?.startsWith("image/")) {
-    icon = <ImageIcon className="w-4 h-4 backdrop-blur-md" />;
+    icon = <ImageIcon className="w-4 h-4 text-white" />;
     label = "Image";
-    bgColor = "bg-blue-500 dark:bg-black/50";
   } else if (type?.startsWith("video/")) {
-    icon = <Film className="w-4 h-4" />;
+    icon = <Film className="w-4 h-4 text-white" />;
     label = "Video";
-    bgColor = "bg-purple-500 dark:bg-black/50";
   } else if (FILE_TYPES[type]) {
     label = FILE_TYPES[type].label;
-    bgColor = "bg-gray-500 dark:bg-black/50";
   }
 
   return (
     <Tooltip>
       <TooltipTrigger
-        className={`absolute top-1 right-1 ${bgColor} bg-opacity-75 p-1 rounded-md`}
+        className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm p-1 rounded-md z-10"
       >
         {icon}
       </TooltipTrigger>
@@ -271,17 +267,21 @@ const AttachmentManager = ({
     return (
       <>
         <div
-          className={`relative group w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer ${
+          className={`relative group w-32 h-32 bg-muted rounded-lg overflow-hidden cursor-pointer ${
             selectedAttachments.includes(attachment._id)
-              ? "ring-2 ring-blue-500"
+              ? "ring-2 ring-primary"
               : ""
           }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePreview(attachment);
+          }}
         >
           <MediaTypeIndicator type={attachment.filetype} />
 
           {loadingMedia[attachment._id] && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-              <Loader2 className="w-6 h-6 animate-spin text-gray-500 dark:text-gray-400" />
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
 
@@ -307,18 +307,11 @@ const AttachmentManager = ({
             </video>
           )}
 
-          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePreview(attachment);
-              }}
-              className="hover:bg-gray-100 dark:hover:bg-white/20"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
+          {/* Hover overlay with preview and delete icons */}
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+              <Maximize2 className="h-5 w-5 text-white" />
+            </div>
             {canEdit && (
               <Button
                 variant="ghost"
@@ -330,9 +323,9 @@ const AttachmentManager = ({
                     attachments: [attachment._id],
                   });
                 }}
-                className="text-red-500 hover:text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/30"
+                className="p-2 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:text-red-400 hover:bg-red-500/30"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
               </Button>
             )}
           </div>
@@ -465,11 +458,11 @@ const AttachmentManager = ({
       </div>
 
       <Dialog open={uploadModal} onOpenChange={setUploadModal}>
-        <DialogContent className="bg-white dark:bg-gray-900 max-w-xl">
-          <DialogTitle className="text-gray-900 dark:text-gray-200">
+        <DialogContent className="bg-card border-border max-w-xl">
+          <DialogTitle className="text-card-foreground">
             Upload Attachments
           </DialogTitle>
-          <DialogDescription className="text-gray-500 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground">
             Add Image, Video or file upto 5 files
           </DialogDescription>
           <FileUploadComponent
@@ -496,11 +489,15 @@ const AttachmentManager = ({
       >
         <DialogContent
           shouldRemoveCloseIcon={true}
-          className="sm:max-w-3xl w-fit dark:bg-transparent border-none"
+          className="sm:max-w-4xl w-fit bg-transparent border-none shadow-none p-0"
         >
-          <DialogTitle className="hidden">Attachment Preview</DialogTitle>
-          <DialogDescription></DialogDescription>
-          <div className="flex justify-center">{previewModal.content}</div>
+          <DialogTitle className="sr-only">Attachment Preview</DialogTitle>
+          <DialogDescription className="sr-only">Preview of the selected attachment</DialogDescription>
+          <div className="relative flex justify-center items-center">
+            <div className="rounded-lg overflow-hidden shadow-2xl">
+              {previewModal.content}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -511,21 +508,27 @@ const AttachmentManager = ({
           setDeleteDialog({ open, attachments: deleteDialog.attachments || [] })
         }
       >
-        <AlertDialogContent className="bg-slate-900 dark:border-2 dark:border-white/20">
+        <AlertDialogContent className="bg-card border border-border dark:border-secondary shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Attachments</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the selected attachments? This
-              action cannot be undone.
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-full bg-red-100 dark:bg-red-500/20">
+                <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <AlertDialogTitle className="text-lg font-semibold text-card-foreground">
+                Delete Attachments
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete <span className="font-medium text-foreground">{deleteDialog.attachments?.length || 0}</span> attachment(s)? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="dark:bg-transparent dark:hover:bg-slate-800/50">
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="border-border hover:bg-muted">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleDelete(deleteDialog.attachments)}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-red-600 hover:bg-red-700 text-white"
               disabled={deleting}
             >
               {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
