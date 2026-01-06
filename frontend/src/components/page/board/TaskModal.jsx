@@ -214,19 +214,19 @@ const TaskModal = () => {
                 <div className="flex items-center gap-2 mt-3">
                   {task?.tag && (
                     <Badge
-                      className={cn("font-medium", TAG_BADGES[task.tag].color)}
+                      className={cn("font-medium", TAG_BADGES[task.tag]?.color || "bg-gray-500/10 text-gray-500")}
                     >
-                      {TAG_BADGES[task.tag].label}
+                      {TAG_BADGES[task.tag]?.label || task.tag}
                     </Badge>
                   )}
                   {task?.priority && (
                     <Badge
                       className={cn(
                         "font-medium",
-                        PRIORITY_BADGES[task.priority].color
+                        PRIORITY_BADGES[task.priority]?.color || "bg-gray-500/10 text-gray-500"
                       )}
                     >
-                      {PRIORITY_BADGES[task.priority].label}
+                      {PRIORITY_BADGES[task.priority]?.label || task.priority}
                     </Badge>
                   )}
                 </div>
@@ -346,10 +346,10 @@ const TaskModal = () => {
                   ) : (
                     <div
                       className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
-                        TAG_BADGES[task?.tag]?.color
+                        TAG_BADGES[task?.tag]?.color || "bg-gray-500/10 text-gray-500"
                       }`}
                     >
-                      {TAG_BADGES[task?.tag]?.label}
+                      {TAG_BADGES[task?.tag]?.label || task?.tag}
                     </div>
                   )}
 
@@ -388,10 +388,10 @@ const TaskModal = () => {
                   ) : (
                     <div
                       className={`px-2 py-2 rounded-md w-full text-sm bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-input/50 ${
-                        PRIORITY_BADGES[task?.priority]?.color
+                        PRIORITY_BADGES[task?.priority]?.color || "bg-gray-500/10 text-gray-500"
                       }`}
                     >
-                      {PRIORITY_BADGES[task?.priority]?.label}
+                      {PRIORITY_BADGES[task?.priority]?.label || task?.priority}
                     </div>
                   )}
                 </div>

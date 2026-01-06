@@ -89,7 +89,8 @@ const ProjectBoardView = () => {
       setIsPopoverOpen(false);
     } catch (error) {
       console.error("Error creating list:", error);
-      toast.error("Failed to create list");
+      const errorMessage = error?.data?.message || error?.message || "Failed to create list";
+      toast.error(errorMessage);
     }
   };
 
