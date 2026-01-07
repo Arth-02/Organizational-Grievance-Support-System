@@ -22,7 +22,7 @@ const Layout = () => {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-10 lg:hidden"
           />
         )}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6" style={{ scrollbarGutter: "stable" }}>
           <div className="bg-card border border-border/50 shadow-sm dark:shadow-none rounded-xl min-h-full p-5">
             <Outlet />
           </div>

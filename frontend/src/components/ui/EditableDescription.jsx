@@ -1,46 +1,95 @@
-import { useState } from 'react';
-import { Menu, Edit2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, Edit2, Save, X } from 'lucide-react';
 import RichTextEditor from './TextEditor';
+import { Button } from './button';
 
-const EditableDescription = ({ 
-  description, 
-  canEdit, 
-  onSave 
+const EditableDescription = ({
+  description,
+  canEdit,
+  onSave
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(description || "");
 
-  const handleDescriptionSave = (content) => {
-    onSave(content);
+  // Sync with external description prop changes
+  useEffect(() => {
+    if (!isEditing) {
+      setEditedContent(description || "");
+    }
+  }, [description, isEditing]);
+
+  const handleSave = () => {
+    // Call parent's optimistic update handler (doesn't wait for API)
+    onSave(editedContent);
     setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedContent(description || "");
+    setIsEditing(false);
+  };
+
+  const handleContentChange = (content) => {
+    setEditedContent(content);
   };
 
   return (
     <div className="mt-4">
       <div className="flex items-center gap-2 mb-2">
-        <Menu className="h-5 w-5" />
-        <h3 className="text-sm font-medium text-gray-600 dark:text-slate-300">Description</h3>
+        <Menu className="h-5 w-5 text-muted-foreground" />
+        <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
+        
         {canEdit && !isEditing && (
-          <button 
-            onClick={() => setIsEditing(true)} 
-            className="ml-auto flex items-center justify-between gap-1 px-2 py-1 transition-all rounded-md dark:bg-slate-800 bg-gray-600 hover:bg-gray-800 dark:hover:bg-slate-700/50"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="ml-auto text-muted-foreground hover:text-foreground hover:bg-muted gap-1.5"
           >
-            <Edit2 className="h-4 w-4" /> Edit
-          </button>
+            <Edit2 className="h-4 w-4" />
+            Edit
+          </Button>
+        )}
+
+        {isEditing && (
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-muted-foreground hover:text-foreground hover:bg-muted gap-1.5"
+            >
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSave}
+              className="text-primary hover:text-primary/90 gap-1.5 bg-primary/15 hover:bg-primary/25"
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+          </div>
         )}
       </div>
-      
+
       {isEditing ? (
-        <RichTextEditor
-          initialContent={description || ""}
-          onSave={handleDescriptionSave}
-          className={canEdit ? "border dark:border-slate-700" : "border-none"}
-          onCancel={() => setIsEditing(false)}
-        />
+        <div className="grievance-text-editor">
+          <RichTextEditor
+            initialContent={editedContent}
+            onChange={handleContentChange}
+            onSave={() => {}}
+            onCancel={() => {}}
+            className="!bg-background/50"
+          />
+        </div>
       ) : (
-        <div 
-          className="min-h-[80px] p-2"
+        <div
+          className="min-h-[80px] p-3 rounded-lg bg-muted/30 prose prose-sm dark:prose-invert max-w-none"
           onClick={() => canEdit && setIsEditing(true)}
-          dangerouslySetInnerHTML={{ __html: description || "No description provided" }}
+          dangerouslySetInnerHTML={{ __html: description || "<span class='text-muted-foreground italic'>No description provided</span>" }}
         />
       )}
     </div>

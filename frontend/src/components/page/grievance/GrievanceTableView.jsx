@@ -1,10 +1,46 @@
 import { useEffect, useState } from "react";
 import GeneralTable from "@/components/table/CustomTable";
-import StatusTag from "@/components/table/StatusTag";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteGrievanceByIdMutation, useGetAllGrievancesQuery } from "@/services/grievance.service";
 import DOMPurify from "dompurify";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Paperclip, Calendar } from "lucide-react";
+
+const STATUS_BADGES = {
+  submitted: { 
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400", 
+    label: "Submitted" 
+  },
+  "in-progress": {
+    color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
+    label: "In Progress",
+  },
+  resolved: { 
+    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400", 
+    label: "Resolved" 
+  },
+  dismissed: { 
+    color: "bg-gray-200 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400", 
+    label: "Dismissed" 
+  },
+};
+
+const PRIORITY_BADGES = {
+  low: { 
+    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400", 
+    label: "Low" 
+  },
+  medium: { 
+    color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400", 
+    label: "Medium" 
+  },
+  high: { 
+    color: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400", 
+    label: "High" 
+  },
+};
 
 const GrievanceTableView = () => {
   const [filters, setFilters] = useState({});
@@ -21,94 +57,148 @@ const GrievanceTableView = () => {
     }
   }, [data]);
 
+  // Handle optimistic updates from modal
+  useEffect(() => {
+    const handleOptimisticUpdate = (event) => {
+      const { grievanceId, updatedData } = event.detail;
+      setLocalGrievances((prev) =>
+        prev.map((g) => (g._id === grievanceId ? { ...g, ...updatedData } : g))
+      );
+    };
+
+    window.addEventListener("grievance_optimistic_update", handleOptimisticUpdate);
+    return () => {
+      window.removeEventListener("grievance_optimistic_update", handleOptimisticUpdate);
+    };
+  }, []);
+
+  const handleViewDetails = (id) => {
+    navigate(`/grievances/${id}`, { state: { background: location } });
+  };
+
   const columns = [
     {
       accessorKey: "title",
-      header: "Title",
+      header: "Grievance",
       sortable: true,
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      sortable: true,
-      cell: ({ row }) => {
-        return (
+      cell: ({ row }) => (
+        <div 
+          className="max-w-[280px] cursor-pointer group"
+          onClick={() => handleViewDetails(row.original._id)}
+        >
+          <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+            {row.original.title}
+          </p>
           <div
-            className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2"
+            className="text-xs text-muted-foreground line-clamp-1 mt-0.5"
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(row.original.description),
+              __html: DOMPurify.sanitize(row.original.description?.replace(/<[^>]*>/g, '') || ''),
             }}
           />
-        );
-      },
+        </div>
+      ),
     },
     {
       accessorKey: "status",
       header: "Status",
       sortable: true,
-    },
-    {
-      accessorKey: "date_reported",
-      header: "Reported Date",
-      sortable: true,
-      cell: ({ row }) => new Date(row.original.date_reported).toDateString(),
-    },
-    {
-      accessorKey: "reported_by.username",
-      header: "Reported By",
-      sortable: true,
-    },
-    {
-      accessorKey: "assigned_to.username",
-      header: "Assigned To",
-      sortable: true,
-    },
-    {
-      accessorKey: "department_id.name",
-      header: "Department",
-      sortable: true,
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const badge = STATUS_BADGES[status];
+        return (
+          <Badge className={`${badge?.color} text-xs font-medium px-2 py-0.5`}>
+            {badge?.label || status}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "priority",
       header: "Priority",
       sortable: true,
       cell: ({ row }) => {
-        if (row.original.priority === "low") {
-          return (
-            <StatusTag
-              value={row.original.priority}
-              classNames={
-                "bg-green-100 dark:bg-green-100/20 text-green-600 dark:text-green-400"
-              }
-            />
-          );
-        } else if (row.original.priority === "medium") {
-          return (
-            <StatusTag
-              value={row.original.priority}
-              classNames={
-                "bg-orange-100 dark:bg-orange-100/20 text-orange-600 dark:text-orange-400"
-              }
-            />
-          );
-        } else {
-          return (
-            <StatusTag
-              value={row.original.priority}
-              classNames={
-                "bg-red-100 dark:bg-red-100/20 text-red-600 dark:text-red-600"
-              }
-            />
-          );
-        }
+        const priority = row.original.priority;
+        const badge = PRIORITY_BADGES[priority];
+        return (
+          <Badge className={`${badge?.color} text-xs font-medium px-2 py-0.5`}>
+            {badge?.label || priority}
+          </Badge>
+        );
       },
     },
     {
-      accessorKey: "attachments",
-      header: "Attachments",
+      accessorKey: "reported_by",
+      header: "Reported By",
       sortable: true,
-      cell: ({ row }) => row.original.attachments.length,
-    }
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Avatar className="h-7 w-7">
+            <AvatarImage src={row.original.reported_by?.avatar} />
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+              {row.original.reported_by?.username?.[0]?.toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm text-foreground">{row.original.reported_by?.username || "N/A"}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "assigned_to",
+      header: "Assigned To",
+      sortable: true,
+      cell: ({ row }) => (
+        row.original.assigned_to ? (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={row.original.assigned_to?.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                {row.original.assigned_to?.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-foreground">{row.original.assigned_to?.username}</span>
+          </div>
+        ) : (
+          <span className="text-sm text-muted-foreground">Unassigned</span>
+        )
+      ),
+    },
+    {
+      accessorKey: "department_id.name",
+      header: "Department",
+      sortable: true,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">
+          {row.original.department_id?.name || "N/A"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "date_reported",
+      header: "Reported",
+      sortable: true,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Calendar className="h-3.5 w-3.5" />
+          {new Date(row.original.date_reported).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "attachments",
+      header: "Files",
+      sortable: false,
+      cell: ({ row }) => {
+        const count = row.original.attachments?.length || 0;
+        return count > 0 ? (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Paperclip className="h-3.5 w-3.5" />
+            {count}
+          </div>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        );
+      },
+    },
   ];
 
   const customFilters = [

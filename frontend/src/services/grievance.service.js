@@ -8,6 +8,7 @@ export const grievanceApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["Grievances"],
     }),
     getAllGrievances: builder.query({
       query: (filters) => {
@@ -25,6 +26,7 @@ export const grievanceApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ["Grievances", "singleGrievance"],
     }),
     updateGrievanceAssignee: builder.mutation({
       query: ({ id, data }) => ({
@@ -32,6 +34,7 @@ export const grievanceApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ["Grievances", "singleGrievance"],
     }),
     updateGrievanceStatus: builder.mutation({
       query: ({ id, data }) => ({
@@ -39,6 +42,7 @@ export const grievanceApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ["Grievances", "singleGrievance"],
     }),
     deleteGrievanceById: builder.mutation({
       query: (id) => ({

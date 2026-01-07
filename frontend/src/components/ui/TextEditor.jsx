@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
+const RichTextEditor = ({ initialContent, onSave, onChange, onCancel, className }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalContent, setOriginalContent] = useState(initialContent);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -101,8 +101,12 @@ const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
         ),
       },
     },
-    onUpdate: () => {
+    onUpdate: ({ editor }) => {
       if (!isEditing) setIsEditing(true);
+      // Call onChange with current content on every update
+      if (onChange) {
+        onChange(editor.getHTML());
+      }
     },
   });
 
@@ -284,7 +288,7 @@ const RichTextEditor = ({ initialContent, onSave, onCancel, className }) => {
 
   return (
     <>
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden max-w-full">
+      <div className="rounded-lg border border-slate-200 dark:border-border overflow-hidden max-w-full">
         <div className="bg-slate-200 dark:bg-slate-900/50 p-2 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center flex-wrap gap-1">
             {toolbarItems.map((item, index) =>

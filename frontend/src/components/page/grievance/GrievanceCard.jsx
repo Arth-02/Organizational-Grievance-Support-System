@@ -101,10 +101,10 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
                       alt={grievance.reported_by?.username}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
-                      {grievance.reported_by?.username[0]?.toUpperCase()}
+                      {grievance.reported_by?.username?.[0]?.toUpperCase() || "?"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium truncate max-w-[70px]">{grievance.reported_by.username}</span>
+                  <span className="font-medium truncate max-w-[70px]">{grievance.reported_by?.username || "Unknown"}</span>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -130,15 +130,15 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
                         src={grievance.assigned_to?.avatar}
                         alt={grievance.assigned_to?.username}
                       />
-                      <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
-                        {grievance.assigned_to?.username[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {grievance.assigned_to?.username}
-                  </TooltipContent>
-                </Tooltip>
+                    <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-semibold">
+                      {grievance.assigned_to?.username?.[0]?.toUpperCase() || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {grievance.assigned_to?.username || "Unknown"}
+                </TooltipContent>
+              </Tooltip>
               }
             </div>
           </CardContent>

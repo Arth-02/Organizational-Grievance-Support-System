@@ -30,7 +30,7 @@ import { Separator } from "@/components/ui/separator";
 import GrievanceModalSkeleton from "./GreievanceCardModalSkeleton";
 import AttachmentManager from "@/components/ui/MediaManager";
 import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  grievanceApi,
   useDeleteGrievanceByIdMutation,
   useGetGrievanceByIdQuery,
   useUpdateGrievanceAssigneeMutation,
@@ -96,6 +97,7 @@ const STATUS_BADGES = {
 };
 
 function GrievanceModal() {
+  const dispatch = useDispatch();
   const { id: grievanceId } = useParams();
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [grievance, setGrievance] = useState(null);
@@ -149,57 +151,95 @@ function GrievanceModal() {
     userPermissions.includes("DELETE_GRIEVANCE") ||
     user._id === grievance?.data?.assigned_to?._id.toString();
 
-  const handleUpdateGrievance = async (data) => {
-    try {
-      const response = await updateGrievance({
-        id: grievanceId,
-        data,
-      }).unwrap();
-      refetch();
-      setGrievance(grievanceData);
-      toast.success(response.message);
-    } catch (error) {
-      console.error("Failed to update grievance:", error);
-      toast.error(error.data.message);
-    }
+  // Dispatch custom event for cross-component optimistic updates
+  const dispatchGrievanceUpdate = (updatedData) => {
+    window.dispatchEvent(
+      new CustomEvent("grievance_optimistic_update", {
+        detail: { grievanceId, updatedData },
+      })
+    );
   };
 
-  const handleUpdateGrievanceAssignee = async (assigneeId) => {
-    try {
-      const response = await updateGrievanceAssignee({
-        id: grievanceId,
-        data: { assigned_to: assigneeId },
-      }).unwrap();
-      refetch();
-      setGrievance(grievanceData);
-      toast.success(response.message);
-    } catch (error) {
-      console.error("Failed to update assignee:", error);
-      toast.error(error.data.message);
-    }
+  // Optimistic update helper - updates UI immediately, calls API in background
+  const optimisticUpdate = (localData, apiCall, successMsg, errorMsg) => {
+    // Store previous state for rollback
+    const previousGrievance = grievance ? { ...grievance, data: { ...grievance.data } } : null;
+    const fullUpdatedData = { ...grievance?.data, ...localData };
+    
+    // Optimistic update - apply changes immediately to modal
+    setGrievance((prev) => ({
+      ...prev,
+      data: { ...prev.data, ...localData },
+    }));
+
+    // Dispatch event for board/table view to update immediately
+    dispatchGrievanceUpdate(fullUpdatedData);
+    
+    // Call API in background (don't await)
+    apiCall()
+      .then((response) => {
+        toast.success(response.message || successMsg);
+      })
+      .catch((error) => {
+        // Rollback on error
+        console.error(errorMsg, error);
+        if (previousGrievance) {
+          setGrievance(previousGrievance);
+          // Dispatch rollback event
+          dispatchGrievanceUpdate(previousGrievance.data);
+        }
+        toast.error(error.data?.message || errorMsg);
+      });
   };
 
-  const handleUpdateGrievanceStatus = async (status) => {
-    try {
-      const response = await updateGrievanceStatus({
-        id: grievanceId,
-        data: { status },
-      }).unwrap();
-      refetch();
-      setGrievance(grievanceData);
-      toast.success(response.message);
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      toast.error(error.data.message);
-    }
+  const handleUpdateGrievance = (data) => {
+    optimisticUpdate(
+      data,
+      () => updateGrievance({ id: grievanceId, data }).unwrap(),
+      "Grievance updated",
+      "Failed to update grievance"
+    );
+  };
+
+  const handleUpdateGrievanceAssignee = (assigneeId, assigneeData) => {
+    const data = { assigned_to: assigneeData || { _id: assigneeId } };
+    optimisticUpdate(
+      data,
+      () => updateGrievanceAssignee({ id: grievanceId, data: { assigned_to: assigneeId } }).unwrap(),
+      "Assignee updated",
+      "Failed to update assignee"
+    );
+  };
+
+  const handleUpdateGrievanceStatus = (status) => {
+    optimisticUpdate(
+      { status },
+      () => updateGrievanceStatus({ id: grievanceId, data: { status } }).unwrap(),
+      "Status updated",
+      "Failed to update status"
+    );
   };
 
   const handleCloseGrievance = async () => {
     setDeleting(true);
     try {
       const response = await deleteGrievance(grievanceId).unwrap();
+
+      // Dispatch event to notify board/table views
+      window.dispatchEvent(
+        new CustomEvent("grievance_deleted", {
+          detail: { grievanceId, status: grievance?.data?.status },
+        })
+      );
+
       toast.success(response.message);
-      navigate(-1);
+
+      // Navigate close - check for background location
+      if (location.state?.background) {
+        navigate(location.state.background.pathname + location.state.background.search);
+      } else {
+        navigate("/grievances");
+      }
     } catch (error) {
       console.error("Failed to close grievance:", error);
       toast.error("Failed to close grievance");
@@ -211,7 +251,11 @@ function GrievanceModal() {
   const handleClose = () => {
     // Only allow closing if no select is open
     if (!isStatusSelectOpen && !isPrioritySelectOpen) {
-      navigate(-1);
+      if (location.state?.background) {
+        navigate(location.state.background.pathname + location.state.background.search);
+      } else {
+        navigate("/grievances");
+      }
     }
   };
 
@@ -281,7 +325,7 @@ function GrievanceModal() {
   return (
     <RoutableModal
       backTo="/grievances"
-      width="max-w-4xl"
+      width="max-w-5xl"
       shouldRemoveCloseIcon={true}
       onPointerDownOutside={(e) => {
         // Prevent modal from closing if any select is open

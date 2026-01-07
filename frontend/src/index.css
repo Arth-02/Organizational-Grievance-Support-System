@@ -326,3 +326,149 @@
   background-size: 200% 100%;
 }
 
+/* ============================================
+   Multi-Step Form Wizard Styles
+   ============================================ */
+
+/* Step transition animations */
+@keyframes stepSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stepSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stepFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.step-slide-in-right {
+  animation: stepSlideInRight 0.35s ease-out forwards;
+}
+
+.step-slide-in-left {
+  animation: stepSlideInLeft 0.35s ease-out forwards;
+}
+
+.step-fade-in {
+  animation: stepFadeIn 0.3s ease-out forwards;
+}
+
+/* Step indicator styles */
+.step-indicator-circle {
+  @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300;
+}
+
+.step-indicator-circle.active {
+  @apply bg-primary text-primary-foreground ring-4 ring-primary/20;
+}
+
+.step-indicator-circle.completed {
+  @apply bg-primary text-primary-foreground;
+}
+
+.step-indicator-circle.upcoming {
+  @apply bg-muted text-muted-foreground border-2 border-border;
+}
+
+.step-connector {
+  @apply h-0.5 flex-1 mx-2 -mt-4 transition-all duration-500;
+}
+
+.step-connector.completed {
+  @apply bg-primary;
+}
+
+.step-connector.upcoming {
+  @apply bg-border;
+}
+
+/* Step label styles */
+.step-label {
+  @apply text-xs font-medium mt-2 transition-colors duration-300;
+}
+
+.step-label.active {
+  @apply text-primary;
+}
+
+.step-label.completed {
+  @apply text-primary;
+}
+
+.step-label.upcoming {
+  @apply text-muted-foreground;
+}
+
+/* Multi-step form container */
+.multi-step-form-container {
+  @apply relative overflow-hidden;
+}
+
+/* Glassmorphism card for form */
+.form-glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .form-glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 15, 0.95) 0%,
+    rgba(10, 10, 10, 0.9) 100%
+  );
+}
+
+/* Grievance Form TextEditor Styling - Match Input Components */
+.grievance-text-editor > div {
+  @apply rounded-lg border border-border bg-background/50 overflow-hidden;
+  @apply transition-all duration-200;
+}
+
+.grievance-text-editor > div:focus-within {
+  @apply border-primary ring-2 ring-primary/20;
+}
+
+/* TextEditor toolbar styling */
+.grievance-text-editor > div > div:first-child {
+  @apply bg-muted/50 border-b border-border p-1.5;
+}
+
+/* TextEditor content area */
+.grievance-text-editor .ProseMirror {
+  @apply bg-background/50 min-h-[160px] p-3 text-sm;
+}
+
+.grievance-text-editor .ProseMirror:focus {
+  @apply outline-none;
+}
+
+/* Hide the save/cancel buttons from TextEditor */
+.grievance-text-editor > div + div {
+  @apply hidden;
+}

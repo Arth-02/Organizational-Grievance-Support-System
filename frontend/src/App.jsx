@@ -147,6 +147,7 @@ function App() {
           {/* Modal routes - render when navigating with background state */}
           {background && (
             <Routes>
+              <Route path="/grievances/add" element={<PrivateRoute><AddUpdateGrievance /></PrivateRoute>} />
               <Route path="/grievances/:id" element={<PrivateRoute><GrievanceModal /></PrivateRoute>} />
               <Route path="/projects/:projectId/board/:boardId/task/:taskId" element={<PrivateRoute><TaskModal /></PrivateRoute>} />
             </Routes>

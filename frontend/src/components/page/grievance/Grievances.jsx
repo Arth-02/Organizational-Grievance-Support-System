@@ -1,31 +1,45 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, LayoutGrid, Table2 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import GrievanceBoardView from "./GrievanceBoardView";
 import GrievanceTableView from "./GrievanceTableView";
 
 const Grievances = () => {
   const [activeView, setActiveView] = useState("board");
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="w-full h-full flex flex-col">
       <Tabs value={activeView} onValueChange={setActiveView} className="flex flex-col h-full">
         {/* Header row with title, tabs, and button */}
         <div className="flex justify-between items-center pb-4 shrink-0">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-primary dark:text-gray-200">Grievances</h1>
+          <h1 className="text-xl font-semibold text-foreground">Grievances</h1>
+          
+          <div className="flex items-center gap-3">
+            {/* View Toggle - Theme colors without slate */}
             <TabsList>
-              <TabsTrigger value="table">Table</TabsTrigger>
-              <TabsTrigger value="board">Board</TabsTrigger>
+              <TabsTrigger 
+                value="table"
+              >
+                <Table2 className="h-4 w-4 mr-1" />
+                Table
+              </TabsTrigger>
+              <TabsTrigger 
+                value="board"
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                Board
+              </TabsTrigger>
             </TabsList>
+            
+            <Button size="sm" onClick={() => navigate("/grievances/add", { state: { background: location } })}>
+              <Plus size={18} className="mr-2" />
+              Add Grievance
+            </Button>
           </div>
-          <Button size="sm" onClick={() => navigate("/grievances/add")}>
-            <Plus size={18} className="mr-2" />
-            Add Grievance
-          </Button>
         </div>
 
         {/* Content area - fills remaining height */}

@@ -483,13 +483,101 @@ const GrievanceBoardView = () => {
     handleCardMoveCount(oldStatus, msg.updatedData.status);
   };
 
+  // Handle optimistic updates from modal (instant updates without waiting for socket)
+  const handleOptimisticUpdate = (event) => {
+    const { grievanceId, updatedData } = event.detail;
+    
+    setGrievances((prevGrievances) => {
+      const newStatus = updatedData.status;
+      
+      // Find the old status of the grievance
+      const oldStatus = Object.keys(prevGrievances).find((status) =>
+        prevGrievances[status].some((g) => g._id === grievanceId)
+      );
+
+      if (!oldStatus) return prevGrievances;
+
+      // If status changed, move between lists
+      if (oldStatus !== newStatus) {
+        const updatedOldList = prevGrievances[oldStatus].filter(
+          (g) => g._id !== grievanceId
+        );
+        // Add at the TOP of the new list (not bottom)
+        const updatedNewList = [
+          updatedData,
+          ...prevGrievances[newStatus].filter((g) => g._id !== grievanceId),
+        ];
+
+        return {
+          ...prevGrievances,
+          [oldStatus]: updatedOldList,
+          [newStatus]: updatedNewList,
+        };
+      }
+
+      // Just update in place
+      return {
+        ...prevGrievances,
+        [oldStatus]: prevGrievances[oldStatus].map((g) =>
+          g._id === grievanceId ? { ...g, ...updatedData } : g
+        ),
+      };
+    });
+  };
+
+  // Handle new grievance created
+  const handleGrievanceCreated = (event) => {
+    const { grievance } = event.detail;
+    if (!grievance) return;
+    
+    const status = grievance.status || "submitted";
+    setGrievances((prev) => ({
+      ...prev,
+      [status]: [grievance, ...prev[status]],
+    }));
+    setTotalGrievancesCount((prev) => ({
+      ...prev,
+      [status]: prev[status] + 1,
+    }));
+  };
+
+  // Handle grievance deleted/closed
+  const handleGrievanceDeleted = (event) => {
+    const { grievanceId, status } = event.detail;
+    if (!grievanceId) return;
+
+    // Find which list contains the grievance if status not provided
+    const targetStatus = status || Object.keys(grievances).find((s) =>
+      grievances[s].some((g) => g._id === grievanceId)
+    );
+
+    if (targetStatus) {
+      setGrievances((prev) => ({
+        ...prev,
+        [targetStatus]: prev[targetStatus].filter((g) => g._id !== grievanceId),
+      }));
+      setTotalGrievancesCount((prev) => ({
+        ...prev,
+        [targetStatus]: Math.max(0, prev[targetStatus] - 1),
+      }));
+    }
+  };
+
   useEffect(() => {
+    // Listen for optimistic updates from modal
+    window.addEventListener("grievance_optimistic_update", handleOptimisticUpdate);
+    window.addEventListener("grievance_created", handleGrievanceCreated);
+    window.addEventListener("grievance_deleted", handleGrievanceDeleted);
+
     socket.on("update_grievance", handleUpdateGrievance);
     socket.on("update_grievance_assignee", handleUpdateGrievanceAssignee);
     socket.on("update_grievance_status", handleUpdateGrievanceStatus);
     socket.on("delete_grievance", handleDeleteGrievance);
 
     return () => {
+      window.removeEventListener("grievance_optimistic_update", handleOptimisticUpdate);
+      window.removeEventListener("grievance_created", handleGrievanceCreated);
+      window.removeEventListener("grievance_deleted", handleGrievanceDeleted);
       socket.off("update_grievance");
       socket.off("update_grievance_status");
       socket.off("update_grievance_assignee");
@@ -499,7 +587,7 @@ const GrievanceBoardView = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-200px)] pt-4">
+      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-205px)] pt-4">
         {lists.map((list) => (
           <GrievanceList
             key={list}
