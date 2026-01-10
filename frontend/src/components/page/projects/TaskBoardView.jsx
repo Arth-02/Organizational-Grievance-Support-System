@@ -1,20 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import useSocket from "@/utils/useSocket";
 import {
   useGetTasksByProjectQuery,
@@ -46,10 +37,15 @@ const ColumnTasksFetcher = ({
     return result;
   }, [columnKey, page, filters]);
 
-  const { data, isError } = useGetTasksByProjectQuery({
-    projectId,
-    filters: queryFilters,
-  });
+  const { data, isError } = useGetTasksByProjectQuery(
+    {
+      projectId,
+      filters: queryFilters,
+    },
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   useEffect(() => {
     if (data?.data?.tasks) {
@@ -81,9 +77,8 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
   const [updateBoard, { isLoading: isUpdatingBoard }] = useUpdateBoardMutation();
 
   // Add column dialog state
-  const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
+  const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnLabel, setNewColumnLabel] = useState("");
-  const [newColumnKey, setNewColumnKey] = useState("");
 
   // Local columns state for drag-and-drop reordering
   const [localColumns, setLocalColumns] = useState([]);
@@ -96,6 +91,16 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
   // Sync local columns with board columns
   useEffect(() => {
     setLocalColumns([...columns].sort((a, b) => a.order - b.order));
+  }, [columns]);
+
+  // Use ref to store column keys - only updates when keys actually change
+  const columnKeysRef = useRef([]);
+  useEffect(() => {
+    const newKeys = columns.map(c => c.key).sort().join(',');
+    const oldKeys = [...columnKeysRef.current].sort().join(',');
+    if (newKeys !== oldKeys) {
+      columnKeysRef.current = columns.map(c => c.key);
+    }
   }, [columns]);
 
   // Initialize state for each column
@@ -126,7 +131,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
     setHasNextPage(initialHasNextPage);
     setIsInitialized(initialIsInitialized);
     setTotalTasksCount(initialTotalCount);
-  }, [columns]);
+  }, [JSON.stringify(columns.map(c => c.key))]);
 
   const handlePageChange = useCallback((status, newPage) => {
     setPage((prev) => ({
@@ -347,22 +352,16 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       onDragEnd(draggableId, destination.droppableId, destination);
     }
   };
-
-  // Reset state when filters change
-  useEffect(() => {
-    const resetPage = {};
-    const resetTasks = {};
-    const resetInitialized = {};
-
-    localColumns.forEach((col) => {
-      resetPage[col.key] = 1;
-      resetTasks[col.key] = [];
-      resetInitialized[col.key] = false;
-    });
-
-    setPage(resetPage);
-    setTasks(resetTasks);
-    setIsInitialized(resetInitialized);
+  // Create stable filter key for comparison (only considers non-null values)
+  // This is used in the ColumnTasksFetcher key to force remount when filters change
+  const stableFilterKey = useMemo(() => {
+    const activeFilters = {};
+    if (filters.assignee) activeFilters.assignee = filters.assignee;
+    if (filters.priority) activeFilters.priority = filters.priority;
+    if (filters.type) activeFilters.type = filters.type;
+    if (filters.search) activeFilters.search = filters.search;
+    if (filters.myFilter && filters.myFilter !== "all") activeFilters.myFilter = filters.myFilter;
+    return JSON.stringify(activeFilters);
   }, [filters]);
 
 
@@ -665,12 +664,6 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       .replace(/-+/g, "-");
   };
 
-  // Handle label change and auto-generate key
-  const handleLabelChange = (value) => {
-    setNewColumnLabel(value);
-    setNewColumnKey(generateColumnKey(value));
-  };
-
   // Handle add column
   const handleAddColumn = async () => {
     if (!newColumnLabel.trim()) {
@@ -678,20 +671,17 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       return;
     }
 
-    if (!newColumnKey.trim()) {
-      toast.error("Column key is required");
-      return;
-    }
+    const columnKey = generateColumnKey(newColumnLabel);
 
     // Check if key already exists
-    if (localColumns.some((col) => col.key === newColumnKey)) {
-      toast.error("A column with this key already exists");
+    if (localColumns.some((col) => col.key === columnKey)) {
+      toast.error("A column with this name already exists");
       return;
     }
 
     try {
       const newColumn = {
-        key: newColumnKey,
+        key: columnKey,
         label: newColumnLabel.trim(),
         order: localColumns.length,
       };
@@ -704,12 +694,110 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       }).unwrap();
 
       toast.success("Column added successfully");
-      setIsAddColumnOpen(false);
+      setIsAddingColumn(false);
       setNewColumnLabel("");
-      setNewColumnKey("");
     } catch (error) {
       console.error("Failed to add column:", error);
       toast.error(error?.data?.message || "Failed to add column");
+    }
+  };
+
+  // Handle cancel add column
+  const handleCancelAddColumn = () => {
+    setIsAddingColumn(false);
+    setNewColumnLabel("");
+  };
+
+  // Handle key press for add column input
+  const handleAddColumnKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleAddColumn();
+    } else if (e.key === "Escape") {
+      handleCancelAddColumn();
+    }
+  };
+
+  // Handle rename column
+  const handleRenameColumn = async (columnKey, newLabel) => {
+    // Optimistically update local columns
+    const updatedColumns = localColumns.map((col) =>
+      col.key === columnKey ? { ...col, label: newLabel } : col
+    );
+    setLocalColumns(updatedColumns);
+
+    try {
+      await updateBoard({
+        id: board._id,
+        data: { columns: updatedColumns },
+      }).unwrap();
+
+      toast.success("Column renamed successfully");
+    } catch (error) {
+      // Revert on error
+      setLocalColumns(localColumns);
+      console.error("Failed to rename column:", error);
+      toast.error(error?.data?.message || "Failed to rename column");
+    }
+  };
+
+  // Handle delete column
+  const handleDeleteColumn = async (columnKey, options) => {
+    try {
+      // Get tasks in this column
+      const columnTasks = tasks[columnKey] || [];
+      
+      if (columnTasks.length > 0 && options) {
+        if (options.action === "move" && options.targetColumn) {
+          // Move all tasks to target column
+          for (const task of columnTasks) {
+            await updateTaskStatus({
+              id: task._id,
+              data: { status: options.targetColumn },
+            }).unwrap();
+          }
+          toast.success(`${columnTasks.length} task${columnTasks.length !== 1 ? "s" : ""} moved successfully`);
+        }
+        // If action is "delete", we just remove the column (tasks will be deleted on backend or stay orphaned)
+      }
+
+      // Optimistically update local columns
+      const updatedColumns = localColumns
+        .filter((col) => col.key !== columnKey)
+        .map((col, index) => ({ ...col, order: index }));
+      setLocalColumns(updatedColumns);
+
+      // Clear local state for this column
+      setTasks((prev) => {
+        const newTasks = { ...prev };
+        delete newTasks[columnKey];
+        return newTasks;
+      });
+      setPage((prev) => {
+        const newPage = { ...prev };
+        delete newPage[columnKey];
+        return newPage;
+      });
+      setIsInitialized((prev) => {
+        const newInit = { ...prev };
+        delete newInit[columnKey];
+        return newInit;
+      });
+      setTotalTasksCount((prev) => {
+        const newCount = { ...prev };
+        delete newCount[columnKey];
+        return newCount;
+      });
+
+      await updateBoard({
+        id: board._id,
+        data: { columns: updatedColumns },
+      }).unwrap();
+
+      toast.success("Column deleted successfully");
+    } catch (error) {
+      // Revert on error - refetch will restore state
+      console.error("Failed to delete column:", error);
+      toast.error(error?.data?.message || "Failed to delete column");
     }
   };
 
@@ -718,7 +806,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       {/* Render fetchers for each column */}
       {localColumns.map((column) => (
         <ColumnTasksFetcher
-          key={`${column.key}-${page[column.key] || 1}`}
+          key={`${column.key}-${page[column.key] || 1}-${stableFilterKey}`}
           projectId={projectId}
           columnKey={column.key}
           page={page[column.key] || 1}
@@ -734,7 +822,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-180px)]"
+              className="flex items-start pt-2 pl-2 gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-180px)]"
             >
               {localColumns.map((column, index) => (
                 <Draggable
@@ -759,6 +847,10 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
                         onPageChange={handlePageChange}
                         dragHandleProps={isProjectManager ? provided.dragHandleProps : null}
                         isProjectManager={isProjectManager}
+                        allColumns={localColumns}
+                        onRenameColumn={handleRenameColumn}
+                        onDeleteColumn={handleDeleteColumn}
+                        isUpdatingBoard={isUpdatingBoard}
                       />
                     </div>
                   )}
@@ -766,17 +858,48 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
               ))}
               {provided.placeholder}
 
-              {/* Add Column Button - Only visible to project managers */}
+              {/* Add Column Button/Input - Only visible to project managers */}
               {isProjectManager && (
                 <div className="flex-shrink-0 w-[300px]">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 border-dashed border-2 text-muted-foreground hover:text-foreground hover:border-primary/50"
-                    onClick={() => setIsAddColumnOpen(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Column
-                  </Button>
+                  {isAddingColumn ? (
+                    <div className="bg-card border border-border rounded-lg p-3">
+                      <Input
+                        placeholder="Enter column name..."
+                        value={newColumnLabel}
+                        onChange={(e) => setNewColumnLabel(e.target.value)}
+                        onKeyDown={handleAddColumnKeyPress}
+                        autoFocus
+                        className="mb-2"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleAddColumn}
+                          disabled={isUpdatingBoard || !newColumnLabel.trim()}
+                          className="flex-1"
+                        >
+                          {isUpdatingBoard && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Add
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelAddColumn}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-dashed border-2 text-muted-foreground hover:text-foreground hover:border-primary/50"
+                      onClick={() => setIsAddingColumn(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Column
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -784,58 +907,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
         </Droppable>
       </DragDropContext>
 
-      {/* Add Column Dialog */}
-      <Dialog open={isAddColumnOpen} onOpenChange={setIsAddColumnOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add New Column</DialogTitle>
-            <DialogDescription>
-              Add a new column to your board. The column key will be auto-generated from the label.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="columnLabel">Column Label</Label>
-              <Input
-                id="columnLabel"
-                placeholder="e.g., In Review"
-                value={newColumnLabel}
-                onChange={(e) => handleLabelChange(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="columnKey">Column Key</Label>
-              <Input
-                id="columnKey"
-                placeholder="e.g., in-review"
-                value={newColumnKey}
-                onChange={(e) => setNewColumnKey(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Used internally. Only lowercase letters, numbers, and hyphens allowed.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddColumnOpen(false);
-                setNewColumnLabel("");
-                setNewColumnKey("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAddColumn} disabled={isUpdatingBoard || !newColumnLabel.trim() || !newColumnKey.trim()}>
-              {isUpdatingBoard && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Add Column
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </>
   );
 };

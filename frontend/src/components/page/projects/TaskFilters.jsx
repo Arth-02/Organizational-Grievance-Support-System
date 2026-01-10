@@ -113,17 +113,29 @@ const TaskFilters = ({ projectId }) => {
 
   const handlePriorityChange = useCallback(
     (value) => {
-      dispatch(setProjectFilters({ priority: value === "all" ? null : value }));
+      dispatch(setProjectFilters({ priority: value }));
     },
     [dispatch]
   );
 
   const handleTypeChange = useCallback(
     (value) => {
-      dispatch(setProjectFilters({ type: value === "all" ? null : value }));
+      dispatch(setProjectFilters({ type: value }));
     },
     [dispatch]
   );
+
+  const handleClearAssignee = useCallback(() => {
+    dispatch(setProjectFilters({ assignee: null }));
+  }, [dispatch]);
+
+  const handleClearPriority = useCallback(() => {
+    dispatch(setProjectFilters({ priority: null }));
+  }, [dispatch]);
+
+  const handleClearType = useCallback(() => {
+    dispatch(setProjectFilters({ type: null }));
+  }, [dispatch]);
 
   const handleMyFilterChange = useCallback(
     (value) => {
@@ -204,141 +216,164 @@ const TaskFilters = ({ projectId }) => {
       </div>
 
       {/* Assignee Filter */}
-      <Popover open={assigneePopoverOpen} onOpenChange={setAssigneePopoverOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-9 gap-2",
-              filters.assignee && "border-primary/50 bg-primary/5"
-            )}
-          >
-            {selectedAssignee ? (
-              <>
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={selectedAssignee.avatar} />
-                  <AvatarFallback className="text-[10px]">
-                    {getInitials(selectedAssignee)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="max-w-[100px] truncate">
-                  {getDisplayName(selectedAssignee)}
-                </span>
-              </>
-            ) : (
-              "Assignee"
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64 p-0" align="start">
-          <ScrollArea className="h-[250px]">
-            <div className="p-1">
-              {/* Clear option */}
-              <div
-                onClick={() => handleAssigneeChange(null)}
-                className={cn(
-                  "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors",
-                  !filters.assignee ? "bg-primary/10" : "hover:bg-muted"
-                )}
-              >
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">All</span>
-                </div>
-                <span className="text-sm">All Assignees</span>
-              </div>
-
-              {/* Member options */}
-              {members.map((member) => (
-                <div
-                  key={member._id}
-                  onClick={() => handleAssigneeChange(member._id)}
-                  className={cn(
-                    "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors",
-                    filters.assignee === member._id
-                      ? "bg-primary/10"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={member.avatar} alt={member.username} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {getInitials(member)}
+      <div className="relative">
+        <Popover open={assigneePopoverOpen} onOpenChange={setAssigneePopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-9 gap-2",
+                filters.assignee && "border-primary/50 bg-primary/5 pr-8"
+              )}
+            >
+              {selectedAssignee ? (
+                <>
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={selectedAssignee.avatar} />
+                    <AvatarFallback className="text-[10px]">
+                      {getInitials(selectedAssignee)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {getDisplayName(member)}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      @{member.username}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {members.length === 0 && (
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                  No members found
-                </div>
+                  <span className="max-w-[80px] truncate">
+                    {getDisplayName(selectedAssignee)}
+                  </span>
+                </>
+              ) : (
+                "Assignee"
               )}
-            </div>
-          </ScrollArea>
-        </PopoverContent>
-      </Popover>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0" align="start">
+            <ScrollArea className="h-[250px]">
+              <div className="p-1">
+                {/* Member options */}
+                {members.map((member) => (
+                  <div
+                    key={member._id}
+                    onClick={() => handleAssigneeChange(member._id)}
+                    className={cn(
+                      "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors",
+                      filters.assignee === member._id
+                        ? "bg-primary/10"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={member.avatar} alt={member.username} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(member)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {getDisplayName(member)}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        @{member.username}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {members.length === 0 && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    No members found
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+        {filters.assignee && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClearAssignee();
+            }}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded transition-colors z-10"
+          >
+            <X className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        )}
+      </div>
 
       {/* Priority Filter */}
-      <Select
-        value={filters.priority || "all"}
-        onValueChange={handlePriorityChange}
-      >
-        <SelectTrigger
-          className={cn(
-            "h-9 w-[130px]",
-            filters.priority && "border-primary/50 bg-primary/5"
-          )}
+      <div className="relative">
+        <Select
+          value={filters.priority || ""}
+          onValueChange={handlePriorityChange}
         >
-          <SelectValue placeholder="Priority" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Priorities</SelectItem>
-          {PRIORITY_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              <div className="flex items-center gap-2">
-                <Badge className={cn("text-[10px] px-1.5 py-0", option.badge)}>
-                  {option.label}
-                </Badge>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Type Filter */}
-      <Select value={filters.type || "all"} onValueChange={handleTypeChange}>
-        <SelectTrigger
-          className={cn(
-            "h-9 w-[120px]",
-            filters.type && "border-primary/50 bg-primary/5"
-          )}
-        >
-          <SelectValue placeholder="Type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Types</SelectItem>
-          {TASK_TYPE_OPTIONS.map((option) => {
-            const Icon = option.icon;
-            return (
+          <SelectTrigger
+            className={cn(
+              "h-9 w-[130px]",
+              filters.priority && "border-primary/50 bg-primary/5 pr-8"
+            )}
+          >
+            <SelectValue placeholder="Priority" />
+          </SelectTrigger>
+          <SelectContent>
+            {PRIORITY_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 <div className="flex items-center gap-2">
-                  <Icon className={cn("h-4 w-4", option.color)} />
-                  <span>{option.label}</span>
+                  <Badge className={cn("text-[10px] px-1.5 py-0", option.badge)}>
+                    {option.label}
+                  </Badge>
                 </div>
               </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
+            ))}
+          </SelectContent>
+        </Select>
+        {filters.priority && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClearPriority();
+            }}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded transition-colors z-10"
+          >
+            <X className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        )}
+      </div>
+
+      {/* Type Filter */}
+      <div className="relative">
+        <Select value={filters.type || ""} onValueChange={handleTypeChange}>
+          <SelectTrigger
+            className={cn(
+              "h-9 w-[120px]",
+              filters.type && "border-primary/50 bg-primary/5 pr-8"
+            )}
+          >
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {TASK_TYPE_OPTIONS.map((option) => {
+              const Icon = option.icon;
+              return (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center gap-2">
+                    <Icon className={cn("h-4 w-4", option.color)} />
+                    <span>{option.label}</span>
+                  </div>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
+        {filters.type && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClearType();
+            }}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded transition-colors z-10"
+          >
+            <X className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        )}
+      </div>
 
       {/* My Tasks Filter */}
       <Select value={filters.myFilter} onValueChange={handleMyFilterChange}>

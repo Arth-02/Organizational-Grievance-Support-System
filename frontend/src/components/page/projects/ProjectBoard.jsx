@@ -178,7 +178,7 @@ const ProjectBoard = () => {
       </div>
 
       {/* Board View */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden max-h-[calc(100vh-14rem)] mt-2">
         {board ? (
           <TaskBoardView
             projectId={projectId}

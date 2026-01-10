@@ -363,7 +363,7 @@ const getTasksByProject = async (projectId, query, user) => {
     if (my_filter === "assigned_to_me") {
       filter.assignee = userId;
     } else if (my_filter === "reported_by_me") {
-      filter.reportor = userId;
+      filter.reporter = userId;
     }
 
     if (reporter) {
