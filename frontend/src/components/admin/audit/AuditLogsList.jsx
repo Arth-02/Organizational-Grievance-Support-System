@@ -79,7 +79,7 @@ const formatAction = (action) => {
 };
 
 const StatsCard = ({ title, value, icon: Icon, className = "" }) => (
-  <div className={`p-4 rounded-lg border ${className}`}>
+  <div className={`p-4 rounded-lg border border-border bg-card ${className}`}>
     <div className="flex items-center gap-3">
       <div className="p-2 bg-primary/10 rounded-lg">
         <Icon className="h-5 w-5 text-primary" />
@@ -252,7 +252,7 @@ const AuditLogsList = () => {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

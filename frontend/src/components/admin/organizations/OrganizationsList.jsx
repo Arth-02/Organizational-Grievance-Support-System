@@ -192,7 +192,7 @@ const OrganizationsList = () => {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

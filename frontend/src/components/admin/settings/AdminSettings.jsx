@@ -154,15 +154,15 @@ const AdminSettings = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="p-4 rounded-lg border">
+            <div className="p-4 rounded-lg border border-border bg-card">
               <p className="text-sm text-muted-foreground">Platform Name</p>
               <p className="font-semibold">Grievance Support System</p>
             </div>
-            <div className="p-4 rounded-lg border">
+            <div className="p-4 rounded-lg border border-border bg-card">
               <p className="text-sm text-muted-foreground">Version</p>
               <p className="font-semibold">1.0.0</p>
             </div>
-            <div className="p-4 rounded-lg border">
+            <div className="p-4 rounded-lg border border-border bg-card">
               <p className="text-sm text-muted-foreground">Environment</p>
               <Badge variant="outline">Development</Badge>
             </div>

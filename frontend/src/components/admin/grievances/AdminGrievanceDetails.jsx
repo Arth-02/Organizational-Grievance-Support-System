@@ -199,7 +199,7 @@ const AdminGrievanceDetails = () => {
       {/* Grievance Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Info */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Grievance Information</h3>
           <div className="divide-y">
             <InfoRow icon={FileText} label="Title" value={grievance.title} />
@@ -217,7 +217,7 @@ const AdminGrievanceDetails = () => {
         </div>
 
         {/* Reporter Info */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Reported By</h3>
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="h-12 w-12">
@@ -242,7 +242,7 @@ const AdminGrievanceDetails = () => {
         </div>
 
         {/* Description */}
-        <div className="border rounded-lg p-5 lg:col-span-2">
+        <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
           <h3 className="font-semibold mb-4">Description</h3>
           {grievance.description ? (
             <div 
@@ -256,7 +256,7 @@ const AdminGrievanceDetails = () => {
 
         {/* Assigned To */}
         {grievance.assigned_to && (
-          <div className="border rounded-lg p-5">
+          <div className="border border-border bg-card rounded-lg p-5">
             <h3 className="font-semibold mb-4">Assigned To</h3>
             <div className="flex items-center gap-4">
               <Avatar className="h-12 w-12">
@@ -277,7 +277,7 @@ const AdminGrievanceDetails = () => {
 
         {/* Attachments */}
         {attachments.length > 0 && (
-          <div className="border rounded-lg p-5">
+          <div className="border border-border bg-card rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Attachments</h3>
               <Badge variant="secondary">{attachments.length}</Badge>
@@ -299,7 +299,7 @@ const AdminGrievanceDetails = () => {
         )}
 
         {/* Timeline */}
-        <div className={`border rounded-lg p-5 ${!grievance.assigned_to && attachments.length === 0 ? "lg:col-span-2" : ""}`}>
+        <div className={`border border-border bg-card rounded-lg p-5 ${!grievance.assigned_to && attachments.length === 0 ? "lg:col-span-2" : ""}`}>
           <h3 className="font-semibold mb-4">Timeline</h3>
           <div className="divide-y">
             <InfoRow

@@ -41,7 +41,7 @@ import OrganizationUsers from "./OrganizationUsers";
 
 
 const StatCard = ({ icon: Icon, label, value, className }) => (
-  <div className={`p-4 rounded-lg border ${className}`}>
+  <div className={`p-4 rounded-lg border border-border bg-card ${className}`}>
     <div className="flex items-center gap-3">
       <div className="p-2 bg-primary/10 rounded-lg">
         <Icon className="h-5 w-5 text-primary" />
@@ -216,7 +216,7 @@ const OrganizationDetails = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b">
+      <div className="border-b border-border">
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab("overview")}
@@ -245,7 +245,7 @@ const OrganizationDetails = () => {
       {activeTab === "overview" ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Organization Info */}
-          <div className="border rounded-lg p-5">
+          <div className="border border-border bg-card rounded-lg p-5">
             <h3 className="font-semibold mb-4">Organization Information</h3>
             <div className="divide-y">
               <InfoRow icon={Building2} label="Organization Name" value={org.name} />
@@ -256,7 +256,7 @@ const OrganizationDetails = () => {
           </div>
 
           {/* Address */}
-          <div className="border rounded-lg p-5">
+          <div className="border border-border bg-card rounded-lg p-5">
             <h3 className="font-semibold mb-4">Address</h3>
             <div className="divide-y">
               <InfoRow icon={MapPin} label="Address" value={org.address} />
@@ -268,13 +268,13 @@ const OrganizationDetails = () => {
           </div>
 
           {/* Description */}
-          <div className="border rounded-lg p-5 lg:col-span-2">
+          <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
             <h3 className="font-semibold mb-4">Description</h3>
             <p className="text-muted-foreground">{org.description || "No description provided"}</p>
           </div>
 
           {/* Timestamps */}
-          <div className="border rounded-lg p-5 lg:col-span-2">
+          <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
             <h3 className="font-semibold mb-4">Timeline</h3>
             <div className="flex gap-8">
               <div>

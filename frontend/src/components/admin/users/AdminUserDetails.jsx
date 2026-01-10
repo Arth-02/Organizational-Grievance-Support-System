@@ -186,7 +186,7 @@ const AdminUserDetails = () => {
       {/* User Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Info */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Personal Information</h3>
           <div className="divide-y">
             <InfoRow icon={User} label="Full Name" value={`${user.firstname} ${user.lastname}`} />
@@ -197,7 +197,7 @@ const AdminUserDetails = () => {
         </div>
 
         {/* Organization Info */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Organization Details</h3>
           <div className="divide-y">
             <InfoRow
@@ -212,7 +212,7 @@ const AdminUserDetails = () => {
 
         {/* Permissions */}
         {user.role?.permissions && user.role.permissions.length > 0 && (
-          <div className="border rounded-lg p-5 lg:col-span-2">
+          <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
             <h3 className="font-semibold mb-4">Permissions</h3>
             <div className="flex flex-wrap gap-2">
               {user.role.permissions.map((permission) => (
@@ -225,7 +225,7 @@ const AdminUserDetails = () => {
         )}
 
         {/* Timestamps */}
-        <div className="border rounded-lg p-5 lg:col-span-2">
+        <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
           <h3 className="font-semibold mb-4">Activity</h3>
           <div className="flex gap-8 flex-wrap">
             <div className="flex items-center gap-3">

@@ -44,7 +44,7 @@ const InfoRow = ({ icon: Icon, label, value }) => (
 );
 
 const UserCard = ({ user }) => (
-  <div className="flex items-center gap-3 p-3 rounded-lg border">
+  <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
     <Avatar className="h-10 w-10">
       <AvatarImage src={user?.avatar} alt={user?.username} />
       <AvatarFallback className="bg-primary/10 text-primary">
@@ -199,7 +199,7 @@ const AdminRoleDetails = () => {
       {/* Role Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Info */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Role Information</h3>
           <div className="divide-y">
             <InfoRow icon={Shield} label="Role Name" value={role.name} />
@@ -217,7 +217,7 @@ const AdminRoleDetails = () => {
         </div>
 
         {/* Timeline */}
-        <div className="border rounded-lg p-5">
+        <div className="border border-border bg-card rounded-lg p-5">
           <h3 className="font-semibold mb-4">Timeline</h3>
           <div className="divide-y">
             <InfoRow
@@ -242,7 +242,7 @@ const AdminRoleDetails = () => {
         </div>
 
         {/* Permissions */}
-        <div className="border rounded-lg p-5 lg:col-span-2">
+        <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Permissions</h3>
             <Badge variant="secondary">{permissions.length}</Badge>
@@ -261,7 +261,7 @@ const AdminRoleDetails = () => {
         </div>
 
         {/* Users with this role */}
-        <div className="border rounded-lg p-5 lg:col-span-2">
+        <div className="border border-border bg-card rounded-lg p-5 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Users with this Role</h3>
             <Badge variant="secondary">{users.length}</Badge>
