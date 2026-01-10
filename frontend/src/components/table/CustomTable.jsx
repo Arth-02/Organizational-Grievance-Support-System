@@ -460,12 +460,28 @@ const GeneralTable = ({
     }
   };
 
+  // Compute initial search values from persisted filters
+  const getInitialSearchValues = () => {
+    if (!searchOptions || !filters) return { field: null, value: null };
+    
+    for (const option of searchOptions) {
+      if (filters[option.value]) {
+        return { field: option.value, value: filters[option.value] };
+      }
+    }
+    return { field: null, value: null };
+  };
+
+  const initialSearchValues = getInitialSearchValues();
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-end">
         <CustomSearch
           onSearch={handleSearchChange}
           searchOptions={searchOptions}
+          initialField={initialSearchValues.field}
+          initialValue={initialSearchValues.value}
         />
         <div className="flex gap-4 items-center">
           {customFilters &&

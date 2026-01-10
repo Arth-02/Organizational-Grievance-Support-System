@@ -9,16 +9,27 @@ import {
 import { Search, X } from "lucide-react";
 import debounce from "lodash/debounce";
 
-const AdvancedSearch = ({ onSearch, searchOptions }) => {
+const AdvancedSearch = ({ onSearch, searchOptions, initialValue, initialField }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
 
+  // Sync with initial values from persisted filters
+  useEffect(() => {
+    if (initialField && initialValue) {
+      const option = searchOptions?.find((opt) => opt.value === initialField);
+      if (option) {
+        setSelectedOption(option);
+        setSearchTerm(initialValue);
+      }
+    }
+  }, [initialField, initialValue, searchOptions]);
+
   // Automatically select the only option if there is just one
   useEffect(() => {
-    if (searchOptions?.length === 1) {
+    if (searchOptions?.length === 1 && !selectedOption) {
       setSelectedOption(searchOptions[0]);
     }
-  }, [searchOptions]);
+  }, [searchOptions, selectedOption]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
@@ -110,3 +121,4 @@ const AdvancedSearch = ({ onSearch, searchOptions }) => {
 };
 
 export default AdvancedSearch;
+

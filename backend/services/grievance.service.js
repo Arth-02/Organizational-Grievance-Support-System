@@ -592,7 +592,7 @@ const deleteGrievanceById = async (id, user) => {
 // Get all grievances
 const getAllGrievances = async (req_query, user) => {
   try {
-    const { organization_id, role } = user;
+    const { organization_id, role, _id: userId } = user;
     const {
       page = 1,
       limit = 10,
@@ -604,6 +604,7 @@ const getAllGrievances = async (req_query, user) => {
       department_id,
       employee_id,
       is_active = "true",
+      my_filter,
     } = req_query;
 
     const pageNumber = Number.isInteger(parseInt(page, 10))
@@ -636,6 +637,12 @@ const getAllGrievances = async (req_query, user) => {
     }
     if (search) {
       query.title = { $regex: search, $options: "i" };
+    }
+    // Filter for "assigned to me" or "reported by me"
+    if (my_filter === "assigned_to_me") {
+      query.assigned_to = userId;
+    } else if (my_filter === "reported_by_me") {
+      query.reported_by = userId;
     }
 
     const [grievances, totalGrievances] = await Promise.all([

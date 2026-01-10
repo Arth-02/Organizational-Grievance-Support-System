@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { DragDropContext } from "@hello-pangea/dnd";
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import GrievanceList from "./GrievanceList";
 import toast from "react-hot-toast";
 import useSocket from "@/utils/useSocket";
@@ -10,7 +10,7 @@ import {
   useUpdateGrievanceStatusMutation,
 } from "@/services/grievance.service";
 
-const GrievanceBoardView = () => {
+const GrievanceBoardView = ({ myFilter }) => {
   const lists = ["submitted", "in-progress", "resolved", "dismissed"];
   const location = useLocation();
 
@@ -18,7 +18,13 @@ const GrievanceBoardView = () => {
 
   const socket = useSocket();
 
-  const [filters, setFilters] = useState({});
+  // Compute filters based on myFilter prop
+  const filters = useMemo(() => {
+    if (myFilter && myFilter !== "all") {
+      return { my_filter: myFilter };
+    }
+    return {};
+  }, [myFilter]);
 
   const [page, setPage] = useState({
     submitted: 1,
@@ -587,7 +593,7 @@ const GrievanceBoardView = () => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-205px)] pt-4">
+      <div className="flex items-start gap-4 overflow-x-auto overflow-y-hidden h-[calc(100vh-180px)]">
         {lists.map((list) => (
           <GrievanceList
             key={list}

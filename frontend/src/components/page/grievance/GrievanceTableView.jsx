@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import GeneralTable from "@/components/table/CustomTable";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -42,9 +42,19 @@ const PRIORITY_BADGES = {
   },
 };
 
-const GrievanceTableView = () => {
+const GrievanceTableView = ({ myFilter }) => {
   const [filters, setFilters] = useState({});
-  const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(filters);
+  
+  // Compute query filters including the myFilter from parent
+  const queryFilters = useMemo(() => {
+    const baseFilters = { ...filters };
+    if (myFilter && myFilter !== "all") {
+      baseFilters.my_filter = myFilter;
+    }
+    return baseFilters;
+  }, [filters, myFilter]);
+  
+  const { data, isLoading, isFetching, error } = useGetAllGrievancesQuery(queryFilters);
   const [deleteGrievance] = useDeleteGrievanceByIdMutation();
   const [localGrievances, setLocalGrievances] = useState([]);
 

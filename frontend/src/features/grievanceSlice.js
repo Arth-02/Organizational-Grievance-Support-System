@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   filter: null,
+  view: "board",
+  myFilter: "all",
 };
 
 const grievanceSlice = createSlice({
@@ -14,10 +16,21 @@ const grievanceSlice = createSlice({
     resetGrievanceFilter: (state) => {
       state.filter = null;
     },
+    setGrievanceView: (state, action) => {
+      state.view = action.payload;
+    },
+    setGrievanceMyFilter: (state, action) => {
+      state.myFilter = action.payload;
+    },
   },
 });
 
-export const { setGrievanceFilter, resetGrievanceFilter } =
-  grievanceSlice.actions;
+export const {
+  setGrievanceFilter,
+  resetGrievanceFilter,
+  setGrievanceView,
+  setGrievanceMyFilter,
+} = grievanceSlice.actions;
 
 export default grievanceSlice.reducer;
+
