@@ -14,18 +14,7 @@ const {
   deleteAllUsers,
   getAllPermissions,
   getAllUsersId,
-  addBoard,
-  addBoardTag,
-  updateBoardTag,
-  deleteBoardTag,
-  deleteBoard,
-  addBoardTask,
-  updateBoardTask,
-  deleteBoardTask,
-  updateBoardTaskAttachment,
-  getBoardById,
   getUserNames,
-  getAllBoardTasks,
   changePassword,
   changeEmail,
 } = require("../controllers/user.controller");
@@ -74,38 +63,6 @@ router.get("/usersid", checkPermission([VIEW_USER.slug]), getAllUsersId);
 router.get("/usersname", isLoggedIn, getUserNames);
 
 router.get("/permissions", isLoggedIn, getAllPermissions);
-
-router.post("/add-board", isLoggedIn, addBoard);
-router.get("/board/:id", isLoggedIn, getBoardById);
-router.delete("/delete-board/:id", isLoggedIn, deleteBoard);
-
-router.post("/add-board-tag/:id", isLoggedIn, addBoardTag);
-router.patch("/update-board-tag/:id", isLoggedIn, updateBoardTag);
-router.delete("/delete-board-tag/:id", isLoggedIn, deleteBoardTag);
-
-router.post(
-  "/add-board-task/:id",
-  isLoggedIn,
-  upload.array("attachments", 5),
-  addBoardTask
-);
-router.patch(
-  "/update-board-task/:board_id/task/:task_id",
-  isLoggedIn,
-  updateBoardTask
-);
-router.patch(
-  "/update-board-task-attachment/:board_id/task/:task_id",
-  isLoggedIn,
-  upload.array("attachments", 5),
-  updateBoardTaskAttachment
-);
-router.delete(
-  "/delete-board-task/:board_id/task/:task_id",
-  isLoggedIn,
-  deleteBoardTask
-);
-router.get("/all-board-tasks/:id", isLoggedIn, getAllBoardTasks);
 
 module.exports = router;
 

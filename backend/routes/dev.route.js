@@ -15,11 +15,6 @@ const {
   updateUserStatus,
   deleteUser,
   getAllOrganizationNames,
-  // Project management
-  getAllProjects,
-  getProjectById,
-  updateProjectStatus,
-  deleteProject,
   // Role management
   getAllRoles,
   getRoleById,
@@ -62,12 +57,6 @@ router.get("/users", checkRole([DEV]), getAllUsers);
 router.get("/users/:id", checkRole([DEV]), getUserById);
 router.patch("/users/:id/status", checkRole([DEV]), updateUserStatus);
 router.delete("/users/:id", checkRole([DEV]), deleteUser);
-
-// Projects management
-router.get("/projects", checkRole([DEV]), getAllProjects);
-router.get("/projects/:id", checkRole([DEV]), getProjectById);
-router.patch("/projects/:id/status", checkRole([DEV]), updateProjectStatus);
-router.delete("/projects/:id", checkRole([DEV]), deleteProject);
 
 // Roles management
 router.get("/roles", checkRole([DEV]), getAllRoles);

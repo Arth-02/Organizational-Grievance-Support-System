@@ -21,12 +21,6 @@ const auditLogSchema = new mongoose.Schema(
         "USER_DELETED",
         "USER_LOGIN",
         "USER_LOGOUT",
-        // Project actions
-        "PROJECT_CREATED",
-        "PROJECT_UPDATED",
-        "PROJECT_ACTIVATED",
-        "PROJECT_DEACTIVATED",
-        "PROJECT_DELETED",
         // Role actions
         "ROLE_CREATED",
         "ROLE_UPDATED",
@@ -41,10 +35,6 @@ const auditLogSchema = new mongoose.Schema(
         "DEPARTMENT_CREATED",
         "DEPARTMENT_UPDATED",
         "DEPARTMENT_DELETED",
-        // Task actions
-        "TASK_CREATED",
-        "TASK_UPDATED",
-        "TASK_DELETED",
         // Generic
         "OTHER",
       ],
@@ -52,7 +42,7 @@ const auditLogSchema = new mongoose.Schema(
     entity_type: {
       type: String,
       required: [true, "Entity type is required"],
-      enum: ["Organization", "User", "Project", "Role", "Grievance", "Department", "Task", "Board", "Other"],
+      enum: ["Organization", "User", "Role", "Grievance", "Department", "Other"],
     },
     entity_id: {
       type: mongoose.Schema.Types.ObjectId,

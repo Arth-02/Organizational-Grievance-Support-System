@@ -20,13 +20,11 @@ const { isValidObjectId } = require("mongoose");
 const Role = require("../models/role.model");
 const Department = require("../models/department.model");
 const Organization = require("../models/organization.model");
-const attachmentService = require("./attachment.service");
 const { generateOTP } = require("../utils/common");
 const { sendEmail } = require("../utils/mail");
 const bcrypt = require("bcryptjs");
 const Joi = require("joi");
 const { ObjectId } = require("mongoose").Types;
-const boardService = require("./board.service");
 const uploadFiles = require("../utils/cloudinary");
 
 // User login service
@@ -858,36 +856,6 @@ const getAllUsersId = async (userData) => {
   }
 };
 
-// Add Board to User service
-const addBoardToUser = async (session, body, userData) => {
-  try {
-    const { organization_id, id: userId } = userData;
-    const response = await boardService.createBoard(
-      session,
-      organization_id,
-      body
-    );
-    if (!response.isSuccess) {
-      return {
-        isSuccess: false,
-        message: response.message,
-        code: response.code,
-      };
-    }
-    const board = response.board;
-    const user = await User.findByIdAndUpdate(userId, {
-      $push: { board_ids: board._id },
-    }).session(session);
-    if (!user) {
-      return { isSuccess: false, message: "User not found", code: 404 };
-    }
-    return { isSuccess: true, data: board };
-  } catch (err) {
-    console.error("Create Board Error:", err.message);
-    return { isSuccess: false, message: "Internal server error", code: 500 };
-  }
-};
-
 // Get User name And id service
 const getUserNamesAndIds = async (organization_id) => {
   try {
@@ -1013,7 +981,6 @@ module.exports = {
   checkUserField,
   getAllUsers,
   getAllUsersId,
-  addBoardToUser,
   getUserNamesAndIds,
   changePassword,
   changeEmail,

@@ -138,20 +138,6 @@ const logUserAction = async (action, user, req, metadata = {}) => {
   });
 };
 
-const logProjectAction = async (action, project, req, metadata = {}) => {
-  const requestInfo = getRequestInfo(req);
-  return createAuditLog({
-    action,
-    entity_type: "Project",
-    entity_id: project._id,
-    entity_name: project.name,
-    description: `Project "${project.name}" - ${action.replace(/_/g, " ").toLowerCase()}`,
-    ...requestInfo,
-    organization_id: project.organization_id || requestInfo.organization_id,
-    metadata,
-  });
-};
-
 const logRoleAction = async (action, role, req, metadata = {}) => {
   const requestInfo = getRequestInfo(req);
   return createAuditLog({
@@ -186,7 +172,6 @@ module.exports = {
   getPerformerName,
   logOrganizationAction,
   logUserAction,
-  logProjectAction,
   logRoleAction,
   logGrievanceAction,
 };

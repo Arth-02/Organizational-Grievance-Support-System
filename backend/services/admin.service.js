@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types;
 const User = require("../models/user.model");
 const Organization = require("../models/organization.model");
-const Project = require("../models/project.model");
 const Department = require("../models/department.model");
 const Role = require("../models/role.model");
 const Grievance = require("../models/grievance.model");
@@ -17,8 +16,6 @@ const getDashboardStats = async () => {
       approvedOrganizations,
       totalUsers,
       activeUsers,
-      totalProjects,
-      activeProjects,
       totalDepartments,
       totalRoles,
       totalGrievances,
@@ -28,8 +25,6 @@ const getDashboardStats = async () => {
       Organization.countDocuments({ is_approved: true }),
       User.countDocuments({ is_deleted: false }),
       User.countDocuments({ is_deleted: false, is_active: true }),
-      Project.countDocuments(),
-      Project.countDocuments({ is_active: true }),
       Department.countDocuments(),
       Role.countDocuments({ is_active: true }),
       Grievance.countDocuments(),
@@ -47,11 +42,6 @@ const getDashboardStats = async () => {
           total: totalUsers,
           active: activeUsers,
           inactive: totalUsers - activeUsers,
-        },
-        projects: {
-          total: totalProjects,
-          active: activeProjects,
-          inactive: totalProjects - activeProjects,
         },
         departments: { total: totalDepartments },
         roles: { total: totalRoles },
@@ -160,24 +150,11 @@ const getGrowthTrends = async () => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Projects growth
-    const projectGrowth = await Project.aggregate([
-      { $match: { created_at: { $gte: thirtyDaysAgo } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
-
     return {
       isSuccess: true,
       data: {
         organizations: orgGrowth,
         users: userGrowth,
-        projects: projectGrowth,
       },
     };
   } catch (err) {
@@ -222,10 +199,7 @@ const getAllOrganizations = async (query) => {
           organization_id: org._id,
           is_deleted: false,
         });
-        const projectCount = await Project.countDocuments({
-          organization_id: org._id,
-        });
-        return { ...org, userCount, projectCount };
+        return { ...org, userCount };
       })
     );
 
@@ -262,9 +236,8 @@ const getOrganizationById = async (id) => {
     }
 
     // Get additional stats - use organization._id which is already an ObjectId
-    const [userCount, projectCount, departmentCount, roleCount] = await Promise.all([
+    const [userCount, departmentCount, roleCount] = await Promise.all([
       User.countDocuments({ organization_id: organization._id, is_deleted: false }),
-      Project.countDocuments({ organization_id: organization._id }),
       Department.countDocuments({ organization_id: organization._id }),
       Role.countDocuments({ organization_id: organization._id, is_active: true }),
     ]);
@@ -280,7 +253,7 @@ const getOrganizationById = async (id) => {
       isSuccess: true,
       data: {
         ...organization,
-        stats: { userCount, projectCount, departmentCount, roleCount },
+        stats: { userCount, departmentCount, roleCount },
         recentUsers,
       },
     };
@@ -369,12 +342,6 @@ const deleteOrganization = async (session, id) => {
     await User.updateMany(
       { organization_id: id },
       { is_active: false, is_deleted: true }
-    ).session(session);
-
-    // Deactivate all projects
-    await Project.updateMany(
-      { organization_id: id },
-      { is_active: false }
     ).session(session);
 
     // Deactivate the organization
@@ -609,175 +576,6 @@ const getAllOrganizationNames = async () => {
   }
 };
 
-// ==================== PROJECT MANAGEMENT ====================
-
-// Get all projects across all organizations (for admin)
-const getAllProjects = async (query) => {
-  try {
-    const {
-      page = 1,
-      limit = 10,
-      name,
-      organization_id,
-      is_active,
-      sort_by = "created_at",
-      order = "desc",
-    } = query;
-
-    const pageNumber = parseInt(page, 10) || 1;
-    const limitNumber = parseInt(limit, 10) || 10;
-    const skip = (pageNumber - 1) * limitNumber;
-
-    const filter = {};
-    if (name) filter.name = { $regex: name, $options: "i" };
-    if (organization_id && mongoose.isValidObjectId(organization_id)) {
-      filter.organization_id = new ObjectId(organization_id);
-    }
-    if (is_active !== undefined && is_active !== "all") {
-      filter.is_active = is_active === "true";
-    }
-
-    const [projects, total] = await Promise.all([
-      Project.find(filter)
-        .sort({ [sort_by]: order === "desc" ? -1 : 1 })
-        .skip(skip)
-        .limit(limitNumber)
-        .populate("organization_id", "name")
-        .populate("manager", "firstname lastname username")
-        .populate("created_by", "firstname lastname username")
-        .lean(),
-      Project.countDocuments(filter),
-    ]);
-
-    // Add member count to each project
-    const projectsWithStats = projects.map((project) => ({
-      ...project,
-      memberCount: project.members?.length || 0,
-      managerCount: project.manager?.length || 0,
-    }));
-
-    const totalPages = Math.ceil(total / limitNumber);
-
-    return {
-      isSuccess: true,
-      data: projectsWithStats,
-      pagination: {
-        totalItems: total,
-        totalPages,
-        currentPage: pageNumber,
-        limit: limitNumber,
-        hasNextPage: pageNumber < totalPages,
-        hasPrevPage: pageNumber > 1,
-      },
-    };
-  } catch (err) {
-    console.error("Get All Projects Error:", err.message);
-    return { isSuccess: false, message: "Internal server error", code: 500 };
-  }
-};
-
-// Get project by ID with full details (for admin)
-const getProjectById = async (id) => {
-  try {
-    if (!id || !mongoose.isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid project ID", code: 400 };
-    }
-
-    const project = await Project.findById(id)
-      .populate("organization_id", "name email")
-      .populate("manager", "firstname lastname username email")
-      .populate("members", "firstname lastname username email")
-      .populate("created_by", "firstname lastname username")
-      .populate({
-        path: "board_id",
-        populate: {
-          path: "tasks",
-          select: "tag title priority is_finished",
-        },
-      })
-      .lean();
-
-    if (!project) {
-      return { isSuccess: false, message: "Project not found", code: 404 };
-    }
-
-    // Calculate task counts per section
-    const board = project.board_id;
-    let taskSections = [];
-    if (board && board.tags) {
-      const tasks = board.tasks || [];
-      taskSections = board.tags.map((tag) => {
-        const sectionTasks = tasks.filter((task) => task.tag === tag);
-        return {
-          name: tag,
-          taskCount: sectionTasks.length,
-          tasks: sectionTasks,
-        };
-      });
-    }
-
-    return {
-      isSuccess: true,
-      data: {
-        ...project,
-        taskSections,
-        totalTasks: board?.tasks?.length || 0,
-      },
-    };
-  } catch (err) {
-    console.error("Get Project By ID Error:", err.message);
-    return { isSuccess: false, message: "Internal server error", code: 500 };
-  }
-};
-
-// Update project status (activate/deactivate)
-const updateProjectStatus = async (id, is_active) => {
-  try {
-    if (!id || !mongoose.isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid project ID", code: 400 };
-    }
-
-    const project = await Project.findByIdAndUpdate(
-      id,
-      { is_active },
-      { new: true }
-    );
-
-    if (!project) {
-      return { isSuccess: false, message: "Project not found", code: 404 };
-    }
-
-    return { isSuccess: true, data: project };
-  } catch (err) {
-    console.error("Update Project Status Error:", err.message);
-    return { isSuccess: false, message: "Internal server error", code: 500 };
-  }
-};
-
-// Delete project (soft delete - deactivate)
-const deleteProject = async (id) => {
-  try {
-    if (!id || !mongoose.isValidObjectId(id)) {
-      return { isSuccess: false, message: "Invalid project ID", code: 400 };
-    }
-
-    const project = await Project.findByIdAndUpdate(
-      id,
-      { is_active: false },
-      { new: true }
-    );
-
-    if (!project) {
-      return { isSuccess: false, message: "Project not found", code: 404 };
-    }
-
-    return { isSuccess: true, message: "Project deleted successfully" };
-  } catch (err) {
-    console.error("Delete Project Error:", err.message);
-    return { isSuccess: false, message: "Internal server error", code: 500 };
-  }
-};
-
 module.exports = {
   getDashboardStats,
   getRecentActivity,
@@ -794,11 +592,6 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   getAllOrganizationNames,
-  // Project management
-  getAllProjects,
-  getProjectById,
-  updateProjectStatus,
-  deleteProject,
 };
 
 // ==================== ROLE MANAGEMENT ====================
@@ -978,11 +771,6 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   getAllOrganizationNames,
-  // Project management
-  getAllProjects,
-  getProjectById,
-  updateProjectStatus,
-  deleteProject,
   // Role management
   getAllRoles,
   getRoleById,
@@ -1150,11 +938,6 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   getAllOrganizationNames,
-  // Project management
-  getAllProjects,
-  getProjectById,
-  updateProjectStatus,
-  deleteProject,
   // Role management
   getAllRoles,
   getRoleById,
@@ -1360,11 +1143,6 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   getAllOrganizationNames,
-  // Project management
-  getAllProjects,
-  getProjectById,
-  updateProjectStatus,
-  deleteProject,
   // Role management
   getAllRoles,
   getRoleById,
