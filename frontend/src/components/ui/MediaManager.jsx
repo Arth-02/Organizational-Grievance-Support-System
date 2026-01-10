@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import { useUpdateAttachmentMutation } from "@/services/grievance.service";
-import { useUpdateProjectBoardTaskAttachmentMutation } from "@/services/project.service";
 import FileUploadComponent from "./FileUpload";
 import MediaPreviewGrid from "./MediaPreviewGrid";
 
@@ -27,8 +26,6 @@ const AttachmentManager = ({
   uploadModal,
   setUploadModal,
   grievanceId,
-  projectId,
-  taskId,
   existingAttachments = [],
   onUpdate,
   canEdit,
@@ -44,9 +41,6 @@ const AttachmentManager = ({
   const [selectedAttachments, setSelectedAttachments] = useState([]);
 
   const [updateGrievanceAttachment] = useUpdateAttachmentMutation();
-  const [updateTaskAttachment] = useUpdateProjectBoardTaskAttachmentMutation();
-
-  const isTaskContext = !!(projectId && taskId);
 
   const handleUpload = async () => {
     setUploading(true);
@@ -57,18 +51,10 @@ const AttachmentManager = ({
 
     try {
       let response;
-      if (isTaskContext) {
-        response = await updateTaskAttachment({
-          project_id: projectId,
-          task_id: taskId,
-          data: formData,
-        }).unwrap();
-      } else {
-        response = await updateGrievanceAttachment({
-          id: grievanceId,
-          data: formData,
-        }).unwrap();
-      }
+      response = await updateGrievanceAttachment({
+        id: grievanceId,
+        data: formData,
+      }).unwrap();
       onUpdate?.(response.data);
       setFiles([]);
       setUploadModal(false);
@@ -88,18 +74,10 @@ const AttachmentManager = ({
     try {
       const data = { delete_attachments: attachmentsToDelete };
       let response;
-      if (isTaskContext) {
-        response = await updateTaskAttachment({
-          project_id: projectId,
-          task_id: taskId,
-          data,
-        }).unwrap();
-      } else {
-        response = await updateGrievanceAttachment({
-          id: grievanceId,
-          data,
-        }).unwrap();
-      }
+      response = await updateGrievanceAttachment({
+        id: grievanceId,
+        data,
+      }).unwrap();
       onUpdate?.(response.data);
       toast.success("Attachments deleted successfully");
     } catch (error) {

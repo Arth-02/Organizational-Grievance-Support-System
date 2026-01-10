@@ -104,74 +104,6 @@ export const userApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
-    // Board operations
-    addBoard: builder.mutation({
-      query: (body) => ({
-        url: "users/add-board",
-        method: "POST",
-        body,
-      }),
-    }),
-    deleteBoard: builder.mutation({
-      query: (id) => ({
-        url: `users/delete-board/${id}`,
-        method: "DELETE",
-      }),
-    }),
-    addBoardTag: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `users/add-board-tag/${id}`,
-        method: "POST",
-        body: data,
-      }),
-    }),
-    updateBoardTag: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `users/update-board-tag/${id}`,
-        method: "PATCH",
-        body: data,
-      }),
-    }),
-    deleteBoardTag: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `users/delete-board-tag/${id}`,
-        method: "DELETE",
-        body: data,
-      }),
-    }),
-    addBoardTask: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `users/add-board-task/${id}`,
-        method: "POST",
-        body: data,
-      }),
-    }),
-    updateBoardTask: builder.mutation({
-      query: ({ board_id, task_id, data }) => ({
-        url: `users/update-board-task/${board_id}/task/${task_id}`,
-        method: "PATCH",
-        body: data,
-      }),
-    }),
-    updateBoardTaskAttachment: builder.mutation({
-      query: ({ board_id, task_id, data }) => ({
-        url: `users/update-board-task-attachment/${board_id}/task/${task_id}`,
-        method: "PATCH",
-        body: data,
-      }),
-    }),
-    deleteBoardTask: builder.mutation({
-      query: ({ board_id, task_id }) => ({
-        url: `users/delete-board-task/${board_id}/task/${task_id}`,
-        method: "DELETE",
-      }),
-    }),
-    getAllBoardTasks: builder.query({
-      query: (id) => ({
-        url: `users/all-board-tasks/${id}`,
-        method: "GET",
-      }),
-    }),
     changePassword: builder.mutation({
       query: (body) => ({
         url: "users/profile/change-password",
@@ -209,16 +141,6 @@ export const {
   useCheckEmployeeIDMutation,
   useGetAllPermissionsQuery,
   useGetAllUserNamesQuery,
-  // Board operation hooks
-  useAddBoardMutation,
-  useDeleteBoardMutation,
-  useAddBoardTagMutation,
-  useUpdateBoardTagMutation,
-  useDeleteBoardTagMutation,
-  useAddBoardTaskMutation,
-  useUpdateBoardTaskMutation,
-  useUpdateBoardTaskAttachmentMutation,
-  useDeleteBoardTaskMutation,
   // Profile operations
   useChangePasswordMutation,
   useChangeEmailMutation,

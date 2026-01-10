@@ -17,10 +17,6 @@ import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 import useSocket from "./utils/useSocket";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
-import AllProjects from "./components/page/projects/AllProjects";
-import BoardPage from "./components/page/board/BoardPage";
-import AddUpdateProject from "./components/page/projects/AddUpdateProject";
-import TaskModal from "./components/page/board/TaskModal";
 import Profile from "./components/page/profile/Profile";
 
 // Admin components
@@ -30,8 +26,6 @@ import OrganizationsList from "./components/admin/organizations/OrganizationsLis
 import OrganizationDetails from "./components/admin/organizations/OrganizationDetails";
 import AdminUsersList from "./components/admin/users/AdminUsersList";
 import AdminUserDetails from "./components/admin/users/AdminUserDetails";
-import AdminProjectsList from "./components/admin/projects/AdminProjectsList";
-import AdminProjectDetails from "./components/admin/projects/AdminProjectDetails";
 import AdminRolesList from "./components/admin/roles/AdminRolesList";
 import AdminRoleDetails from "./components/admin/roles/AdminRoleDetails";
 import AdminGrievancesList from "./components/admin/grievances/AdminGrievancesList";
@@ -69,10 +63,6 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
-              <Route path="/projects" element={<AllProjects />} />
-              <Route path="/projects/add" element={<AddUpdateProject />} />
-              <Route path="/projects/:id/edit" element={<AddUpdateProject />} />
-              <Route path="/projects/:projectId/board/:boardId" element={<BoardPage />} />
               <Route
                 path="/employees"
                 element={
@@ -129,8 +119,6 @@ function App() {
               <Route path="organizations/:id" element={<OrganizationDetails />} />
               <Route path="users" element={<AdminUsersList />} />
               <Route path="users/:id" element={<AdminUserDetails />} />
-              <Route path="projects" element={<AdminProjectsList />} />
-              <Route path="projects/:id" element={<AdminProjectDetails />} />
               <Route path="roles" element={<AdminRolesList />} />
               <Route path="roles/:id" element={<AdminRoleDetails />} />
               <Route path="grievances" element={<AdminGrievancesList />} />
@@ -147,7 +135,6 @@ function App() {
           {background && (
             <Routes>
               <Route path="/grievances/add" element={<PrivateRoute><AddUpdateGrievance /></PrivateRoute>} />
-              <Route path="/projects/:projectId/board/:boardId/task/:taskId" element={<PrivateRoute><TaskModal /></PrivateRoute>} />
             </Routes>
           )}
         </ModalProvider>

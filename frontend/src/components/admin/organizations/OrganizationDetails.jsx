@@ -9,7 +9,6 @@ import {
   Globe,
   MapPin,
   Users,
-  FolderKanban,
   Shield,
   Building,
   Check,
@@ -212,7 +211,6 @@ const OrganizationDetails = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Users" value={org.stats?.userCount || 0} />
-        <StatCard icon={FolderKanban} label="Projects" value={org.stats?.projectCount || 0} />
         <StatCard icon={Building} label="Departments" value={org.stats?.departmentCount || 0} />
         <StatCard icon={Shield} label="Roles" value={org.stats?.roleCount || 0} />
       </div>

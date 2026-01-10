@@ -5,7 +5,6 @@ import {
   RefreshCcw,
   Building2,
   User,
-  FolderKanban,
   Shield,
   AlertTriangle,
   Briefcase,
@@ -56,11 +55,9 @@ const getEntityIcon = (entityType) => {
   const icons = {
     Organization: Building2,
     User: User,
-    Project: FolderKanban,
     Role: Shield,
     Grievance: AlertTriangle,
     Department: Briefcase,
-    Task: Activity,
   };
   return icons[entityType] || Activity;
 };
@@ -196,11 +193,9 @@ const AuditLogsList = () => {
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="Organization">Organization</SelectItem>
               <SelectItem value="User">User</SelectItem>
-              <SelectItem value="Project">Project</SelectItem>
               <SelectItem value="Role">Role</SelectItem>
               <SelectItem value="Grievance">Grievance</SelectItem>
               <SelectItem value="Department">Department</SelectItem>
-              <SelectItem value="Task">Task</SelectItem>
             </SelectContent>
           </Select>
           <Select

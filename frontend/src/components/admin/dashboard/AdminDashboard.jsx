@@ -1,4 +1,4 @@
-import { Building2, Users, FolderKanban, Shield, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { Building2, Users, Shield, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StatsCard from "./StatsCard";
 import RecentActivity from "./RecentActivity";
@@ -45,14 +45,6 @@ const AdminDashboard = () => {
             value={statsLoading ? "..." : stats.users?.total || 0}
             subtitle={`${stats.users?.active || 0} active users`}
             icon={Users}
-          />
-        </div>
-        <div onClick={() => navigate("/admin/projects")} className="cursor-pointer">
-          <StatsCard
-            title="Total Projects"
-            value={statsLoading ? "..." : stats.projects?.total || 0}
-            subtitle={`${stats.projects?.active || 0} active projects`}
-            icon={FolderKanban}
           />
         </div>
         <div onClick={() => navigate("/admin/roles")} className="cursor-pointer">

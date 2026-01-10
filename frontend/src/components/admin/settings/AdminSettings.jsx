@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   Server,
   Clock,
-  Activity,
   CheckCircle,
   Info
 } from "lucide-react";
@@ -61,7 +60,6 @@ const AdminSettings = () => {
   const systemInfo = [
     { label: "Total Organizations", value: stats.organizations?.total || 0, icon: Database },
     { label: "Total Users", value: stats.users?.total || 0, icon: User },
-    { label: "Total Projects", value: stats.projects?.total || 0, icon: Activity },
     { label: "Total Audit Logs", value: auditStats.totalLogs || 0, icon: Clock },
   ];
 

@@ -163,54 +163,6 @@ export const adminApi = baseApi.injectEndpoints({
       providesTags: ["OrgNames"],
     }),
 
-    // ==================== PROJECT MANAGEMENT ====================
-
-    getAdminProjects: builder.query({
-      query: (filters = {}) => {
-        const cleanedFilters = Object.entries(filters).reduce(
-          (acc, [key, value]) => {
-            if (value !== "" && value !== null && value !== undefined && value !== "all") {
-              acc[key] = value;
-            }
-            return acc;
-          },
-          {}
-        );
-        const params = new URLSearchParams(cleanedFilters).toString();
-        return {
-          url: `super-admin/projects?${params}`,
-          method: "GET",
-        };
-      },
-      providesTags: ["AdminProjects"],
-    }),
-    getAdminProjectById: builder.query({
-      query: (id) => ({
-        url: `super-admin/projects/${id}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, id) => [{ type: "AdminProject", id }],
-    }),
-    updateAdminProjectStatus: builder.mutation({
-      query: ({ id, is_active }) => ({
-        url: `super-admin/projects/${id}/status`,
-        method: "PATCH",
-        body: { is_active },
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        "AdminProjects",
-        "AdminStats",
-        { type: "AdminProject", id },
-      ],
-    }),
-    deleteAdminProject: builder.mutation({
-      query: (id) => ({
-        url: `super-admin/projects/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["AdminProjects", "AdminStats"],
-    }),
-
     // ==================== ROLE MANAGEMENT ====================
 
     getAdminRoles: builder.query({
@@ -379,11 +331,6 @@ export const {
   useUpdateAdminUserStatusMutation,
   useDeleteAdminUserMutation,
   useGetOrganizationNamesQuery,
-  // Projects
-  useGetAdminProjectsQuery,
-  useGetAdminProjectByIdQuery,
-  useUpdateAdminProjectStatusMutation,
-  useDeleteAdminProjectMutation,
   // Roles
   useGetAdminRolesQuery,
   useGetAdminRoleByIdQuery,

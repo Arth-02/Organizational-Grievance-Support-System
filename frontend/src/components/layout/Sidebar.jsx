@@ -5,7 +5,6 @@ import {
   Building,
   ChevronDown,
   ChevronLeft,
-  FolderOpenDot,
   Home,
   MessageSquareWarning,
   Users,
@@ -114,7 +113,6 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
 
   const menuItems = [
     { icon: <Home />, label: "Dashboard", path: "/" },
-    { icon: <FolderOpenDot />, label: "Projects", path: "/projects" },
     { icon: <MessageSquareWarning />, label: "Grievances", path: "/grievances" },
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),

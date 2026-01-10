@@ -4,7 +4,6 @@ import { formatDistanceToNow } from "date-fns";
 import {
   Building2,
   Users,
-  FolderKanban,
   Check,
   X,
   Eye,
@@ -201,7 +200,6 @@ const OrganizationsList = () => {
               <TableHead>Email</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Users</TableHead>
-              <TableHead>Projects</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="w-12"></TableHead>
@@ -235,12 +233,6 @@ const OrganizationsList = () => {
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span>{org.userCount || 0}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <FolderKanban className="h-4 w-4 text-muted-foreground" />
-                      <span>{org.projectCount || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(org)}</TableCell>

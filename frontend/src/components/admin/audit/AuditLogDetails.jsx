@@ -47,11 +47,9 @@ const AuditLogDetails = () => {
     const colors = {
       Organization: "bg-blue-100 text-blue-800",
       User: "bg-green-100 text-green-800",
-      Project: "bg-purple-100 text-purple-800",
       Role: "bg-orange-100 text-orange-800",
       Grievance: "bg-red-100 text-red-800",
       Department: "bg-yellow-100 text-yellow-800",
-      Task: "bg-pink-100 text-pink-800",
     };
     return colors[entityType] || "bg-gray-100 text-gray-800";
   };
