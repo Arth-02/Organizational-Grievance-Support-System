@@ -8,10 +8,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, LayoutGrid, Table2 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import GrievanceBoardView from "./GrievanceBoardView";
 import GrievanceTableView from "./GrievanceTableView";
+import GrievanceModal from "./GrievanceCardModal";
 import {
   setGrievanceView,
   setGrievanceMyFilter,
@@ -21,10 +22,14 @@ const Grievances = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Read view and filter from Redux
   const activeView = useSelector((state) => state.grievance.view);
   const myFilter = useSelector((state) => state.grievance.myFilter);
+  
+  // Read grievance id from search params for modal
+  const selectedGrievanceId = searchParams.get("id");
 
   const handleViewChange = (view) => {
     dispatch(setGrievanceView(view));
@@ -32,6 +37,14 @@ const Grievances = () => {
 
   const handleMyFilterChange = (value) => {
     dispatch(setGrievanceMyFilter(value));
+  };
+
+  const handleCloseModal = () => {
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.delete("id");
+      return newParams;
+    });
   };
 
   return (
@@ -86,10 +99,16 @@ const Grievances = () => {
           </TabsContent>
         </div>
       </Tabs>
+
+      {/* Grievance Modal - renders when id param exists */}
+      {selectedGrievanceId && (
+        <GrievanceModal
+          grievanceId={selectedGrievanceId}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
 
 export default Grievances;
-
-

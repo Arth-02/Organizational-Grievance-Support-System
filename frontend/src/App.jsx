@@ -17,7 +17,6 @@ import AddUpdateGrievance from "./components/page/grievance/AddUpdateGrievance";
 import useSocket from "./utils/useSocket";
 import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
-import GrievanceModal from "./components/page/grievance/GrievanceCardModal";
 import AllProjects from "./components/page/projects/AllProjects";
 import BoardPage from "./components/page/board/BoardPage";
 import AddUpdateProject from "./components/page/projects/AddUpdateProject";
@@ -148,7 +147,6 @@ function App() {
           {background && (
             <Routes>
               <Route path="/grievances/add" element={<PrivateRoute><AddUpdateGrievance /></PrivateRoute>} />
-              <Route path="/grievances/:id" element={<PrivateRoute><GrievanceModal /></PrivateRoute>} />
               <Route path="/projects/:projectId/board/:boardId/task/:taskId" element={<PrivateRoute><TaskModal /></PrivateRoute>} />
             </Routes>
           )}

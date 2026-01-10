@@ -83,7 +83,9 @@ const GrievanceTableView = ({ myFilter }) => {
   }, []);
 
   const handleViewDetails = (id) => {
-    navigate(`/grievances/${id}`, { state: { background: location } });
+    const params = new URLSearchParams(window.location.search);
+    params.set("id", id);
+    navigate(`/grievances?${params.toString()}`);
   };
 
   const columns = [

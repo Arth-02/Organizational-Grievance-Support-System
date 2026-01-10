@@ -20,7 +20,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import cn from "classnames";
 import {
   DialogDescription,
@@ -97,9 +97,14 @@ const STATUS_BADGES = {
   },
 };
 
-function GrievanceModal() {
+function GrievanceModal({ grievanceId: propGrievanceId, onClose }) {
   const dispatch = useDispatch();
-  const { id: grievanceId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Use prop if provided, otherwise get from search params
+  const grievanceId = propGrievanceId || searchParams.get("id");
+  
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [grievance, setGrievance] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -116,7 +121,6 @@ function GrievanceModal() {
   const { data: departments, isLoading: departmentLoading } =
     useGetAllDepartmentNameQuery();
   const { data: users, isLoading: usersLoading } = useGetAllUserNamesQuery();
-  const navigate = useNavigate();
 
   const socket = useSocket();
 
@@ -235,11 +239,15 @@ function GrievanceModal() {
 
       toast.success(response.message);
 
-      // Navigate close - check for background location
-      if (location.state?.background) {
-        navigate(location.state.background.pathname + location.state.background.search);
+      // Close the modal by removing id from search params
+      if (onClose) {
+        onClose();
       } else {
-        navigate("/grievances");
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.delete("id");
+          return newParams;
+        });
       }
     } catch (error) {
       console.error("Failed to close grievance:", error);
@@ -252,10 +260,14 @@ function GrievanceModal() {
   const handleClose = () => {
     // Only allow closing if no select is open
     if (!isStatusSelectOpen && !isPrioritySelectOpen) {
-      if (location.state?.background) {
-        navigate(location.state.background.pathname + location.state.background.search);
+      if (onClose) {
+        onClose();
       } else {
-        navigate("/grievances");
+        setSearchParams((prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.delete("id");
+          return newParams;
+        });
       }
     }
   };

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, AlertTriangle, Paperclip } from "lucide-react";
@@ -22,8 +22,16 @@ const PRIORITY_CONFIG = {
   },
 };
 
-const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
+const GrievanceCard = ({ grievance, provided, snapshot }) => {
+  const [searchParams] = useSearchParams();
   const priorityConfig = PRIORITY_CONFIG[grievance.priority] || PRIORITY_CONFIG.low;
+
+  // Build link URL with id as search param, preserving existing params
+  const buildLinkUrl = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("id", grievance._id);
+    return `/grievances?${params.toString()}`;
+  };
 
   return (
     <div
@@ -33,8 +41,7 @@ const GrievanceCard = ({ grievance, provided, snapshot, location }) => {
       className="group"
     >
       <Link
-        to={`/grievances/${grievance._id}`}
-        state={{ background: location }}
+        to={buildLinkUrl()}
         className="block"
       >
         <Card
