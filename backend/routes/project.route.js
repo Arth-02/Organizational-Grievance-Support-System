@@ -3,6 +3,7 @@ const {
   createProject,
   getAllProjects,
   getProjectById,
+  getMyProjects,
   updateProject,
   deleteProject,
   addProjectMembers,
@@ -11,6 +12,7 @@ const {
 } = require("../controllers/project.controller");
 const {
   checkPermission,
+  isLoggedIn,
 } = require("../middlewares/auth.middleware");
 const {
   CREATE_PROJECT,
@@ -18,12 +20,22 @@ const {
   DELETE_PROJECT,
   VIEW_PROJECT,
 } = require("../utils/constant");
+const upload = require("../utils/multer");
 
 // Create a new project
 router.post(
   "/create",
   checkPermission([CREATE_PROJECT.slug]),
+  upload.array("icon", 1),
   createProject
+);
+
+// Get projects for sidebar/dropdown (permission-aware)
+// Auth required but no specific permission - service handles permission logic
+router.get(
+  "/my-projects",
+  isLoggedIn,
+  getMyProjects
 );
 
 // Get all projects with pagination
@@ -33,10 +45,10 @@ router.get(
   getAllProjects
 );
 
-// Get project by ID
+// Get project by ID (permission check in service - allows members/managers)
 router.get(
   "/details/:id",
-  checkPermission([VIEW_PROJECT.slug]),
+  isLoggedIn,
   getProjectById
 );
 
@@ -44,6 +56,7 @@ router.get(
 router.patch(
   "/update/:id",
   checkPermission([UPDATE_PROJECT.slug]),
+  upload.array("icon", 1),
   updateProject
 );
 
@@ -76,3 +89,4 @@ router.get(
 );
 
 module.exports = router;
+

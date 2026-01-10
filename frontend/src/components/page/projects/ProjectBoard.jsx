@@ -100,15 +100,34 @@ const ProjectBoard = () => {
 
   // Error state
   if (projectError || boardError) {
+    const errorCode = projectError?.status || projectError?.data?.code;
+    const isUnauthorized = errorCode === 403;
+    
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
-        <p className="text-destructive mb-4">
-          {projectError?.data?.message || boardError?.data?.message || "Failed to load project"}
-        </p>
-        <Button variant="outline" onClick={() => navigate("/projects")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Projects
-        </Button>
+        <div className="text-center max-w-md">
+          {isUnauthorized ? (
+            <>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                <ArrowLeft className="h-8 w-8 text-destructive" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                Access Denied
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                You don{"'"}t have permission to access this project. Contact a project manager to request access.
+              </p>
+            </>
+          ) : (
+            <p className="text-destructive mb-4">
+              {projectError?.data?.message || boardError?.data?.message || "Failed to load project"}
+            </p>
+          )}
+          <Button variant="outline" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Go to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -181,6 +200,7 @@ const ProjectBoard = () => {
       <div className="flex-1 min-h-0 overflow-hidden max-h-[calc(100vh-14rem)] mt-2">
         {board ? (
           <TaskBoardView
+            key={projectId}
             projectId={projectId}
             board={board}
             selectedTaskId={selectedTaskId}

@@ -18,7 +18,8 @@ const createProject = async (req, res) => {
     const result = await projectService.createProject(
       session,
       req.body,
-      req.user
+      req.user,
+      req.files
     );
     if (!result.isSuccess) {
       await session.abortTransaction();
@@ -81,9 +82,16 @@ const getAllProjects = async (req, res) => {
  */
 const getProjectById = async (req, res) => {
   try {
+    // Combine role permissions and special permissions
+    const userPermissions = [
+      ...(req.user?.role?.permissions || []),
+      ...(req.user?.special_permissions || []),
+    ];
+    
     const response = await projectService.getProjectById(
       req.params.id,
-      req.user
+      req.user,
+      userPermissions
     );
     if (!response.isSuccess) {
       return errorResponse(res, response.code || 400, response.message);
@@ -91,6 +99,32 @@ const getProjectById = async (req, res) => {
     return successResponse(res, response.data, "Project fetched successfully");
   } catch (err) {
     console.error("Get Project By Id Error:", err.message);
+    return catchResponse(res);
+  }
+};
+
+/**
+ * Get projects for sidebar/dropdown (permission-aware)
+ * GET /projects/my-projects
+ */
+const getMyProjects = async (req, res) => {
+  try {
+    // Combine role permissions and special permissions
+    const userPermissions = [
+      ...(req.user?.role?.permissions || []),
+      ...(req.user?.special_permissions || []),
+    ];
+    
+    const response = await projectService.getMyProjects(
+      req.user,
+      userPermissions
+    );
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code || 400, response.message);
+    }
+    return successResponse(res, response.data, "Projects fetched successfully");
+  } catch (err) {
+    console.error("Get My Projects Error:", err.message);
     return catchResponse(res);
   }
 };
@@ -107,7 +141,8 @@ const updateProject = async (req, res) => {
       session,
       req.params.id,
       req.body,
-      req.user
+      req.user,
+      req.files
     );
     if (!response.isSuccess) {
       await session.abortTransaction();
@@ -247,6 +282,7 @@ module.exports = {
   createProject,
   getAllProjects,
   getProjectById,
+  getMyProjects,
   updateProject,
   deleteProject,
   addProjectMembers,

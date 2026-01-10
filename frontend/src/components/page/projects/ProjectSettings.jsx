@@ -90,6 +90,7 @@ const ProjectSettings = () => {
   
   // Icon upload state
   const [iconPreview, setIconPreview] = useState(null);
+  const [iconFile, setIconFile] = useState(null);
   const iconInputRef = useRef(null);
 
   // User permissions
@@ -123,7 +124,7 @@ const ProjectSettings = () => {
     register,
     handleSubmit,
     control,
-    formState: { errors, isDirty },
+    formState: { errors },
     reset,
     watch,
   } = useForm({
@@ -164,6 +165,8 @@ const ProjectSettings = () => {
   const handleIconChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    setIconFile(file);
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
@@ -187,8 +190,10 @@ const ProjectSettings = () => {
   };
 
   // Remove icon
+  // Remove icon
   const handleRemoveIcon = () => {
     setIconPreview(null);
+    setIconFile(null);
     if (iconInputRef.current) {
       iconInputRef.current.value = "";
     }
@@ -197,16 +202,27 @@ const ProjectSettings = () => {
   // Handle form submission
   const onSubmit = async (data) => {
     try {
-      const submitData = {
-        ...data,
-        start_date: data.start_date ? data.start_date.toISOString() : null,
-        end_date: data.end_date ? data.end_date.toISOString() : null,
-        icon: iconPreview || "",
-      };
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description || "");
+      formData.append("project_type", data.project_type);
+      formData.append("status", data.status);
+      
+      if (data.start_date) {
+        formData.append("start_date", data.start_date.toISOString());
+      }
+      if (data.end_date) {
+        formData.append("end_date", data.end_date.toISOString());
+      }
+      
+      // Handle icon
+      if (iconFile) {
+        formData.append("icon", iconFile);
+      }
 
       const response = await updateProject({
         id: projectId,
-        data: submitData,
+        data: formData,
       }).unwrap();
 
       toast.success(response.message || "Project updated successfully");
@@ -623,7 +639,7 @@ const ProjectSettings = () => {
                 <div className="flex justify-end pt-4 border-t border-border">
                   <Button
                     type="submit"
-                    disabled={isUpdating || !isDirty}
+                    disabled={isUpdating}
                     className="gap-2"
                   >
                     {isUpdating && <Loader2 className="h-4 w-4 animate-spin" />}

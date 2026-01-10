@@ -84,6 +84,7 @@ export default function ProjectForm({ projectId, onSuccess }) {
   
   // Icon upload state
   const [iconPreview, setIconPreview] = useState(null);
+  const [iconFile, setIconFile] = useState(null);
   const iconInputRef = useRef(null);
 
   // Transform users data for MultiSelect
@@ -149,6 +150,8 @@ export default function ProjectForm({ projectId, onSuccess }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIconFile(file);
+
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
@@ -173,6 +176,7 @@ export default function ProjectForm({ projectId, onSuccess }) {
   // Remove icon
   const handleRemoveIcon = () => {
     setIconPreview(null);
+    setIconFile(null);
     if (iconInputRef.current) {
       iconInputRef.current.value = "";
     }
@@ -186,29 +190,53 @@ export default function ProjectForm({ projectId, onSuccess }) {
 
   const onSubmit = async (data) => {
     try {
-      // Prepare data for API
-      const submitData = {
-        ...data,
-        start_date: data.start_date ? data.start_date.toISOString() : null,
-        end_date: data.end_date ? data.end_date.toISOString() : null,
-        icon: iconPreview || "",
-      };
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description || "");
+      formData.append("project_type", data.project_type);
+      formData.append("status", data.status);
+      
+      if (data.start_date) {
+        formData.append("start_date", data.start_date.toISOString());
+      }
+      if (data.end_date) {
+        formData.append("end_date", data.end_date.toISOString());
+      }
+      
+      // Handle arrays
+      if (data.manager && data.manager.length > 0) {
+        data.manager.forEach(id => formData.append("manager[]", id));
+      }
+      if (data.members && data.members.length > 0) {
+        data.members.forEach(id => formData.append("members[]", id));
+      }
+
+      // Handle icon
+      if (iconFile) {
+        formData.append("icon", iconFile);
+      }
 
       if (isEditMode) {
-        // Remove key from update (can't change project key)
-        delete submitData.key;
+        // For update, keys are usually immutable but if API allows, append it.
+        // Usually we don't append key for update if it's not changeable.
+        // formData.append("key", data.key); 
+        
         const response = await updateProject({
           id: projectId,
-          data: submitData,
+          data: formData,
         }).unwrap();
         toast.success(response.message || "Project updated successfully");
       } else {
-        const response = await createProject(submitData).unwrap();
+        formData.append("key", data.key);
+        const response = await createProject(formData).unwrap();
         toast.success(response.message || "Project created successfully");
         
         // Navigate to the new project board
-        if (response.data?._id) {
-          navigate(`/projects/${response.data._id}`);
+        // Check if response struct has data._id or just project._id
+        const newProjectId = response.data?._id || response.project?._id;
+        if (newProjectId) {
+          navigate(`/projects/${newProjectId}`);
           return;
         }
       }
@@ -225,6 +253,8 @@ export default function ProjectForm({ projectId, onSuccess }) {
   };
 
   const isLoading = isCreating || isUpdating;
+  
+
 
   if (isLoadingProject && isEditMode) {
     return (

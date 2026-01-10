@@ -37,27 +37,27 @@ const ColumnTasksFetcher = ({
     return result;
   }, [columnKey, page, filters]);
 
-  const { data, isError } = useGetTasksByProjectQuery(
+  // Use currentData instead of data - currentData is undefined when args change
+  // until fresh data arrives, preventing stale cached data from being shown
+  const { currentData, isError } = useGetTasksByProjectQuery(
     {
       projectId,
       filters: queryFilters,
-    },
-    {
-      refetchOnMountOrArgChange: true,
     }
   );
 
   useEffect(() => {
-    if (data?.data?.tasks) {
+    if (currentData?.data?.tasks) {
       onDataLoaded(
+        projectId,
         columnKey,
-        data.data.tasks,
-        data.data.pagination?.hasNextPage || false,
-        data.data.pagination?.totalStatusCount || 0,
+        currentData.data.tasks,
+        currentData.data.pagination?.hasNextPage || false,
+        currentData.data.pagination?.totalStatusCount || 0,
         page
       );
     }
-  }, [data, columnKey, page]);
+  }, [currentData, columnKey, page, projectId]);
 
   useEffect(() => {
     if (isError) {
@@ -103,35 +103,18 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
     }
   }, [columns]);
 
-  // Initialize state for each column
+  // Ref to track current projectId for stale update prevention
+  // Updated synchronously (not in useEffect) to prevent race conditions
+  const projectIdRef = useRef(projectId);
+  projectIdRef.current = projectId;
+
+  // Initialize state for each column - empty objects that grow as columns are discovered
+  // No reset logic needed since key={projectId} on this component causes full remount
   const [page, setPage] = useState({});
   const [tasks, setTasks] = useState({});
   const [hasNextPage, setHasNextPage] = useState({});
   const [isInitialized, setIsInitialized] = useState({});
   const [totalTasksCount, setTotalTasksCount] = useState({});
-
-  // Initialize state when columns change
-  useEffect(() => {
-    const initialPage = {};
-    const initialTasks = {};
-    const initialHasNextPage = {};
-    const initialIsInitialized = {};
-    const initialTotalCount = {};
-
-    localColumns.forEach((col) => {
-      initialPage[col.key] = 1;
-      initialTasks[col.key] = [];
-      initialHasNextPage[col.key] = false;
-      initialIsInitialized[col.key] = false;
-      initialTotalCount[col.key] = 0;
-    });
-
-    setPage(initialPage);
-    setTasks(initialTasks);
-    setHasNextPage(initialHasNextPage);
-    setIsInitialized(initialIsInitialized);
-    setTotalTasksCount(initialTotalCount);
-  }, [JSON.stringify(columns.map(c => c.key))]);
 
   const handlePageChange = useCallback((status, newPage) => {
     setPage((prev) => ({
@@ -140,7 +123,12 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
     }));
   }, []);
 
-  const handleDataLoaded = useCallback((status, newTasks, hasNextPageStatus, totalCount, currentPage) => {
+  const handleDataLoaded = useCallback((forProjectId, status, newTasks, hasNextPageStatus, totalCount, currentPage) => {
+    // Ignore updates from stale projects (race condition prevention)
+    if (forProjectId !== projectIdRef.current) {
+      return;
+    }
+
     if (currentPage === 1) {
       // Initial load
       setTasks((prev) => ({
@@ -352,6 +340,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       onDragEnd(draggableId, destination.droppableId, destination);
     }
   };
+
   // Create stable filter key for comparison (only considers non-null values)
   // This is used in the ColumnTasksFetcher key to force remount when filters change
   const stableFilterKey = useMemo(() => {
@@ -363,7 +352,6 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
     if (filters.myFilter && filters.myFilter !== "all") activeFilters.myFilter = filters.myFilter;
     return JSON.stringify(activeFilters);
   }, [filters]);
-
 
   // Socket event handlers
   const handleUpdateTask = useCallback((msg) => {
@@ -806,7 +794,7 @@ const TaskBoardView = ({ projectId, board, isProjectManager = false }) => {
       {/* Render fetchers for each column */}
       {localColumns.map((column) => (
         <ColumnTasksFetcher
-          key={`${column.key}-${page[column.key] || 1}-${stableFilterKey}`}
+          key={`${projectId}-${column.key}-${page[column.key] || 1}-${stableFilterKey}`}
           projectId={projectId}
           columnKey={column.key}
           page={page[column.key] || 1}

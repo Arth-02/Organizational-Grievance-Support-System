@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Briefcase,
@@ -9,11 +9,33 @@ import {
   Home,
   MessageSquareWarning,
   Users,
+  MoreHorizontal,
 } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useGetMyProjectsQuery } from "@/services/project.service";
 
 const MenuItem = ({ item, isActive, isCollapsed }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(() => {
+    if (!item.children) return false;
+    return item.children.some(child => 
+      location.pathname === child.path || 
+      location.pathname.startsWith(child.path + "/")
+    );
+  });
+
+  // Automatically open dropdown if a child is active (handles navigation updates)
+  useEffect(() => {
+    if (item.children) {
+      const shouldBeOpen = item.children.some(child => 
+        location.pathname === child.path || 
+        location.pathname.startsWith(child.path + "/")
+      );
+      if (shouldBeOpen) {
+        setIsOpen(true);
+      }
+    }
+  }, [location.pathname, item.children]);
 
   if (item.children && !isCollapsed) {
     return (
@@ -48,7 +70,7 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
         </button>
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-40" : "max-h-0"
+            isOpen ? "max-h-60" : "max-h-0"
           }`}
         >
           <div className="ml-6 mt-1 space-y-1">
@@ -57,7 +79,8 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
                 key={index}
                 to={child.path}
                 className={`flex items-center p-2 rounded-lg text-sm transition-all duration-200 ${
-                  location.pathname === child.path
+                  child.highlight !== false && (location.pathname === child.path ||
+                  location.pathname.startsWith(child.path + "/"))
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
@@ -108,14 +131,66 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
 const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const userPermissions = useSelector((state) => state.user.permissions);
+  
+  // Fetch projects for sidebar
+  const { data: projectsData } = useGetMyProjectsQuery();
+  const projects = useMemo(() => projectsData?.data || [], [projectsData]);
 
   const createMenuItem = (icon, label, path, permission) =>
     userPermissions.includes(permission) ? [{ icon, label, path }] : [];
 
+  // Build projects menu item with children
+  const projectsMenuItem = useMemo(() => {
+    // Show projects to everyone who has projects (either via permission or membership)
+    if (projects.length === 0) {
+      // If no projects yet, show simple link if user has VIEW_PROJECT permission
+      if (userPermissions.includes("VIEW_PROJECT")) {
+        return [{ icon: <FolderKanban />, label: "Projects", path: "/projects" }];
+      }
+      return [];
+    }
+
+    // Show first 3 projects as children, with "View All" if more
+    const projectChildren = projects.slice(0, 3).map((project) => ({
+      // Use project icon image if available, otherwise default FolderKanban
+      icon: project.icon ? (
+        <img 
+          key={`${project._id}-${project.icon}`}
+          src={project.icon} 
+          alt={project.name}
+          className="w-4 h-4 rounded object-cover"
+        />
+      ) : (
+        <FolderKanban />
+      ),
+      label: project.name,
+      path: `/projects/${project._id}`,
+    }));
+
+    // Add "View All" link if there are more projects or user has permission
+    if (projects.length > 3 || userPermissions.includes("VIEW_PROJECT")) {
+      projectChildren.push({
+        icon: <MoreHorizontal />,
+        label: projects.length > 3 ? `+${projects.length - 3} more` : "View All",
+        path: "/projects",
+        highlight: false,
+      });
+    }
+
+    return [{
+      icon: <FolderKanban />,
+      label: "Projects",
+      path: "/projects",
+      children: projectChildren,
+      // Only highlight parent when exactly on /projects, not on child project pages
+      exactMatch: true,
+    }];
+  }, [projects, userPermissions]);
+
   const menuItems = [
     { icon: <Home />, label: "Dashboard", path: "/" },
     { icon: <MessageSquareWarning />, label: "Grievances", path: "/grievances" },
-    ...createMenuItem(<FolderKanban />, "Projects", "/projects", "VIEW_PROJECT"),
+    ...projectsMenuItem,
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
     ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
@@ -153,12 +228,17 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
                   item={item}
                   isCollapsed={isCollapsed}
                   isActive={
-                    location.pathname === item.path ||
-                    (item.path !== "/" && location.pathname.startsWith(item.path + "/")) ||
-                    (item.children &&
-                      item.children.some(
-                        (child) => location.pathname === child.path
-                      ))
+                    // If exactMatch is true, only match exact path
+                    item.exactMatch
+                      ? location.pathname === item.path
+                      : (
+                          location.pathname === item.path ||
+                          (item.path !== "/" && location.pathname.startsWith(item.path + "/")) ||
+                          (item.children &&
+                            item.children.some(
+                              (child) => location.pathname === child.path || location.pathname.startsWith(child.path + "/")
+                            ))
+                        )
                   }
                 />
               );
@@ -171,3 +251,4 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
 };
 
 export default Sidebar;
+

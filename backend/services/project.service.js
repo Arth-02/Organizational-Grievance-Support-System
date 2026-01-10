@@ -5,15 +5,17 @@ const {
   createProjectSchema,
   updateProjectSchema,
 } = require("../validators/project.validator");
+const uploadFiles = require("../utils/cloudinary");
 
 /**
  * Create a new project
  * @param {Object} session - MongoDB session for transaction
  * @param {Object} body - Project data
  * @param {Object} user - Authenticated user
+ * @param {Array} files - Uploaded files
  * @returns {Object} - { isSuccess, project?, message?, code? }
  */
-const createProject = async (session, body, user) => {
+const createProject = async (session, body, user, files) => {
   try {
     const { error, value } = createProjectSchema.validate(body, {
       abortEarly: false,
@@ -84,6 +86,18 @@ const createProject = async (session, body, user) => {
       created_by: userId,
     });
 
+    if (files && files.length > 0) {
+      const result = await uploadFiles(files[0], organization_id);
+      if (!result) {
+        return {
+          isSuccess: false,
+          message: "Error uploading project icon",
+          code: 400,
+        };
+      }
+      newProject.icon = result.secure_url;
+    }
+
     await newProject.save({ session });
 
     return { isSuccess: true, project: newProject };
@@ -97,9 +111,10 @@ const createProject = async (session, body, user) => {
  * Get project by ID
  * @param {String} id - Project ID
  * @param {Object} user - Authenticated user
+ * @param {Array} userPermissions - User's permissions array
  * @returns {Object} - { isSuccess, data?, message?, code? }
  */
-const getProjectById = async (id, user) => {
+const getProjectById = async (id, user, userPermissions = []) => {
   try {
     if (!id) {
       return {
@@ -113,7 +128,7 @@ const getProjectById = async (id, user) => {
       return { isSuccess: false, message: "Invalid project ID", code: 400 };
     }
 
-    const { organization_id } = user;
+    const { organization_id, _id: userId } = user;
 
     const project = await Project.findOne({
       _id: id,
@@ -128,9 +143,60 @@ const getProjectById = async (id, user) => {
       return { isSuccess: false, message: "Project not found", code: 404 };
     }
 
+    // Check if user has access to this project
+    const hasViewPermission = userPermissions.includes("VIEW_PROJECT");
+    const isMember = project.members?.some(m => m._id.toString() === userId.toString());
+    const isManager = project.manager?.some(m => m._id.toString() === userId.toString());
+
+    if (!hasViewPermission && !isMember && !isManager) {
+      return { 
+        isSuccess: false, 
+        message: "You don't have access to this project", 
+        code: 403 
+      };
+    }
+
     return { isSuccess: true, data: project };
   } catch (err) {
     console.error("Error in getProjectById service:", err);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+/**
+ * Get projects for sidebar/dropdown (permission-aware)
+ * If user has VIEW_PROJECT permission: return all projects
+ * Otherwise: return only projects where user is member or manager
+ * @param {Object} user - Authenticated user
+ * @param {Array} userPermissions - User's permissions array
+ * @returns {Object} - { isSuccess, data?, message?, code? }
+ */
+const getMyProjects = async (user, userPermissions = []) => {
+  try {
+    const { organization_id, _id: userId } = user;
+
+    let dbQuery = {
+      organization_id,
+      deleted_at: null,
+    };
+
+    // If user doesn't have VIEW_PROJECT permission, filter by membership
+    const hasViewPermission = userPermissions.includes("VIEW_PROJECT");
+    if (!hasViewPermission) {
+      dbQuery.$or = [
+        { members: userId },
+        { manager: userId },
+      ];
+    }
+
+    const projects = await Project.find(dbQuery)
+      .sort({ name: 1 })
+      .select("_id name key status icon")
+      .limit(20); // Limit for sidebar performance
+
+    return { isSuccess: true, data: projects };
+  } catch (err) {
+    console.error("Error in getMyProjects service:", err);
     return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
@@ -230,9 +296,10 @@ const getAllProjects = async (query, user) => {
  * @param {String} id - Project ID
  * @param {Object} body - Update data
  * @param {Object} user - Authenticated user
+ * @param {Array} files - Uploaded files
  * @returns {Object} - { isSuccess, data?, message?, code? }
  */
-const updateProject = async (session, id, body, user) => {
+const updateProject = async (session, id, body, user, files) => {
   try {
     if (!id) {
       return {
@@ -265,6 +332,19 @@ const updateProject = async (session, id, body, user) => {
 
     if (!project) {
       return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    // Handle icon upload
+    if (files && files.length > 0) {
+      const result = await uploadFiles(files[0], project.organization_id);
+      if (!result) {
+        return {
+          isSuccess: false,
+          message: "Error uploading project icon",
+          code: 400,
+        };
+      }
+      value.icon = result.secure_url;
     }
 
     // Apply updates
@@ -552,6 +632,7 @@ const removeProjectMembers = async (session, id, body, user) => {
 module.exports = {
   createProject,
   getProjectById,
+  getMyProjects,
   getAllProjects,
   updateProject,
   deleteProject,
