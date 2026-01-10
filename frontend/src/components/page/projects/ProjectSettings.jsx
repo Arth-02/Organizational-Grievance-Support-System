@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import {
   FolderKanban,
   AlertTriangle,
   Save,
+  ImagePlus,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,10 @@ const ProjectSettings = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTypeSelectOpen, setIsTypeSelectOpen] = useState(false);
   const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
+  
+  // Icon upload state
+  const [iconPreview, setIconPreview] = useState(null);
+  const iconInputRef = useRef(null);
 
   // User permissions
   const userPermissions = useSelector((state) => state.user.permissions);
@@ -146,8 +151,48 @@ const ProjectSettings = () => {
         start_date: project.start_date ? new Date(project.start_date) : null,
         end_date: project.end_date ? new Date(project.end_date) : null,
       });
+      // Set icon preview from project data
+      if (project.icon) {
+        setIconPreview(project.icon);
+      } else {
+        setIconPreview(null);
+      }
     }
   }, [project, reset]);
+
+  // Handle icon file selection
+  const handleIconChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size should be less than 2MB");
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setIconPreview(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove icon
+  const handleRemoveIcon = () => {
+    setIconPreview(null);
+    if (iconInputRef.current) {
+      iconInputRef.current.value = "";
+    }
+  };
 
   // Handle form submission
   const onSubmit = async (data) => {
@@ -156,6 +201,7 @@ const ProjectSettings = () => {
         ...data,
         start_date: data.start_date ? data.start_date.toISOString() : null,
         end_date: data.end_date ? data.end_date.toISOString() : null,
+        icon: iconPreview || "",
       };
 
       const response = await updateProject({
@@ -378,6 +424,73 @@ const ProjectSettings = () => {
                     placeholder="Describe your project..."
                     rows={3}
                   />
+                </div>
+
+                {/* Project Icon */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
+                    Project Icon
+                    <span className="text-[10px] font-normal normal-case text-muted-foreground/70">
+                      (Optional)
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {iconPreview ? (
+                      <div className="relative group">
+                        <img
+                          src={iconPreview}
+                          alt="Project icon"
+                          className="w-16 h-16 rounded-lg object-cover border border-border"
+                        />
+                        {canUpdate && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveIcon}
+                            className="absolute -top-2 -right-2 p-1 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => canUpdate && iconInputRef.current?.click()}
+                        className={cn(
+                          "w-16 h-16 rounded-lg border-2 border-dashed border-border bg-background/50 flex items-center justify-center transition-colors",
+                          canUpdate && "hover:border-primary/50 cursor-pointer"
+                        )}
+                      >
+                        <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input
+                        ref={iconInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleIconChange}
+                        className="hidden"
+                        disabled={!canUpdate}
+                      />
+                      {canUpdate && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => iconInputRef.current?.click()}
+                            className="text-xs"
+                          >
+                            {iconPreview ? "Change Icon" : "Upload Icon"}
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PNG, JPG up to 2MB
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Project Type and Status */}

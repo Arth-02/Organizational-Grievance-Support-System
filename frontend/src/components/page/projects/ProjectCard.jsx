@@ -59,9 +59,17 @@ const ProjectCard = ({ project }) => {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
             {/* Project Icon */}
-            <div className="p-2 rounded-lg bg-primary/10">
-              <FolderKanban className="h-5 w-5 text-primary" />
-            </div>
+            {project.icon ? (
+              <img
+                src={project.icon}
+                alt={`${project.name} icon`}
+                className="w-9 h-9 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="p-2 rounded-lg bg-primary/10">
+                <FolderKanban className="h-5 w-5 text-primary" />
+              </div>
+            )}
             <div className="flex flex-col min-w-0">
               {/* Project Name */}
               <h4 className="font-semibold text-base text-card-foreground leading-tight truncate">
