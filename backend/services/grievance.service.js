@@ -473,8 +473,11 @@ const updateGrievanceAttachment = async (session, id, body, user, files) => {
         files
       );
       if (!response.isSuccess) {
-        await session.abortTransaction();
-        return errorResponse(res, response.code, response.message);
+        return {
+          isSuccess: false,
+          message: response.message,
+          code: response.code,
+        };
       }
       grievance.attachments.push(...response.attachmentIds);
     }
@@ -510,8 +513,7 @@ const updateGrievanceAttachment = async (session, id, body, user, files) => {
     return { isSuccess: true, data: updatedGrievanceData };
   } catch (err) {
     console.error("Update Grievance Attachment Error:", err.message);
-    await session.abortTransaction();
-    return catchResponse(res);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
   }
 };
 

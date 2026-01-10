@@ -471,14 +471,14 @@ const GeneralTable = ({
           {customFilters &&
             customFilters.map((filter, index) => (
               <div key={index} className="flex flex-nowrap items-center gap-2">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{filter.label}</span>
+                <span className="text-sm font-medium">{filter.label}</span>
                 {filter.label === "Permissions" ? (
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
-                        className="w-full justify-between bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="w-full justify-between"
                       >
                         {filters[filter.key]?.length > 0
                           ? `Selected (${filters[filter.key].length})`
@@ -582,7 +582,7 @@ const GeneralTable = ({
                       handleFilterChange(filter.key, value)
                     }
                   >
-                    <SelectTrigger className="h-9 min-w-[120px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+                    <SelectTrigger className="h-9">
                       <SelectValue placeholder={filter.placeholder || "All"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -602,7 +602,7 @@ const GeneralTable = ({
               variant="outline"
               size="sm"
               onClick={handleResetFilters}
-              className="flex items-center gap-2 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-2"
             >
               <RefreshCcw size={14} />
               Reset
