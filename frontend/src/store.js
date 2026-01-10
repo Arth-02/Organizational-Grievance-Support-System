@@ -5,6 +5,7 @@ import roleSlice from "./features/roleSlice";
 import departmentSlice from "./features/departmentSlice";
 import organizationSlice from "./features/organizationSlice";
 import grievanceSlice from "./features/grievanceSlice";
+import projectSlice from "./features/projectSlice";
 import { baseApi } from "./services/baseApi.service";
 
 export const store = configureStore({
@@ -14,6 +15,7 @@ export const store = configureStore({
     department: departmentSlice,
     grievance: grievanceSlice,
     organization: organizationSlice,
+    project: projectSlice,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

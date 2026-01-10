@@ -19,6 +19,12 @@ import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
 import Profile from "./components/page/profile/Profile";
 
+// Project components
+import Projects from "./components/page/projects/Projects";
+import ProjectBoard from "./components/page/projects/ProjectBoard";
+import ProjectSettings from "./components/page/projects/ProjectSettings";
+import ProjectForm from "./components/page/projects/ProjectForm";
+
 // Admin components
 import AdminLayout from "./components/admin/layout/AdminLayout";
 import AdminDashboard from "./components/admin/dashboard/AdminDashboard";
@@ -103,6 +109,38 @@ function App() {
                   </PermissionGuard>
                 }
               />
+              <Route
+                path="/projects"
+                element={
+                  <PermissionGuard requiredPermissions={["VIEW_PROJECT"]}>
+                    <Projects />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/projects/add"
+                element={
+                  <PermissionGuard requiredPermissions={["CREATE_PROJECT"]}>
+                    <ProjectForm />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/projects/:projectId"
+                element={
+                  <PermissionGuard requiredPermissions={["VIEW_PROJECT"]}>
+                    <ProjectBoard />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="/projects/:projectId/settings"
+                element={
+                  <PermissionGuard requiredPermissions={["UPDATE_PROJECT"]}>
+                    <ProjectSettings />
+                  </PermissionGuard>
+                }
+              />
             </Route>
 
             {/* Admin Routes - DEV only */}
@@ -135,6 +173,7 @@ function App() {
           {background && (
             <Routes>
               <Route path="/grievances/add" element={<PrivateRoute><AddUpdateGrievance /></PrivateRoute>} />
+              <Route path="/projects/add" element={<PrivateRoute><ProjectForm /></PrivateRoute>} />
             </Routes>
           )}
         </ModalProvider>

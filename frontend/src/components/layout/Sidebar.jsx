@@ -5,6 +5,7 @@ import {
   Building,
   ChevronDown,
   ChevronLeft,
+  FolderKanban,
   Home,
   MessageSquareWarning,
   Users,
@@ -114,6 +115,7 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const menuItems = [
     { icon: <Home />, label: "Dashboard", path: "/" },
     { icon: <MessageSquareWarning />, label: "Grievances", path: "/grievances" },
+    ...createMenuItem(<FolderKanban />, "Projects", "/projects", "VIEW_PROJECT"),
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
     ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
@@ -152,6 +154,7 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
                   isCollapsed={isCollapsed}
                   isActive={
                     location.pathname === item.path ||
+                    (item.path !== "/" && location.pathname.startsWith(item.path + "/")) ||
                     (item.children &&
                       item.children.some(
                         (child) => location.pathname === child.path
