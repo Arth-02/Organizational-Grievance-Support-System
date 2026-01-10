@@ -3,26 +3,15 @@ import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Pencil, Trash2, Loader2, MessageSquare, Paperclip } from "lucide-react";
+import { Pencil, Loader2, MessageSquare, Paperclip } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   useAddCommentMutation,
   useUpdateCommentMutation,
-  useDeleteCommentMutation,
 } from "@/services/task.service";
 import TextEditor from "@/components/ui/TextEditor";
 
@@ -34,14 +23,11 @@ function TaskComments({ taskId, comments = [], onCommentUpdate }) {
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [commentToDelete, setCommentToDelete] = useState(null);
   const [showCommentInput, setShowCommentInput] = useState(false);
 
   // API hooks
   const [addComment, { isLoading: isAdding }] = useAddCommentMutation();
   const [updateComment, { isLoading: isUpdating }] = useUpdateCommentMutation();
-  const [deleteComment, { isLoading: isDeleting }] = useDeleteCommentMutation();
 
   // Get current user
   const user = useSelector((state) => state.user.user);
@@ -149,50 +135,57 @@ function TaskComments({ taskId, comments = [], onCommentUpdate }) {
     }
   };
 
-  const handleDeleteClick = (comment) => {
-    setCommentToDelete(comment);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!commentToDelete) return;
-
-    try {
-      await deleteComment({
-        taskId,
-        commentId: commentToDelete._id,
-      }).unwrap();
-
-      toast.success("Comment deleted");
-      setDeleteDialogOpen(false);
-      setCommentToDelete(null);
-      
-      if (onCommentUpdate) {
-        // Trigger a refetch by passing null
-        onCommentUpdate(null);
-      }
-    } catch (error) {
-      console.error("Failed to delete comment:", error);
-      toast.error(error?.data?.message || "Failed to delete comment");
-    }
-  };
-
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
-          Comments ({comments.length})
-        </h3>
+      {/* Add Comment Section - On Top */}
+      <div className="pb-4 border-b border-border">
+        {showCommentInput ? (
+          <div className="space-y-2">
+            <div className="flex items-start gap-3">
+              <Avatar className="h-8 w-8 ring-2 ring-border shadow-sm flex-shrink-0">
+                <AvatarImage src={user?.avatar} alt={user?.username} />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                  {getInitials(user)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <TextEditor
+                  initialContent={newComment}
+                  onSave={handleAddComment}
+                  onChange={setNewComment}
+                  onCancel={() => {
+                    setShowCommentInput(false);
+                    setNewComment("");
+                  }}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+            {isAdding && (
+              <div className="flex items-center gap-2 ml-11 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Adding comment...
+              </div>
+            )}
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            onClick={() => setShowCommentInput(true)}
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Add a comment...
+          </Button>
+        )}
       </div>
 
-      {/* Comments List */}
+      {/* Comments List - Descending Order */}
       <div className="space-y-4">
         {comments.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">No comments yet</p>
         ) : (
-          comments.map((comment) => (
+          [...comments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((comment) => (
             <div key={comment._id} className="flex gap-3">
               {/* Author Avatar */}
               <Tooltip>
@@ -270,7 +263,7 @@ function TaskComments({ taskId, comments = [], onCommentUpdate }) {
                       </div>
                     )}
 
-                    {/* Actions (Edit/Delete) - Only for comment owner */}
+                    {/* Actions (Edit only) - Only for comment owner */}
                     {isCommentOwner(comment) && (
                       <div className="flex items-center gap-2 mt-2">
                         <Button
@@ -282,15 +275,6 @@ function TaskComments({ taskId, comments = [], onCommentUpdate }) {
                           <Pencil className="h-3 w-3 mr-1" />
                           Edit
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
-                          onClick={() => handleDeleteClick(comment)}
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Delete
-                        </Button>
                       </div>
                     )}
                   </>
@@ -300,81 +284,6 @@ function TaskComments({ taskId, comments = [], onCommentUpdate }) {
           ))
         )}
       </div>
-
-      {/* Add Comment Section */}
-      <div className="pt-4 border-t border-border">
-        {showCommentInput ? (
-          <div className="space-y-2">
-            <div className="flex items-start gap-3">
-              <Avatar className="h-8 w-8 ring-2 ring-border shadow-sm flex-shrink-0">
-                <AvatarImage src={user?.avatar} alt={user?.username} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
-                  {getInitials(user)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <TextEditor
-                  initialContent={newComment}
-                  onSave={handleAddComment}
-                  onChange={setNewComment}
-                  onCancel={() => {
-                    setShowCommentInput(false);
-                    setNewComment("");
-                  }}
-                  className="min-h-[100px]"
-                />
-              </div>
-            </div>
-            {isAdding && (
-              <div className="flex items-center gap-2 ml-11 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Adding comment...
-              </div>
-            )}
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
-            onClick={() => setShowCommentInput(true)}
-          >
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Add a comment...
-          </Button>
-        )}
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-card border border-border dark:border-secondary shadow-xl">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-full bg-red-100 dark:bg-red-500/20">
-                <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <AlertDialogTitle className="text-lg font-semibold text-card-foreground">
-                Delete Comment
-              </AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to delete this comment? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="border-border hover:bg-muted">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-              disabled={isDeleting}
-            >
-              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

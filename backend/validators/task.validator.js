@@ -10,10 +10,10 @@ const createTaskSchema = Joi.object({
       "any.required": "Project ID is required",
     }),
   type: Joi.string()
-    .valid("task", "bug", "story", "epic", "subtask")
+    .valid("task", "bug", "story", "epic")
     .default("task")
     .messages({
-      "any.only": "Task type must be one of: task, bug, story, epic, subtask",
+      "any.only": "Task type must be one of: task, bug, story, epic",
     }),
   title: Joi.string()
     .trim()
@@ -60,13 +60,6 @@ const createTaskSchema = Joi.object({
     .messages({
       "date.base": "Due date must be a valid date",
     }),
-  parent_id: Joi.string()
-    .custom(objectIdValidation)
-    .allow(null)
-    .optional()
-    .messages({
-      "string.empty": "Parent ID must be a valid task ID",
-    }),
 });
 
 
@@ -88,6 +81,12 @@ const updateTaskSchema = Joi.object({
     .messages({
       "string.max": "Task description must not exceed 5000 characters",
     }),
+  status: Joi.string()
+    .trim()
+    .optional()
+    .messages({
+      "string.empty": "Status cannot be empty",
+    }),
   priority: Joi.string()
     .valid("lowest", "low", "medium", "high", "highest")
     .optional()
@@ -105,10 +104,10 @@ const updateTaskSchema = Joi.object({
       "date.base": "Due date must be a valid date",
     }),
   type: Joi.string()
-    .valid("task", "bug", "story", "epic", "subtask")
+    .valid("task", "bug", "story", "epic")
     .optional()
     .messages({
-      "any.only": "Task type must be one of: task, bug, story, epic, subtask",
+      "any.only": "Task type must be one of: task, bug, story, epic",
     }),
 });
 

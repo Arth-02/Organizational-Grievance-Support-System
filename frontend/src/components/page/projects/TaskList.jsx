@@ -1,6 +1,6 @@
 import { Draggable, Droppable } from "@hello-pangea/dnd";
 import { useRef, useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, GripVertical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import cn from "classnames";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
@@ -62,6 +62,8 @@ const TaskList = ({
   isInitialized,
   totalTasksCount,
   onPageChange,
+  dragHandleProps,
+  isProjectManager,
 }) => {
   const containerRef = useRef(null);
   
@@ -114,14 +116,25 @@ const TaskList = ({
             {/* Column Header */}
             <div className="p-3 border-b border-border">
               <div className="flex items-center justify-between">
-                <h3
-                  className={cn(
-                    "font-medium text-sm",
-                    statusConfig.textColor
+                <div className="flex items-center gap-2">
+                  {/* Drag Handle - Only visible to project managers */}
+                  {isProjectManager && dragHandleProps && (
+                    <div
+                      {...dragHandleProps}
+                      className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted transition-colors"
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    </div>
                   )}
-                >
-                  {column.label || statusConfig.label}
-                </h3>
+                  <h3
+                    className={cn(
+                      "font-medium text-sm",
+                      statusConfig.textColor
+                    )}
+                  >
+                    {column.label || statusConfig.label}
+                  </h3>
+                </div>
                 <span
                   className={cn(
                     "px-2 py-0.5 rounded text-xs font-medium",

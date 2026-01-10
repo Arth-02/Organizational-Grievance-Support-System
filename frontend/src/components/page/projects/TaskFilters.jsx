@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Search, X, CheckSquare, Bug, BookOpen, Zap, GitBranch } from "lucide-react";
+import { Search, X, CheckSquare, Bug, BookOpen, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,6 @@ const TASK_TYPE_OPTIONS = [
   { value: "bug", label: "Bug", icon: Bug, color: "text-red-500" },
   { value: "story", label: "Story", icon: BookOpen, color: "text-green-500" },
   { value: "epic", label: "Epic", icon: Zap, color: "text-purple-500" },
-  { value: "subtask", label: "Subtask", icon: GitBranch, color: "text-gray-500" },
 ];
 
 // Priority configuration
@@ -66,7 +65,7 @@ const TaskFilters = ({ projectId }) => {
   });
 
   const members = useMemo(() => {
-    return membersData?.data?.members || [];
+    return membersData?.data || [];
   }, [membersData]);
 
   // Sync search input with Redux state

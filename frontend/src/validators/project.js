@@ -61,8 +61,8 @@ export const updateProjectSchema = z.object({
 export const createTaskSchema = z.object({
   project_id: z.string().min(1, { message: "Project ID is required" }),
   type: z
-    .enum(["task", "bug", "story", "epic", "subtask"], {
-      errorMap: () => ({ message: "Task type must be one of: task, bug, story, epic, subtask" }),
+    .enum(["task", "bug", "story", "epic"], {
+      errorMap: () => ({ message: "Task type must be one of: task, bug, story, epic" }),
     })
     .default("task"),
   title: z
@@ -81,7 +81,6 @@ export const createTaskSchema = z.object({
     .default("medium"),
   assignee: z.string().optional().nullable(),
   due_date: z.coerce.date().optional().nullable(),
-  parent_id: z.string().optional().nullable(),
 });
 
 export const updateTaskSchema = z.object({
@@ -102,8 +101,8 @@ export const updateTaskSchema = z.object({
   assignee: z.string().optional().nullable(),
   due_date: z.coerce.date().optional().nullable(),
   type: z
-    .enum(["task", "bug", "story", "epic", "subtask"], {
-      errorMap: () => ({ message: "Task type must be one of: task, bug, story, epic, subtask" }),
+    .enum(["task", "bug", "story", "epic"], {
+      errorMap: () => ({ message: "Task type must be one of: task, bug, story, epic"}),
     })
     .optional(),
 });

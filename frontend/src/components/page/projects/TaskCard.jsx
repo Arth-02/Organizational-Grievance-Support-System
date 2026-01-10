@@ -1,7 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Paperclip, CheckSquare, Bug, BookOpen, Zap, GitBranch } from "lucide-react";
+import { Paperclip, CheckSquare, Bug, BookOpen, Zap } from "lucide-react";
 import cn from "classnames";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -12,7 +12,6 @@ const TASK_TYPE_CONFIG = {
   bug: { icon: Bug, color: "text-red-500" },
   story: { icon: BookOpen, color: "text-green-500" },
   epic: { icon: Zap, color: "text-purple-500" },
-  subtask: { icon: GitBranch, color: "text-gray-500" },
 };
 
 // Priority configuration

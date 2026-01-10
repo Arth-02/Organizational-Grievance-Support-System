@@ -32,7 +32,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const RichTextEditor = ({ initialContent, onSave, onChange, onCancel, className }) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [originalContent, setOriginalContent] = useState(initialContent);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -77,6 +76,7 @@ const RichTextEditor = ({ initialContent, onSave, onChange, onCancel, className 
       }),
     ],
     content: initialContent,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: cn(
@@ -102,7 +102,6 @@ const RichTextEditor = ({ initialContent, onSave, onChange, onCancel, className 
       },
     },
     onUpdate: ({ editor }) => {
-      if (!isEditing) setIsEditing(true);
       // Call onChange with current content on every update
       if (onChange) {
         onChange(editor.getHTML());
@@ -115,17 +114,15 @@ const RichTextEditor = ({ initialContent, onSave, onChange, onCancel, className 
       const content = editor.getHTML();
       onSave(content);
       setOriginalContent(content);
-      setIsEditing(false);
     }
   }, [editor, onSave]);
 
   const handleCancel = useCallback(() => {
     if (editor) {
       editor.commands.setContent(originalContent);
-      setIsEditing(false);
     }
     onCancel();
-  }, [editor, originalContent]);
+  }, [editor, originalContent, onCancel]);
 
   const addLink = useCallback(() => {
     if (editor && linkUrl) {

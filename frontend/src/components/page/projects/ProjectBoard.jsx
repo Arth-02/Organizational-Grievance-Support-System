@@ -185,6 +185,7 @@ const ProjectBoard = () => {
             board={board}
             selectedTaskId={selectedTaskId}
             onCloseTaskModal={handleCloseTaskModal}
+            isProjectManager={isProjectManager}
           />
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -210,6 +211,14 @@ const ProjectBoard = () => {
         onOpenChange={setIsTaskFormOpen}
         onSuccess={handleTaskFormSuccess}
         onCancel={() => setIsTaskFormOpen(false)}
+        members={(() => {
+          // Combine members and managers, removing duplicates by _id
+          const allMembers = [...(project?.members || []), ...(project?.manager || [])];
+          const uniqueMembers = allMembers.filter((member, index, self) =>
+            index === self.findIndex(m => m._id === member._id)
+          );
+          return uniqueMembers;
+        })()}
       />
     </div>
   );

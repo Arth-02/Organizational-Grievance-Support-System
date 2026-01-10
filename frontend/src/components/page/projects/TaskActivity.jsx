@@ -11,7 +11,6 @@ import {
   Bug,
   BookOpen,
   Zap,
-  GitBranch,
   User,
   AlertCircle,
   Paperclip,
@@ -88,8 +87,7 @@ const TASK_TYPE_ICONS = {
   task: CheckSquare,
   bug: Bug,
   story: BookOpen,
-  epic: Zap,
-  subtask: GitBranch,
+  epic: Zap
 };
 
 /**
@@ -158,6 +156,14 @@ function TaskActivity({ activity = [] }) {
           {getDisplayName(value)}
         </span>
       );
+    }
+
+    // Handle assignee field specifically - if it's a string ID, show "a user" instead
+    if (field === "assignee" && typeof value === "string") {
+      // Check if it looks like a MongoDB ObjectId (24 hex characters)
+      if (/^[a-f\d]{24}$/i.test(value)) {
+        return <span className="font-medium text-card-foreground">a user</span>;
+      }
     }
 
     // Handle status values
@@ -237,14 +243,6 @@ function TaskActivity({ activity = [] }) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <Activity className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Activity ({activity.length})
-        </h3>
-      </div>
-
       {/* Activity Timeline */}
       <div className="space-y-1">
         {sortedActivity.length === 0 ? (

@@ -74,10 +74,10 @@ export const taskApi = baseApi.injectEndpoints({
       invalidatesTags: ["singleTask"],
     }),
     addAttachment: builder.mutation({
-      query: ({ taskId, data }) => ({
+      query: ({ taskId, formData }) => ({
         url: `tasks/${taskId}/attachments`,
         method: "POST",
-        body: data,
+        body: formData,
       }),
       invalidatesTags: ["singleTask"],
     }),

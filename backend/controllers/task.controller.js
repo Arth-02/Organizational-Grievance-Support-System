@@ -247,7 +247,7 @@ const deleteComment = async (req, res) => {
       return errorResponse(res, response.code || 400, response.message);
     }
     await session.commitTransaction();
-    return successResponse(res, {}, "Comment deleted successfully");
+    return successResponse(res, response.data, "Comment deleted successfully");
   } catch (err) {
     console.error("Delete Comment Error:", err.message);
     await session.abortTransaction();

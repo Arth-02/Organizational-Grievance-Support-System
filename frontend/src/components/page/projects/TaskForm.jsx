@@ -21,7 +21,6 @@ import {
   Bug,
   BookOpen,
   Zap,
-  GitBranch,
 } from "lucide-react";
 import {
   Select,
@@ -45,7 +44,6 @@ const TASK_TYPE_CONFIG = {
   bug: { icon: Bug, color: "text-red-500", label: "Bug" },
   story: { icon: BookOpen, color: "text-green-500", label: "Story" },
   epic: { icon: Zap, color: "text-purple-500", label: "Epic" },
-  subtask: { icon: GitBranch, color: "text-gray-500", label: "Subtask" },
 };
 
 // Priority configuration
@@ -65,7 +63,9 @@ const ACCEPTED_TYPES = {
   "video/*": [".mp4", ".webm"],
   "application/pdf": [".pdf"],
   "application/msword": [".doc"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+    ".docx",
+  ],
   "text/plain": [".txt"],
 };
 
@@ -76,22 +76,13 @@ const taskFormSchema = z.object({
     .min(1, { message: "Title is required" })
     .max(200, { message: "Title must not exceed 200 characters" }),
   description: z.string().optional(),
-  type: z.enum(["task", "bug", "story", "epic", "subtask"]).default("task"),
-  priority: z.enum(["lowest", "low", "medium", "high", "highest"]).default("medium"),
+  type: z.enum(["task", "bug", "story", "epic"]).default("task"),
+  priority: z
+    .enum(["lowest", "low", "medium", "high", "highest"])
+    .default("medium"),
   assignee: z.string().optional().nullable(),
 });
 
-/**
- * TaskForm - Form component for creating new tasks
- * 
- * @param {Object} props
- * @param {string} props.projectId - The project ID to create the task in
- * @param {string} props.defaultStatus - Default status for the new task (e.g., "todo")
- * @param {Function} props.onSuccess - Callback when task is created successfully
- * @param {Function} props.onCancel - Callback when form is cancelled
- * @param {boolean} props.open - Whether the dialog is open
- * @param {Function} props.onOpenChange - Callback when dialog open state changes
- */
 export default function TaskForm({
   projectId,
   defaultStatus = "todo",
@@ -99,9 +90,10 @@ export default function TaskForm({
   onCancel,
   open,
   onOpenChange,
+  members = [],
 }) {
   const [files, setFiles] = useState([]);
-  
+
   // Track select open states to prevent dialog close
   const [isTypeSelectOpen, setIsTypeSelectOpen] = useState(false);
   const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
@@ -110,10 +102,16 @@ export default function TaskForm({
   // API hooks
   const [createTask, { isLoading }] = useCreateTaskMutation();
   const { data: membersData } = useGetProjectMembersQuery(projectId, {
-    skip: !projectId,
+    skip: !projectId || members.length > 0, // Skip if members are passed as prop
   });
 
-  const projectMembers = membersData?.data?.members || [];
+  // Use passed members or fetched members
+  const projectMembers = members.length > 0 ? members : membersData?.data || [];
+
+  // Filter task types - only show subtask option when creating under a parent task
+  const availableTaskTypes = Object.fromEntries(
+    Object.entries(TASK_TYPE_CONFIG)
+  );
 
   // Form setup
   const {
@@ -201,20 +199,20 @@ export default function TaskForm({
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
-      
+
       // Add form fields
       formData.append("project_id", projectId);
       formData.append("title", data.title);
       formData.append("status", defaultStatus);
       formData.append("type", data.type);
       formData.append("priority", data.priority);
-      
+
       if (data.description) {
         formData.append("description", data.description);
       }
-      
+
       if (data.assignee) {
-        formData.append("assigned_to", data.assignee);
+        formData.append("assignee", data.assignee);
       }
 
       // Add files
@@ -234,15 +232,15 @@ export default function TaskForm({
       }
 
       toast.success(response.message || "Task created successfully");
-      
+
       // Reset form
       reset();
       setFiles([]);
-      
+
       if (onSuccess) {
         onSuccess(response.data);
       }
-      
+
       if (onOpenChange) {
         onOpenChange(false);
       }
@@ -253,8 +251,8 @@ export default function TaskForm({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           handleClose();
@@ -263,15 +261,23 @@ export default function TaskForm({
         }
       }}
     >
-      <DialogContent 
+      <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0"
         onPointerDownOutside={(e) => {
-          if (isTypeSelectOpen || isPrioritySelectOpen || isAssigneeSelectOpen) {
+          if (
+            isTypeSelectOpen ||
+            isPrioritySelectOpen ||
+            isAssigneeSelectOpen
+          ) {
             e.preventDefault();
           }
         }}
         onInteractOutside={(e) => {
-          if (isTypeSelectOpen || isPrioritySelectOpen || isAssigneeSelectOpen) {
+          if (
+            isTypeSelectOpen ||
+            isPrioritySelectOpen ||
+            isAssigneeSelectOpen
+          ) {
             e.preventDefault();
           }
         }}
@@ -297,7 +303,10 @@ export default function TaskForm({
         <Separator className="w-[95%] mx-auto" />
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 overflow-y-auto"
+        >
           <div className="p-6 space-y-5">
             {/* Title */}
             <div className="space-y-2">
@@ -365,14 +374,16 @@ export default function TaskForm({
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        {Object.entries(TASK_TYPE_CONFIG).map(([value, { label, icon: Icon, color }]) => (
-                          <SelectItem key={value} value={value}>
-                            <div className="flex items-center gap-2">
-                              <Icon className={cn("h-4 w-4", color)} />
-                              <span>{label}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {Object.entries(availableTaskTypes).map(
+                          ([value, { label, icon: Icon, color }]) => (
+                            <SelectItem key={value} value={value}>
+                              <div className="flex items-center gap-2">
+                                <Icon className={cn("h-4 w-4", color)} />
+                                <span>{label}</span>
+                              </div>
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -401,7 +412,12 @@ export default function TaskForm({
                       <SelectContent className="bg-popover border-border">
                         {PRIORITY_OPTIONS.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
-                            <span className={cn("flex items-center gap-2", option.color)}>
+                            <span
+                              className={cn(
+                                "flex items-center gap-2",
+                                option.color
+                              )}
+                            >
                               <span className="w-2 h-2 rounded-full bg-current"></span>
                               {option.label}
                             </span>
@@ -428,7 +444,9 @@ export default function TaskForm({
                 control={control}
                 render={({ field }) => (
                   <Select
-                    onValueChange={(value) => field.onChange(value === "unassigned" ? null : value)}
+                    onValueChange={(value) =>
+                      field.onChange(value === "unassigned" ? null : value)
+                    }
                     value={field.value || "unassigned"}
                     open={isAssigneeSelectOpen}
                     onOpenChange={setIsAssigneeSelectOpen}
@@ -437,7 +455,9 @@ export default function TaskForm({
                       <SelectValue placeholder="Select assignee">
                         {field.value ? (
                           (() => {
-                            const member = projectMembers.find((m) => m._id === field.value);
+                            const member = projectMembers.find(
+                              (m) => m._id === field.value
+                            );
                             return member ? (
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-5 w-5">
@@ -446,20 +466,28 @@ export default function TaskForm({
                                     {getInitials(member)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="truncate">{getDisplayName(member)}</span>
+                                <span className="truncate">
+                                  {getDisplayName(member)}
+                                </span>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">Unassigned</span>
+                              <span className="text-muted-foreground">
+                                Unassigned
+                              </span>
                             );
                           })()
                         ) : (
-                          <span className="text-muted-foreground">Unassigned</span>
+                          <span className="text-muted-foreground">
+                            Unassigned
+                          </span>
                         )}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border">
                       <SelectItem value="unassigned">
-                        <span className="text-muted-foreground">Unassigned</span>
+                        <span className="text-muted-foreground">
+                          Unassigned
+                        </span>
                       </SelectItem>
                       {projectMembers.map((member) => (
                         <SelectItem key={member._id} value={member._id}>
@@ -489,7 +517,7 @@ export default function TaskForm({
                   (Optional)
                 </span>
               </label>
-              
+
               {/* Drop Zone */}
               <div
                 {...getRootProps()}
@@ -513,7 +541,9 @@ export default function TaskForm({
                   <Upload className="w-5 h-5" />
                 </div>
                 <p className="text-sm font-medium text-foreground">
-                  {isDragActive ? "Drop files here" : "Drop files or click to upload"}
+                  {isDragActive
+                    ? "Drop files here"
+                    : "Drop files or click to upload"}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Images, Videos, Documents • Max 5MB • Up to {MAX_FILES} files

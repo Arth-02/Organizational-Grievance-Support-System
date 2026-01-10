@@ -338,10 +338,224 @@ const deleteProject = async (session, id, user) => {
   }
 };
 
+/**
+ * Get project members and managers
+ * @param {String} id - Project ID
+ * @param {Object} user - Authenticated user
+ * @returns {Object} - { isSuccess, data?, message?, code? }
+ */
+const getProjectMembers = async (id, user) => {
+  try {
+    if (!id) {
+      return {
+        isSuccess: false,
+        message: "Project ID is required",
+        code: 400,
+      };
+    }
+
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const { organization_id } = user;
+
+    const project = await Project.findOne({
+      _id: id,
+      organization_id,
+      deleted_at: null,
+    })
+      .populate({ path: "manager", select: "username email firstname lastname avatar" })
+      .populate({ path: "members", select: "username email firstname lastname avatar" });
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    // Combine members and managers, removing duplicates
+    const allMembers = [...(project.members || []), ...(project.manager || [])];
+    const uniqueMembers = allMembers.filter((member, index, self) =>
+      index === self.findIndex(m => m._id.toString() === member._id.toString())
+    );
+
+    return { isSuccess: true, data: uniqueMembers };
+  } catch (err) {
+    console.error("Error in getProjectMembers service:", err);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+/**
+ * Add members/managers to a project
+ * @param {Object} session - MongoDB session for transaction
+ * @param {String} id - Project ID
+ * @param {Object} body - { members: [], manager: [] }
+ * @param {Object} user - Authenticated user
+ * @returns {Object} - { isSuccess, data?, message?, code? }
+ */
+const addProjectMembers = async (session, id, body, user) => {
+  try {
+    if (!id) {
+      return {
+        isSuccess: false,
+        message: "Project ID is required",
+        code: 400,
+      };
+    }
+
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const { organization_id } = user;
+    const { members = [], manager = [] } = body;
+
+    // Find the project first
+    const project = await Project.findOne({
+      _id: id,
+      organization_id,
+      deleted_at: null,
+    }).session(session);
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    // Validate new members belong to the same organization
+    if (members.length > 0) {
+      const validMembers = await User.find({
+        _id: { $in: members },
+        organization_id,
+        is_active: true,
+      }).session(session);
+
+      if (validMembers.length !== members.length) {
+        return {
+          isSuccess: false,
+          message: "One or more members do not belong to this organization",
+          code: 400,
+        };
+      }
+    }
+
+    // Validate new managers belong to the same organization
+    if (manager.length > 0) {
+      const validManagers = await User.find({
+        _id: { $in: manager },
+        organization_id,
+        is_active: true,
+      }).session(session);
+
+      if (validManagers.length !== manager.length) {
+        return {
+          isSuccess: false,
+          message: "One or more managers do not belong to this organization",
+          code: 400,
+        };
+      }
+    }
+
+    // Add members and managers (using $addToSet to avoid duplicates)
+    const updateObj = {};
+    if (members.length > 0) {
+      updateObj.$addToSet = { ...updateObj.$addToSet, members: { $each: members } };
+    }
+    if (manager.length > 0) {
+      updateObj.$addToSet = { ...updateObj.$addToSet, manager: { $each: manager } };
+    }
+
+    if (Object.keys(updateObj).length > 0) {
+      await Project.updateOne({ _id: id, organization_id }, updateObj).session(session);
+    }
+
+    // Fetch updated project with populated refs
+    const updatedProject = await Project.findOne({
+      _id: id,
+      organization_id,
+    })
+      .populate({ path: "manager", select: "username email firstname lastname avatar" })
+      .populate({ path: "members", select: "username email firstname lastname avatar" })
+      .session(session);
+
+    return { isSuccess: true, data: updatedProject };
+  } catch (err) {
+    console.error("Error in addProjectMembers service:", err);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
+/**
+ * Remove members/managers from a project
+ * @param {Object} session - MongoDB session for transaction
+ * @param {String} id - Project ID
+ * @param {Object} body - { members: [], manager: [] }
+ * @param {Object} user - Authenticated user
+ * @returns {Object} - { isSuccess, data?, message?, code? }
+ */
+const removeProjectMembers = async (session, id, body, user) => {
+  try {
+    if (!id) {
+      return {
+        isSuccess: false,
+        message: "Project ID is required",
+        code: 400,
+      };
+    }
+
+    if (!isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const { organization_id } = user;
+    const { members = [], manager = [] } = body;
+
+    // Find the project first
+    const project = await Project.findOne({
+      _id: id,
+      organization_id,
+      deleted_at: null,
+    }).session(session);
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    // Remove members and managers
+    const updateObj = {};
+    if (members.length > 0) {
+      updateObj.$pull = { ...updateObj.$pull, members: { $in: members } };
+    }
+    if (manager.length > 0) {
+      updateObj.$pull = { ...updateObj.$pull, manager: { $in: manager } };
+    }
+
+    if (Object.keys(updateObj).length > 0) {
+      await Project.updateOne({ _id: id, organization_id }, updateObj).session(session);
+    }
+
+    // Fetch updated project with populated refs
+    const updatedProject = await Project.findOne({
+      _id: id,
+      organization_id,
+    })
+      .populate({ path: "manager", select: "username email firstname lastname avatar" })
+      .populate({ path: "members", select: "username email firstname lastname avatar" })
+      .session(session);
+
+    return { isSuccess: true, data: updatedProject };
+  } catch (err) {
+    console.error("Error in removeProjectMembers service:", err);
+    return { isSuccess: false, message: "Internal Server Error", code: 500 };
+  }
+};
+
 module.exports = {
   createProject,
   getProjectById,
   getAllProjects,
   updateProject,
   deleteProject,
+  getProjectMembers,
+  addProjectMembers,
+  removeProjectMembers,
 };

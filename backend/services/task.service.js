@@ -2,6 +2,7 @@ const { isValidObjectId } = require("mongoose");
 const Task = require("../models/task.model");
 const Project = require("../models/project.model");
 const Board = require("../models/board.model");
+const User = require("../models/user.model");
 const LexoRank = require("./lexorank.service");
 const AttachmentService = require("./attachment.service");
 const {
@@ -21,18 +22,18 @@ const { sendNotification } = require("../utils/notification");
  */
 const getProjectUserIds = (project, excludeUserId) => {
   const userIds = new Set();
-  
+
   // Add all members
   project.members.forEach((m) => userIds.add(m.toString()));
-  
+
   // Add all managers
   project.manager.forEach((m) => userIds.add(m.toString()));
-  
+
   // Remove the user who performed the action
   if (excludeUserId) {
     userIds.delete(excludeUserId.toString());
   }
-  
+
   return Array.from(userIds);
 };
 
@@ -105,7 +106,6 @@ const createTask = async (session, body, user) => {
       priority,
       assignee,
       due_date,
-      parent_id,
     } = value;
 
     // Validate project exists and belongs to user's organization
@@ -143,30 +143,6 @@ const createTask = async (session, body, user) => {
       }
     }
 
-    // Validate parent_id for subtasks
-    if (type === "subtask" && !parent_id) {
-      return {
-        isSuccess: false,
-        message: "Subtasks must have a parent task",
-        code: 400,
-      };
-    }
-
-    if (parent_id) {
-      const parentTask = await Task.findOne({
-        _id: parent_id,
-        project_id,
-      }).session(session);
-
-      if (!parentTask) {
-        return {
-          isSuccess: false,
-          message: "Parent task not found in this project",
-          code: 400,
-        };
-      }
-    }
-
     // Validate status exists in board columns
     const board = await Board.findOne({
       project_id,
@@ -179,7 +155,9 @@ const createTask = async (session, body, user) => {
       if (!validStatuses.includes(status)) {
         return {
           isSuccess: false,
-          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
           code: 400,
         };
       }
@@ -215,7 +193,6 @@ const createTask = async (session, body, user) => {
       assignee,
       reporter: userId,
       due_date,
-      parent_id,
       rank,
       activity: [
         {
@@ -232,7 +209,6 @@ const createTask = async (session, body, user) => {
     const populatedTask = await Task.findById(newTask._id)
       .populate({ path: "assignee", select: "username email avatar" })
       .populate({ path: "reporter", select: "username email avatar" })
-      .populate({ path: "parent_id", select: "issue_key title" })
       .session(session);
 
     // Send notification to all project members/managers except the creator
@@ -254,7 +230,6 @@ const createTask = async (session, body, user) => {
   }
 };
 
-
 /**
  * Get task by ID
  * @param {String} id - Task ID
@@ -274,12 +249,20 @@ const getTaskById = async (id, user) => {
     }
 
     const task = await Task.findById(id)
-      .populate({ path: "assignee", select: "username email avatar firstname lastname" })
-      .populate({ path: "reporter", select: "username email avatar firstname lastname" })
-      .populate({ path: "parent_id", select: "issue_key title" })
+      .populate({
+        path: "assignee",
+        select: "username email avatar firstname lastname",
+      })
+      .populate({
+        path: "reporter",
+        select: "username email avatar firstname lastname",
+      })
       .populate({ path: "attachments" })
       .populate({ path: "comments.author", select: "username email avatar" })
-      .populate({ path: "activity.performed_by", select: "username email avatar" });
+      .populate({
+        path: "activity.performed_by",
+        select: "username email avatar",
+      });
 
     if (!task) {
       return { isSuccess: false, message: "Task not found", code: 404 };
@@ -316,7 +299,7 @@ const getTaskById = async (id, user) => {
  */
 const getTasksByProject = async (projectId, query, user) => {
   try {
-    const { organization_id } = user;
+    const { organization_id, _id: userId } = user;
 
     if (!projectId) {
       return { isSuccess: false, message: "Project ID is required", code: 400 };
@@ -353,6 +336,7 @@ const getTasksByProject = async (projectId, query, user) => {
       my_tasks,
       sort_by = "rank",
       order = "asc",
+      my_filter,
     } = query;
 
     const pageNumber = parseInt(page, 10) || 1;
@@ -369,12 +353,17 @@ const getTasksByProject = async (projectId, query, user) => {
     if (priority) {
       filter.priority = priority;
     }
-
     if (assignee) {
       if (!isValidObjectId(assignee)) {
         return { isSuccess: false, message: "Invalid assignee ID", code: 400 };
       }
       filter.assignee = assignee;
+    }
+    // Filter for "assigned to me" or "reported by me"
+    if (my_filter === "assigned_to_me") {
+      filter.assignee = userId;
+    } else if (my_filter === "reported_by_me") {
+      filter.reportor = userId;
     }
 
     if (reporter) {
@@ -390,10 +379,7 @@ const getTasksByProject = async (projectId, query, user) => {
 
     // "My tasks" filter - tasks where user is assignee or reporter
     if (my_tasks === "true" || my_tasks === true) {
-      filter.$or = [
-        { assignee: user._id },
-        { reporter: user._id },
-      ];
+      filter.$or = [{ assignee: user._id }, { reporter: user._id }];
     }
 
     // Text search on title and description
@@ -417,8 +403,7 @@ const getTasksByProject = async (projectId, query, user) => {
         .skip(skip)
         .limit(limitNumber)
         .populate({ path: "assignee", select: "username email avatar" })
-        .populate({ path: "reporter", select: "username email avatar" })
-        .populate({ path: "parent_id", select: "issue_key title" }),
+        .populate({ path: "reporter", select: "username email avatar" }),
       Task.countDocuments(filter),
     ]);
 
@@ -441,7 +426,6 @@ const getTasksByProject = async (projectId, query, user) => {
     return { isSuccess: false, message: "Internal server error", code: 500 };
   }
 };
-
 
 /**
  * Update a task
@@ -534,14 +518,48 @@ const updateTask = async (session, id, body, user) => {
 
     // Check for assignee change
     if (value.assignee !== undefined) {
-      const oldAssignee = task.assignee ? task.assignee.toString() : null;
-      const newAssignee = value.assignee ? value.assignee.toString() : null;
-      if (oldAssignee !== newAssignee) {
+      const oldAssigneeId = task.assignee ? task.assignee.toString() : null;
+      const newAssigneeId = value.assignee ? value.assignee.toString() : null;
+      if (oldAssigneeId !== newAssigneeId) {
+        // Fetch user data for old and new assignee to store in activity
+        let oldAssigneeData = null;
+        let newAssigneeData = null;
+
+        if (oldAssigneeId) {
+          const oldUser = await User.findById(oldAssigneeId)
+            .select("username email avatar firstname lastname")
+            .session(session);
+          if (oldUser) {
+            oldAssigneeData = {
+              _id: oldUser._id,
+              username: oldUser.username,
+              firstname: oldUser.firstname,
+              lastname: oldUser.lastname,
+              avatar: oldUser.avatar,
+            };
+          }
+        }
+
+        if (newAssigneeId) {
+          const newUser = await User.findById(newAssigneeId)
+            .select("username email avatar firstname lastname")
+            .session(session);
+          if (newUser) {
+            newAssigneeData = {
+              _id: newUser._id,
+              username: newUser.username,
+              firstname: newUser.firstname,
+              lastname: newUser.lastname,
+              avatar: newUser.avatar,
+            };
+          }
+        }
+
         activities.push({
           action: "assignee_changed",
           field: "assignee",
-          from: oldAssignee,
-          to: newAssignee,
+          from: oldAssigneeData,
+          to: newAssigneeData,
           performed_by: userId,
           performed_at: now,
         });
@@ -577,7 +595,6 @@ const updateTask = async (session, id, body, user) => {
     const updatedTask = await Task.findById(id)
       .populate({ path: "assignee", select: "username email avatar" })
       .populate({ path: "reporter", select: "username email avatar" })
-      .populate({ path: "parent_id", select: "issue_key title" })
       .session(session);
 
     // Send notification to all project members/managers except the updater
@@ -675,7 +692,6 @@ const deleteTask = async (session, id, user) => {
   }
 };
 
-
 /**
  * Update task status with rank recalculation
  * @param {Object} session - MongoDB session for transaction
@@ -752,7 +768,9 @@ const updateTaskStatus = async (session, id, body, user) => {
       if (!validStatuses.includes(status)) {
         return {
           isSuccess: false,
-          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
           code: 400,
         };
       }
@@ -810,7 +828,6 @@ const updateTaskStatus = async (session, id, body, user) => {
     const updatedTask = await Task.findById(id)
       .populate({ path: "assignee", select: "username email avatar" })
       .populate({ path: "reporter", select: "username email avatar" })
-      .populate({ path: "parent_id", select: "issue_key title" })
       .session(session);
 
     // Send notification to all project members/managers except the updater
@@ -854,7 +871,9 @@ const addComment = async (session, taskId, body, user, files = []) => {
       return { isSuccess: false, message: "Invalid task ID", code: 400 };
     }
 
-    const { error, value } = commentSchema.validate(body, { abortEarly: false });
+    const { error, value } = commentSchema.validate(body, {
+      abortEarly: false,
+    });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return { isSuccess: false, message: errors, code: 400 };
@@ -969,7 +988,9 @@ const updateComment = async (session, taskId, commentId, body, user) => {
       return { isSuccess: false, message: "Invalid comment ID", code: 400 };
     }
 
-    const { error, value } = updateCommentSchema.validate(body, { abortEarly: false });
+    const { error, value } = updateCommentSchema.validate(body, {
+      abortEarly: false,
+    });
     if (error) {
       const errors = error.details.map((detail) => detail.message);
       return { isSuccess: false, message: errors, code: 400 };
@@ -1109,7 +1130,29 @@ const deleteComment = async (session, taskId, commentId, user) => {
 
     await task.save({ session });
 
-    return { isSuccess: true, message: "Comment deleted successfully" };
+    // Populate and return the updated task
+    const updatedTask = await Task.findById(taskId)
+      .populate({
+        path: "assignee",
+        select: "username email avatar firstname lastname",
+      })
+      .populate({
+        path: "reporter",
+        select: "username email avatar firstname lastname",
+      })
+      .populate({ path: "comments.author", select: "username email avatar" })
+      .populate({ path: "comments.attachments" })
+      .populate({
+        path: "activity.performed_by",
+        select: "username email avatar",
+      })
+      .session(session);
+
+    return {
+      isSuccess: true,
+      data: updatedTask,
+      message: "Comment deleted successfully",
+    };
   } catch (err) {
     console.error("Error in deleteComment service:", err);
     return { isSuccess: false, message: "Internal server error", code: 500 };
@@ -1137,7 +1180,11 @@ const addAttachment = async (session, taskId, user, files) => {
     }
 
     if (!files || files.length === 0) {
-      return { isSuccess: false, message: "At least one file is required", code: 400 };
+      return {
+        isSuccess: false,
+        message: "At least one file is required",
+        code: 400,
+      };
     }
 
     const task = await Task.findById(taskId).session(session);
@@ -1239,7 +1286,11 @@ const removeAttachment = async (session, taskId, attachmentId, user) => {
     }
 
     if (!attachmentId) {
-      return { isSuccess: false, message: "Attachment ID is required", code: 400 };
+      return {
+        isSuccess: false,
+        message: "Attachment ID is required",
+        code: 400,
+      };
     }
 
     if (!isValidObjectId(attachmentId)) {
@@ -1271,7 +1322,8 @@ const removeAttachment = async (session, taskId, attachmentId, user) => {
     if (!isProjectMemberOrManager(project, userId)) {
       return {
         isSuccess: false,
-        message: "You must be a project member or manager to remove attachments",
+        message:
+          "You must be a project member or manager to remove attachments",
         code: 403,
       };
     }
@@ -1290,7 +1342,9 @@ const removeAttachment = async (session, taskId, attachmentId, user) => {
     }
 
     // Soft delete the attachment using Attachment Service
-    const deleteResult = await AttachmentService.deleteAttachment(session, [attachmentId]);
+    const deleteResult = await AttachmentService.deleteAttachment(session, [
+      attachmentId,
+    ]);
 
     if (!deleteResult.isSuccess) {
       return deleteResult;
