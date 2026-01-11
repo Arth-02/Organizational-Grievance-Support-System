@@ -21,7 +21,6 @@ async function updateModelRanks({
       .session(session);
 
     const total = unrankedDocs.length;
-    console.log(`Found ${total} documents needing ranks`);
 
     let lastRank = null;
 
@@ -58,8 +57,6 @@ async function updateModelRanks({
     if (updateOperations.length > 0) {
       await model.bulkWrite(updateOperations, { session });
     }
-
-    console.log(`Processed ${total} documents`);
 
     await session.commitTransaction();
     

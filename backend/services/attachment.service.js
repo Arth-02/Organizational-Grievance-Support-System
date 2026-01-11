@@ -29,7 +29,6 @@ const createAttachment = async (session, user_id, organization_id, files) => {
       const savedAttachment = await newAttachment.save({ session });
       attachmentIds.push(savedAttachment._id);
     }
-    console.log("Attachment Ids:", attachmentIds);
     return { isSuccess: true, attachmentIds };
   } catch (error) {
     console.error(

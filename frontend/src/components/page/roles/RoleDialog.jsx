@@ -146,8 +146,7 @@ const RoleDialog = ({ open, onOpenChange, editId, onSuccess }) => {
       }
       onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("Something went wrong");
     }
   };

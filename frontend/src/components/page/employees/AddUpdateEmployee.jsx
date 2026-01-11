@@ -358,8 +358,7 @@ const AddUpdateEmployee = () => {
         toast.success(response.message);
       }
       navigate("/employees");
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast.error("Something went wrong");
     }
   };

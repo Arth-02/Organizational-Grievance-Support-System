@@ -45,7 +45,6 @@ import AdminSettings from "./components/admin/settings/AdminSettings";
 
 function App() {
   useSocket();
-  console.log("App rendered");
 
   const location = useLocation();
   const background = location.state && location.state.background;

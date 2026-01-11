@@ -66,8 +66,7 @@ const SuperAdmin = () => {
           setStep(2);
           setAnimationClass("slide-enter-active");
         }, 0);
-      } catch (error) {
-        console.log(error);
+      } catch {
         toast.error("Error generating OTP. Please try again.");
       }
     }
@@ -83,7 +82,6 @@ const SuperAdmin = () => {
         toast.error("Something went wrong! Please try again later.");
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.message);
     }
   };
@@ -187,7 +185,6 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
         }
       }
     } catch (error) {
-      console.log(error);
       const errorMessages = error.message.join(", ");
       setIsUserNameAvailable(false);
       setError("username", { type: "manual", message: errorMessages });
@@ -207,7 +204,6 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
         }
       }
     } catch (error) {
-      console.log(error);
       const errorMessages = error.message.join(", ");
       setIsEmailAvailable(false);
       setError("email", { type: "manual", message: errorMessages });
