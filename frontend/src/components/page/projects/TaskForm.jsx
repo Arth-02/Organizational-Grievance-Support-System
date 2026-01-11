@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-  X,
   Loader2,
   Upload,
   Paperclip,
@@ -84,7 +83,7 @@ const ACCEPTED_TYPES = {
 // Step Indicator Component
 const StepIndicator = ({ currentStep, steps }) => {
   return (
-    <div className="flex items-center justify-center w-full px-8 py-5">
+    <div className="flex items-center justify-center w-full px-8 py-2">
       {steps.map((step, index) => {
         const Icon = step.icon;
         const isCompleted = currentStep > step.id;
@@ -470,18 +469,10 @@ export default function TaskForm({
       >
         {/* Header */}
         <DialogHeader>
-          <DialogTitle className="p-4 pb-2 flex items-center justify-between">
+          <DialogTitle className="p-4 pb-0 flex items-center justify-between">
             <span className="text-xl font-semibold text-card-foreground">
               New Task
             </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              onClick={handleClose}
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </DialogTitle>
           <DialogDescription className="hidden">
             Create a new task for the project

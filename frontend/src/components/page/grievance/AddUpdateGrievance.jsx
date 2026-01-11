@@ -281,7 +281,6 @@ export default function AddGrievanceModal() {
 
   return (
     <RoutableModal
-      backTo="/grievances"
       width="max-w-2xl"
       shouldRemoveCloseIcon={true}
       onPointerDownOutside={(e) => {
