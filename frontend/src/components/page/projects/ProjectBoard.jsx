@@ -226,7 +226,7 @@ const ProjectBoard = () => {
       {/* Task Form Modal */}
       <TaskForm
         projectId={projectId}
-        defaultStatus="todo"
+        columns={board?.columns || []}
         open={isTaskFormOpen}
         onOpenChange={setIsTaskFormOpen}
         onSuccess={handleTaskFormSuccess}
