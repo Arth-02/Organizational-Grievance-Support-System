@@ -19,6 +19,9 @@ import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
 import Profile from "./components/page/profile/Profile";
 
+// Dashboard component
+import Dashboard from "./components/page/dashboard/Dashboard";
+
 // Project components
 import Projects from "./components/page/projects/Projects";
 import ProjectBoard from "./components/page/projects/ProjectBoard";
@@ -66,6 +69,7 @@ function App() {
                 </PrivateRoute>
               }
             >
+              <Route index element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />

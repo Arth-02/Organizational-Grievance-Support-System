@@ -8,6 +8,7 @@ const grievanceRoutes = require("./grievance.route");
 const projectRoutes = require("./project.route");
 const boardRoutes = require("./board.route");
 const taskRoutes = require("./task.route");
+const dashboardRoutes = require("./dashboard.route");
 
 router.use("/users", userRoutes);
 router.use("/roles", roleRoutes);
@@ -18,5 +19,6 @@ router.use("/grievances", grievanceRoutes);
 router.use("/projects", projectRoutes);
 router.use("/boards", boardRoutes);
 router.use("/tasks", taskRoutes);
+router.use("/dashboard", dashboardRoutes);
 
 module.exports = router;
