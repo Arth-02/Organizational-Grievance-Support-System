@@ -53,7 +53,7 @@ const ColumnTasksFetcher = ({
         columnKey,
         currentData.data.tasks,
         currentData.data.pagination?.hasNextPage || false,
-        currentData.data.pagination?.totalStatusCount || 0,
+        currentData.data.pagination?.totalItems || 0,
         page
       );
     }

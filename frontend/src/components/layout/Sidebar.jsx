@@ -19,8 +19,8 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(() => {
     if (!item.children) return false;
-    return item.children.some(child => 
-      location.pathname === child.path || 
+    return item.children.some(child =>
+      location.pathname === child.path ||
       location.pathname.startsWith(child.path + "/")
     );
   });
@@ -28,8 +28,8 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
   // Automatically open dropdown if a child is active (handles navigation updates)
   useEffect(() => {
     if (item.children) {
-      const shouldBeOpen = item.children.some(child => 
-        location.pathname === child.path || 
+      const shouldBeOpen = item.children.some(child =>
+        location.pathname === child.path ||
         location.pathname.startsWith(child.path + "/")
       );
       if (shouldBeOpen) {
@@ -43,17 +43,15 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
       <>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg transition-all duration-200 ${
-            isActive
+          className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg transition-all duration-200 ${isActive
               ? "bg-primary/10 text-primary font-medium"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          }`}
+            }`}
         >
           <span className="flex items-center">
             <span
-              className={`transition-all duration-300 flex justify-center items-center ${
-                isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
-              }`}
+              className={`transition-all duration-300 flex justify-center items-center ${isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
+                }`}
             >
               {React.cloneElement(item.icon, {
                 size: isCollapsed ? 22 : 18,
@@ -64,32 +62,28 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
           </span>
           <ChevronDown
             size={16}
-            className={`transition-transform duration-300 ${
-              isOpen && "rotate-180"
-            }`}
+            className={`transition-transform duration-300 ${isOpen && "rotate-180"
+              }`}
           />
         </button>
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-60" : "max-h-0"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-60" : "max-h-0"
+            }`}
         >
           <div className="ml-6 mt-1 space-y-1">
             {item.children.map((child, index) => (
               <Link
                 key={index}
                 to={child.path}
-                className={`flex items-center p-2 rounded-lg text-sm transition-all duration-200 ${
-                  child.highlight !== false && (location.pathname === child.path ||
-                  location.pathname.startsWith(child.path + "/"))
+                className={`flex items-center p-2 rounded-lg text-sm transition-all duration-200 ${child.highlight !== false && (location.pathname === child.path ||
+                    location.pathname.startsWith(child.path + "/"))
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
+                  }`}
               >
                 <span
-                  className={`transition-all duration-300 flex justify-center items-center ${
-                    isCollapsed ? "w-10 h-10" : "w-6 h-6 mr-2"
-                  }`}
+                  className={`transition-all duration-300 flex justify-center items-center ${isCollapsed ? "w-10 h-10" : "w-6 h-6 mr-2"
+                    }`}
                 >
                   {React.cloneElement(child.icon, {
                     size: isCollapsed ? 22 : 16,
@@ -108,16 +102,14 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
   return (
     <Link
       to={item.path}
-      className={`flex items-center px-2.5 py-1.5 rounded-lg transition-all duration-200 ${
-        isActive
+      className={`flex items-center px-2.5 py-1.5 rounded-lg transition-all duration-200 ${isActive
           ? "bg-primary/10 text-primary font-medium"
           : "text-muted-foreground hover:text-foreground hover:bg-muted"
-      }`}
+        }`}
     >
       <span
-        className={`transition-all duration-300 flex justify-center items-center ${
-          isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
-        }`}
+        className={`transition-all duration-300 flex justify-center items-center ${isCollapsed ? "w-10 h-10" : "w-8 h-8 mr-2.5"
+          }`}
       >
         {React.cloneElement(item.icon, {
           size: isCollapsed ? 22 : 18,
@@ -132,7 +124,7 @@ const MenuItem = ({ item, isActive, isCollapsed }) => {
 const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const userPermissions = useSelector((state) => state.user.permissions);
-  
+
   // Fetch projects for sidebar
   const { data: projectsData } = useGetMyProjectsQuery();
   const projects = useMemo(() => projectsData?.data || [], [projectsData]);
@@ -155,9 +147,9 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
     const projectChildren = projects.slice(0, 3).map((project) => ({
       // Use project icon image if available, otherwise default FolderKanban
       icon: project.icon ? (
-        <img 
+        <img
           key={`${project._id}-${project.icon}`}
-          src={project.icon} 
+          src={project.icon}
           alt={project.name}
           className="w-4 h-4 rounded object-cover"
         />
@@ -169,14 +161,12 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
     }));
 
     // Add "View All" link if there are more projects or user has permission
-    if (projects.length > 3 || userPermissions.includes("VIEW_PROJECT")) {
-      projectChildren.push({
-        icon: <MoreHorizontal />,
-        label: projects.length > 3 ? `+${projects.length - 3} more` : "View All",
-        path: "/projects",
-        highlight: false,
-      });
-    }
+    projectChildren.push({
+      icon: <MoreHorizontal />,
+      label: projects.length > 3 ? `+${projects.length - 3} more` : "View All",
+      path: "/projects",
+      highlight: false,
+    });
 
     return [{
       icon: <FolderKanban />,
@@ -203,9 +193,8 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
 
   return (
     <aside
-      className={`fixed lg:relative transition-all duration-300 z-20 h-full ${
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0`}
+      className={`fixed lg:relative transition-all duration-300 z-20 h-full ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
     >
       <button
         className="hidden lg:flex items-center justify-center w-6 h-6 absolute top-4 -right-3 bg-card border border-border shadow-sm text-muted-foreground hover:text-foreground transition-all duration-200 rounded-full z-10"
@@ -213,15 +202,13 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
       >
         <ChevronLeft
           size={14}
-          className={`transition-transform duration-300 ${
-            isCollapsed ? "rotate-180" : "rotate-0"
-          }`}
+          className={`transition-transform duration-300 ${isCollapsed ? "rotate-180" : "rotate-0"
+            }`}
         />
       </button>
       <div
-        className={`h-full bg-card border-r border-border/50 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${
-          isCollapsed ? "w-[72px]" : "w-[240px]"
-        }`}
+        className={`h-full bg-card border-r border-border/50 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden ${isCollapsed ? "w-[72px]" : "w-[240px]"
+          }`}
       >
         <div className="p-3">
           <nav className="space-y-1">
@@ -237,13 +224,13 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
                     item.exactMatch
                       ? location.pathname === item.path
                       : (
-                          location.pathname === item.path ||
-                          (item.path !== "/" && location.pathname.startsWith(item.path + "/")) ||
-                          (item.children &&
-                            item.children.some(
-                              (child) => location.pathname === child.path || location.pathname.startsWith(child.path + "/")
-                            ))
-                        )
+                        location.pathname === item.path ||
+                        (item.path !== "/" && location.pathname.startsWith(item.path + "/")) ||
+                        (item.children &&
+                          item.children.some(
+                            (child) => location.pathname === child.path || location.pathname.startsWith(child.path + "/")
+                          ))
+                      )
                   }
                 />
               );

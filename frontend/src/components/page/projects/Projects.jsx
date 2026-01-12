@@ -5,7 +5,7 @@ import { Plus, Search, FolderKanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetAllProjectsQuery } from "@/services/project.service";
+import { useGetAllProjectsQuery, useGetMyProjectsQuery } from "@/services/project.service";
 import ProjectCard from "./ProjectCard";
 
 const Projects = () => {
@@ -15,26 +15,55 @@ const Projects = () => {
 
   const userPermissions = useSelector((state) => state.user.permissions);
   const canCreate = userPermissions.includes("CREATE_PROJECT");
+  const canViewAll = userPermissions.includes("VIEW_PROJECT");
 
-  const { data, isLoading, error } = useGetAllProjectsQuery();
+  // Fetch all projects if user has VIEW_PROJECT permission
+  const {
+    data: allProjectsData,
+    isLoading: isLoadingAll,
+    error: errorAll,
+  } = useGetAllProjectsQuery({}, { skip: !canViewAll });
+
+  // Fetch only my projects if user does NOT have VIEW_PROJECT permission
+  const {
+    data: myProjectsData,
+    isLoading: isLoadingMy,
+    error: errorMy,
+  } = useGetMyProjectsQuery(undefined, { skip: canViewAll });
+
+  const isLoading = canViewAll ? isLoadingAll : isLoadingMy;
+  const error = canViewAll ? errorAll : errorMy;
 
   // Check if it's a "no projects found" response (could come as error or data)
-  const isNoProjectsResponse = 
-    (data?.success === 0 && data?.message === "No projects found") ||
+  const isNoProjectsResponse =
+    ((canViewAll ? allProjectsData : myProjectsData)?.success === 0 &&
+      (canViewAll ? allProjectsData : myProjectsData)?.message ===
+        "No projects found") ||
     (error?.data?.success === 0 && error?.data?.message === "No projects found");
 
   // Filter projects based on search query (name or key)
   const filteredProjects = useMemo(() => {
-    const projects = data?.data?.projects || [];
+    let projects = [];
+    if (canViewAll) {
+      projects = allProjectsData?.data?.projects || [];
+    } else {
+      projects = myProjectsData?.data || [];
+    }
+
     if (!searchQuery.trim()) return projects;
-    
+
     const query = searchQuery.toLowerCase();
     return projects.filter(
       (project) =>
         project.name?.toLowerCase().includes(query) ||
         project.key?.toLowerCase().includes(query)
     );
-  }, [data?.data?.projects, searchQuery]);
+  }, [
+    canViewAll,
+    allProjectsData?.data?.projects,
+    myProjectsData?.data,
+    searchQuery,
+  ]);
 
   const handleAddProject = () => {
     navigate("/projects/add", { state: { background: location } });

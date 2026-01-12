@@ -115,13 +115,9 @@ function App() {
                   </PermissionGuard>
                 }
               />
-              <Route
+                <Route
                 path="/projects"
-                element={
-                  <PermissionGuard requiredPermissions={["VIEW_PROJECT"]}>
-                    <Projects />
-                  </PermissionGuard>
-                }
+                element={<Projects />}
               />
               <Route
                 path="/projects/add"
@@ -133,11 +129,7 @@ function App() {
               />
               <Route
                 path="/projects/:projectId"
-                element={
-                  <PermissionGuard requiredPermissions={["VIEW_PROJECT"]}>
-                    <ProjectBoard />
-                  </PermissionGuard>
-                }
+                element={<ProjectBoard />}
               />
               <Route
                 path="/projects/:projectId/settings"

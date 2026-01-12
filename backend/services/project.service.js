@@ -191,8 +191,9 @@ const getMyProjects = async (user, userPermissions = []) => {
 
     const projects = await Project.find(dbQuery)
       .sort({ name: 1 })
-      .select("_id name key status icon")
-      .limit(20); // Limit for sidebar performance
+      .populate({ path: "manager", select: "username email firstname lastname avatar" })
+      .populate({ path: "members", select: "username email firstname lastname avatar" })
+      .populate({ path: "created_by", select: "username email firstname lastname" });
 
     return { isSuccess: true, data: projects };
   } catch (err) {
