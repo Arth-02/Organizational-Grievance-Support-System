@@ -24,7 +24,9 @@ const userSlice = createSlice({
     },
     setUserDetails: (state, action) => {
       state.user = action.payload.data;
-      state.token = action.payload.data.token;
+      if (action.payload.data.token) {
+        state.token = action.payload.data.token;
+      }
       state.role = action.payload.data.role;
       state.department = action.payload.data.department;
       if (state.role.name !== "DEV") {

@@ -1,4 +1,5 @@
 const Organization = require("../models/organization.model");
+const User = require("../models/user.model");
 const {
   organizationSchema,
   updateOrganizationSchema,
@@ -105,6 +106,12 @@ const updateOrganization = async (session, body, userData, files) => {
       }
       value.logo_id = response.attachmentIds[0];
     }
+
+    // Handle remove logo
+    if (value.remove_logo) {
+      value.logo_id = null;
+      delete value.remove_logo;
+    }
     const organization = await Organization.findOneAndUpdate(
       { _id: organization_id },
       value,
@@ -142,7 +149,7 @@ const getOrganizationById = async (id) => {
     const organization = await Organization.findOne({
       _id: id,
       is_active: true,
-    });
+    }).populate("logo_id", "url filename");
     if (!organization) {
       return { isSuccess: false, message: "Organization not found", code: 404 };
     }
@@ -153,8 +160,54 @@ const getOrganizationById = async (id) => {
   }
 };
 
+// Delete Organization service (soft delete)
+const deleteOrganization = async (session, organization_id) => {
+  try {
+    if (!organization_id) {
+      return {
+        isSuccess: false,
+        message: "Organization id is required",
+        code: 400,
+      };
+    }
+    if (!isValidObjectId(organization_id)) {
+      return {
+        isSuccess: false,
+        message: "Invalid organization id",
+        code: 400,
+      };
+    }
+
+    const organization = await Organization.findById(organization_id).session(session);
+    if (!organization) {
+      return { isSuccess: false, message: "Organization not found", code: 404 };
+    }
+
+    if (organization.is_deleted) {
+      return { isSuccess: false, message: "Organization already deleted", code: 400 };
+    }
+
+    // Soft delete all users in the organization
+    await User.updateMany(
+      { organization_id },
+      { is_active: false, is_deleted: true }
+    ).session(session);
+
+    // Soft delete the organization
+    organization.is_active = false;
+    organization.is_deleted = true;
+    await organization.save({ session });
+
+    return { isSuccess: true, message: "Organization deleted successfully" };
+  } catch (err) {
+    console.error("Error in deleteOrganization service", err);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   createOrganization,
   updateOrganization,
   getOrganizationById,
+  deleteOrganization,
 };

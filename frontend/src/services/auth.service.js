@@ -23,6 +23,7 @@ export const authApi = baseApi.injectEndpoints({
         url: "users/profile",
         method: "GET",
       }),
+      providesTags: ["MyProfile"],
     }),
   }),
 });

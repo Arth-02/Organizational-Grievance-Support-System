@@ -15,7 +15,7 @@ function PrivateRoute({ children }) {
   });
 
   useEffect(() => {
-    if ( !isAuthenticated && userData ) {
+    if (userData) {
       dispatch(setUserDetails({ data: userData.data }));
     }
 

@@ -21,12 +21,27 @@ export const organizationApi = baseApi.injectEndpoints({
         url: `organizations/details/${id}`,
         method: "GET",
       }),
+      providesTags: ["Organization"]
     }),
     createSuperAdmin: builder.mutation({
       query: (body) => ({
         url: "users/create-super-admin",
         method: "POST",
         body,
+      }),
+    }),
+    updateOrganization: builder.mutation({
+      query: (body) => ({
+        url: "organizations/update",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Organization", "MyProfile"],
+    }),
+    deleteOrganization: builder.mutation({
+      query: () => ({
+        url: "organizations/delete",
+        method: "DELETE",
       }),
     }),
   }),
@@ -37,4 +52,7 @@ export const {
   useOrganizationVerifyMutation,
   useGetOrganizationByIdQuery,
   useCreateSuperAdminMutation,
+  useUpdateOrganizationMutation,
+  useDeleteOrganizationMutation,
 } = organizationApi;
+

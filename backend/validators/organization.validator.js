@@ -16,6 +16,7 @@ const organizationSchema = Joi.object({
 
 const updateOrganizationSchema = Joi.object({
   name: Joi.string().trim(),
+  email: Joi.string().trim().email(),
   website: Joi.string().trim(),
   logo: Joi.string().trim(),
   description: Joi.string().trim(),
@@ -25,6 +26,7 @@ const updateOrganizationSchema = Joi.object({
   pincode: Joi.string().trim(),
   phone: Joi.string().trim(),
   address: Joi.string().trim(),
+  remove_logo: Joi.boolean(), // Allow remove_logo flag
 });
 
 module.exports = {

@@ -28,6 +28,9 @@ import ProjectBoard from "./components/page/projects/ProjectBoard";
 import ProjectSettings from "./components/page/projects/ProjectSettings";
 import ProjectForm from "./components/page/projects/ProjectForm";
 
+// Organization components
+import OrganizationSettings from "./components/page/organization/OrganizationSettings";
+
 // Admin components
 import AdminLayout from "./components/admin/layout/AdminLayout";
 import AdminDashboard from "./components/admin/dashboard/AdminDashboard";
@@ -143,6 +146,10 @@ function App() {
                     <ProjectSettings />
                   </PermissionGuard>
                 }
+              />
+              <Route
+                path="/organization/settings"
+                element={<OrganizationSettings />}
               />
             </Route>
 

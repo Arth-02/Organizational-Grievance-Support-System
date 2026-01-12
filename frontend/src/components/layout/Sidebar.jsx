@@ -10,6 +10,7 @@ import {
   MessageSquareWarning,
   Users,
   MoreHorizontal,
+  Settings,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useGetMyProjectsQuery } from "@/services/project.service";
@@ -194,6 +195,10 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
     ...createMenuItem(<Briefcase />, "Roles", "/roles", "VIEW_ROLE"),
     ...createMenuItem(<Building />, "Departments", "/departments", "VIEW_DEPARTMENT"),
+    // Organization Settings - shown if user has UPDATE or DELETE permission
+    ...(userPermissions.includes("UPDATE_ORGANIZATION") || userPermissions.includes("DELETE_ORGANIZATION")
+      ? [{ icon: <Settings />, label: "Organization", path: "/organization/settings" }]
+      : []),
   ];
 
   return (

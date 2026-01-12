@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { logout } from "@/features/userSlice";
 import { LogOut, Menu, User, Shield } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -17,6 +17,7 @@ import {
 const Header = ({ setIsSidebarOpen }) => {
   const user = useSelector((state) => state.user.user);
   const role = useSelector((state) => state.user.role);
+  const organization = useSelector((state) => state.user.organization);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,9 +41,19 @@ const Header = ({ setIsSidebarOpen }) => {
         >
           <Menu size={20} />
         </Button>
-        <h1 className="text-lg font-semibold text-primary hidden sm:block">
-          {isAdminRoute ? "Admin Panel" : "Grievance System"}
-        </h1>
+        <Link to={isAdminRoute ? "/admin" : "/"}>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={organization?.logo_id?.url} alt={organization?.name} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                {organization?.name?.substring(0, 2)?.toUpperCase() || "OR"}
+              </AvatarFallback>
+            </Avatar>
+            <h1 className="text-lg font-semibold text-primary hidden sm:block">
+              {isAdminRoute ? "Admin Panel" : organization?.name}
+            </h1>
+          </div>
+        </Link>
       </div>
 
       <div className="flex items-center gap-2">

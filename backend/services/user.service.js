@@ -58,6 +58,18 @@ const userLogin = async (body) => {
       return { isSuccess: false, message: "Invalid password", code: 400 };
     }
 
+    // Check organization status
+    const organization = await Organization.findById(user.organization_id);
+    if (!organization || organization.is_deleted) {
+      return { isSuccess: false, message: "Organization not found", code: 404 };
+    }
+    if (!organization.is_approved) {
+      return { isSuccess: false, message: "Organization not approved yet", code: 403 };
+    }
+    if (!organization.is_active) {
+      return { isSuccess: false, message: "Organization is suspended", code: 403 };
+    }
+
     // User authenticated, create token
     const payload = {
       user: {
@@ -240,7 +252,11 @@ const getUserDetails = async (user_id, userData) => {
       user = await User.findOne(query)
         .populate("role")
         .populate("department")
-        .populate({ path: "organization_id", select: "name logo" })
+        .populate({
+          path: "organization_id",
+          select: "name logo_id",
+          populate: { path: "logo_id", select: "url filename" },
+        })
         .select("-createdAt -updatedAt -is_deleted")
         .lean();
       if (user) {

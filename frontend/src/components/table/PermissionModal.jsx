@@ -345,8 +345,8 @@ const PermissionsModal = ({
                 Inherited from Role <span className="text-xs ml-1 bg-muted px-1.5 py-0.5 rounded-full border border-border/50">{rolePermissions.length}</span>
               </h4>
             </div>
-            <ScrollArea className="max-h-[120px] rounded-lg border border-dashed bg-muted/30 p-3">
-              <div className="space-y-3">
+            <ScrollArea className="h-[120px] rounded-lg border border-dashed bg-muted/30 py-3">
+              <div className="space-y-3 px-4">
                 {Object.entries(groupedRolePermissions).map(([category, perms]) => (
                   <div key={category} className="space-y-2">
                     <div className="flex items-center gap-2">

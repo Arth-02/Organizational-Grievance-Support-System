@@ -65,6 +65,10 @@ const OrganizationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    is_deleted: {
+      type: Boolean,
+      default: false,
+    },
     otp: {
       type: String,
       trim: true,

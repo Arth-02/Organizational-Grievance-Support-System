@@ -43,7 +43,7 @@ const updateOrganization = async (req, res) => {
     const response = await organizationService.updateOrganization(
       session,
       req.body,
-      req.userData,
+      req.user,
       req.files
     );
     if (!response.isSuccess) {
@@ -81,8 +81,33 @@ const getOrganizationById = async (req, res) => {
   }
 };
 
+// delete organization (soft delete)
+const deleteOrganization = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await organizationService.deleteOrganization(
+      session,
+      req.userData.organization_id
+    );
+    if (!response.isSuccess) {
+      await session.abortTransaction();
+      return errorResponse(res, response.code, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(res, null, "Organization deleted successfully");
+  } catch (err) {
+    console.error("Error deleting organization: ", err);
+    await session.abortTransaction();
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   createOrganization,
   updateOrganization,
   getOrganizationById,
+  deleteOrganization,
 };
