@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 
 const TaskModalSkeleton = () => {
   return (
-    <div className="bg-card rounded-xl w-full max-h-[90vh] overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
+    <div className="bg-card rounded-xl w-full h-[80vh] overflow-hidden flex flex-col" tabIndex="-1" aria-hidden="true">
       {/* Header */}
       <div className="p-4 flex items-start justify-between border-b border-border">
         <div className="flex-1">
