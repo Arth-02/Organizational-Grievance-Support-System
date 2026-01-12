@@ -446,7 +446,7 @@ function TaskModal({ taskId: propTaskId, projectId, onClose }) {
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="bg-card rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl border border-border"
+          className="bg-card rounded-xl w-full max-w-5xl max-h-[80vh] overflow-hidden flex flex-col shadow-xl border border-border"
           onClick={(e) => e.stopPropagation()}
         >
           {isLoading && <TaskModalSkeleton />}
@@ -786,7 +786,7 @@ function TaskModal({ taskId: propTaskId, projectId, onClose }) {
                   </div>
 
                   {/* Right Column - Actions */}
-                  <div className="w-56 space-y-4 bg-muted/50 border border-border p-4 rounded-xl">
+                  <div className="w-56 sticky top-4 h-fit space-y-4 bg-muted/50 border border-border p-4 rounded-xl">
                     {/* Status */}
                     <div className="space-y-3">
                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
