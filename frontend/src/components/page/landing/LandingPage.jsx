@@ -1,100 +1,119 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, Zap, Shield, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { lazy, Suspense } from 'react';
+import Navbar from './sections/Navbar';
+import HeroSection from './sections/HeroSection';
 
+// Lazy load sections that are below the fold for faster initial load
+// Requirement 10.6: Loading time under 3 seconds
+const FeaturesSection = lazy(() => import('./sections/FeaturesSection'));
+const HowItWorksSection = lazy(() => import('./sections/HowItWorksSection'));
+const PricingSection = lazy(() => import('./sections/PricingSection'));
+const TestimonialsSection = lazy(() => import('./sections/TestimonialsSection'));
+const StatsSection = lazy(() => import('./sections/StatsSection'));
+const CTASection = lazy(() => import('./sections/CTASection'));
+const Footer = lazy(() => import('./sections/Footer'));
+
+/**
+ * Section loading fallback - minimal placeholder to prevent layout shift
+ */
+const SectionFallback = ({ minHeight = '400px' }) => (
+  <div 
+    className="w-full animate-pulse bg-muted/20" 
+    style={{ minHeight }}
+    aria-hidden="true"
+  />
+);
+
+/**
+ * LandingPage - Main container component that composes all landing page sections
+ * 
+ * Performance Optimizations (Requirements 10.4, 10.6):
+ * - Lazy loads below-the-fold sections for faster initial paint
+ * - Uses content-visibility for off-screen sections
+ * - Hero section loads immediately for fast LCP
+ * - Suspense boundaries prevent blocking renders
+ * 
+ * This component orchestrates all sections in the correct order and manages
+ * the overall page structure. Each section has its own ID for smooth scroll
+ * navigation from the Navbar.
+ * 
+ * Section Order:
+ * 1. Navbar (fixed at top)
+ * 2. Hero Section
+ * 3. Features Section
+ * 4. How It Works Section
+ * 5. Pricing Section
+ * 6. Testimonials Section
+ * 7. Stats Section
+ * 8. CTA Section
+ * 9. Footer
+ * 
+ * Accessibility Features (Requirements 11.1-11.5):
+ * - Semantic HTML structure with proper landmarks
+ * - Skip to main content link for keyboard users
+ * - All sections have proper ARIA labels
+ * - Respects prefers-reduced-motion for animations
+ * - Keyboard navigation support throughout
+ * 
+ * Requirements: All - Integrates all landing page requirements
+ */
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold text-primary">YourApp</div>
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Skip to main content link for keyboard accessibility - Requirement 11.2 */}
+      <a 
+        href="#hero"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Skip to main content
+      </a>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">
-          Manage Your Organization
-          <span className="text-primary"> Effortlessly</span>
-        </h1>
-        <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Streamline your workflow with powerful project management, team collaboration, 
-          and grievance handling all in one place.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link to="/register">
-            <Button size="lg" className="gap-2">
-              Start Free Trial <ArrowRight size={18} />
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button size="lg" variant="outline">
-              Sign In
-            </Button>
-          </Link>
-        </div>
-      </section>
+      {/* Navigation Bar - Fixed at top with scroll-aware styling */}
+      <Navbar />
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Why Choose Us?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={<Zap className="h-8 w-8 text-primary" />}
-            title="Fast & Efficient"
-            description="Boost your team's productivity with intuitive tools designed for speed."
-          />
-          <FeatureCard
-            icon={<Shield className="h-8 w-8 text-primary" />}
-            title="Secure & Reliable"
-            description="Your data is protected with enterprise-grade security measures."
-          />
-          <FeatureCard
-            icon={<Users className="h-8 w-8 text-primary" />}
-            title="Team Collaboration"
-            description="Work together seamlessly with real-time updates and notifications."
-          />
-        </div>
-      </section>
+      {/* Main Content - All sections rendered in order */}
+      <main id="main-content">
+        {/* Hero Section - Primary conversion area with headline and CTAs */}
+        {/* Loaded immediately for fast LCP (Largest Contentful Paint) */}
+        <HeroSection />
 
-      {/* CTA Section */}
-      <section className="bg-primary/5 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-muted-foreground mb-8">
-            Join thousands of organizations already using our platform.
-          </p>
-          <Link to="/register">
-            <Button size="lg">Create Your Account</Button>
-          </Link>
-        </div>
-      </section>
+        {/* Below-the-fold sections are lazy loaded for performance */}
+        <Suspense fallback={<SectionFallback minHeight="600px" />}>
+          {/* Features Section - Showcase of platform capabilities */}
+          <FeaturesSection />
+        </Suspense>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} YourApp. All rights reserved.</p>
-        </div>
-      </footer>
+        <Suspense fallback={<SectionFallback minHeight="500px" />}>
+          {/* How It Works Section - Step-by-step workflow explanation */}
+          <HowItWorksSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback minHeight="700px" />}>
+          {/* Pricing Section - Subscription tiers with billing toggle */}
+          <PricingSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback minHeight="500px" />}>
+          {/* Testimonials Section - Customer reviews and social proof */}
+          <TestimonialsSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback minHeight="300px" />}>
+          {/* Stats Section - Platform statistics with animated counters */}
+          <StatsSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback minHeight="400px" />}>
+          {/* CTA Section - Final call-to-action before footer */}
+          <CTASection />
+        </Suspense>
+      </main>
+
+      {/* Footer - Comprehensive links, contact info, and legal */}
+      <Suspense fallback={<SectionFallback minHeight="400px" />}>
+        <Footer />
+      </Suspense>
     </div>
   );
 };
-
-const FeatureCard = ({ icon, title, description }) => (
-  <div className="p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors">
-    <div className="mb-4">{icon}</div>
-    <h3 className="text-xl font-semibold mb-2">{title}</h3>
-    <p className="text-muted-foreground">{description}</p>
-  </div>
-);
 
 export default LandingPage;
