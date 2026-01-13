@@ -179,7 +179,7 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
   }, [projects, userPermissions]);
 
   const menuItems = [
-    { icon: <Home />, label: "Dashboard", path: "/" },
+    { icon: <Home />, label: "Dashboard", path: "/dashboard" },
     { icon: <MessageSquareWarning />, label: "Grievances", path: "/grievances" },
     ...projectsMenuItem,
     ...createMenuItem(<Users />, "Employees", "/employees", "VIEW_USER"),
@@ -213,11 +213,14 @@ const Sidebar = ({ isSidebarOpen, isCollapsed, setIsCollapsed }) => {
         <div className="p-3">
           <nav className="space-y-1">
             {menuItems.map((item, index) => {
-              if (item.children && isCollapsed) return null;
+              // When collapsed and item has children, render as simple link without children
+              const itemToRender = (item.children && isCollapsed)
+                ? { icon: item.icon, label: item.label, path: item.path }
+                : item;
               return (
                 <MenuItem
                   key={index}
-                  item={item}
+                  item={itemToRender}
                   isCollapsed={isCollapsed}
                   isActive={
                     // If exactMatch is true, only match exact path

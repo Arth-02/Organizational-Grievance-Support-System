@@ -6,6 +6,7 @@ const {
   VIEW_PERMISSION,
   VIEW_ROLE,
   VIEW_DEPARTMENT,
+  DEV,
 } = require("../utils/constant");
 const {
   loginSchema,
@@ -26,6 +27,7 @@ const bcrypt = require("bcryptjs");
 const Joi = require("joi");
 const { ObjectId } = require("mongoose").Types;
 const uploadFiles = require("../utils/cloudinary");
+const auditService = require("./audit.service");
 
 // User login service
 const userLogin = async (body) => {
@@ -57,17 +59,30 @@ const userLogin = async (body) => {
     if (!isMatch) {
       return { isSuccess: false, message: "Invalid password", code: 400 };
     }
-
-    // Check organization status
-    const organization = await Organization.findById(user.organization_id);
-    if (!organization || organization.is_deleted) {
-      return { isSuccess: false, message: "Organization not found", code: 404 };
-    }
-    if (!organization.is_approved) {
-      return { isSuccess: false, message: "Organization not approved yet", code: 403 };
-    }
-    if (!organization.is_active) {
-      return { isSuccess: false, message: "Organization is suspended", code: 403 };
+    if (user.role.name !== DEV) {
+      // Check organization status
+      const organization = await Organization.findById(user.organization_id);
+      if (!organization || organization.is_deleted) {
+        return {
+          isSuccess: false,
+          message: "Organization not found",
+          code: 404,
+        };
+      }
+      if (!organization.is_approved) {
+        return {
+          isSuccess: false,
+          message: "Organization not approved yet",
+          code: 403,
+        };
+      }
+      if (!organization.is_active) {
+        return {
+          isSuccess: false,
+          message: "Organization is suspended",
+          code: 403,
+        };
+      }
     }
 
     // User authenticated, create token
@@ -919,7 +934,11 @@ const changePassword = async (body, userData) => {
     // Verify current password
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
-      return { isSuccess: false, message: "Current password is incorrect", code: 400 };
+      return {
+        isSuccess: false,
+        message: "Current password is incorrect",
+        code: 400,
+      };
     }
 
     // Hash the new password manually
@@ -971,7 +990,11 @@ const changeEmail = async (body, userData) => {
       _id: { $ne: userId },
     });
     if (existingUser) {
-      return { isSuccess: false, message: "Email is already in use", code: 400 };
+      return {
+        isSuccess: false,
+        message: "Email is already in use",
+        code: 400,
+      };
     }
 
     // Update email using findByIdAndUpdate to avoid validation on other fields
@@ -1000,4 +1023,3 @@ module.exports = {
   changePassword,
   changeEmail,
 };
-

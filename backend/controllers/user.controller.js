@@ -17,9 +17,14 @@ const login = async (req, res) => {
     }
     
     // Log user login audit
-    await auditService.logUserAction(
-      "USER_LOGIN",
-      { _id: response.data.id, firstname: response.data.username, lastname: "" },
+    await auditService.logLoginAction(
+      {
+        _id: response.data.id,
+        username: response.data.username,
+        firstname: response.data.role?.name || "",
+        lastname: "",
+        organization_id: response.data.organization_id?._id || response.data.organization_id,
+      },
       req
     );
     

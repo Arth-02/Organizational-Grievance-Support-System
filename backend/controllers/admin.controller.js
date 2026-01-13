@@ -7,6 +7,8 @@ const {
   catchResponse,
 } = require("../utils/response");
 
+// ==================== DASHBOARD ====================
+
 // Get dashboard statistics
 const getDashboardStats = async (req, res) => {
   try {
@@ -49,6 +51,8 @@ const getGrowthTrends = async (req, res) => {
     return catchResponse(res);
   }
 };
+
+// ==================== ORGANIZATION MANAGEMENT ====================
 
 // Get all organizations
 const getAllOrganizations = async (req, res) => {
@@ -191,18 +195,6 @@ const getOrganizationUsers = async (req, res) => {
   }
 };
 
-module.exports = {
-  getDashboardStats,
-  getRecentActivity,
-  getGrowthTrends,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganizationStatus,
-  rejectOrganization,
-  deleteOrganization,
-  getOrganizationUsers,
-};
-
 // ==================== USER MANAGEMENT ====================
 
 // Get all users across organizations
@@ -307,42 +299,6 @@ const getAllOrganizationNames = async (req, res) => {
   }
 };
 
-module.exports = {
-  getDashboardStats,
-  getRecentActivity,
-  getGrowthTrends,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganizationStatus,
-  rejectOrganization,
-  deleteOrganization,
-  getOrganizationUsers,
-  // User management
-  getAllUsers,
-  getUserById,
-  updateUserStatus,
-  deleteUser,
-  getAllOrganizationNames,
-};
-
-module.exports = {
-  getDashboardStats,
-  getRecentActivity,
-  getGrowthTrends,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganizationStatus,
-  rejectOrganization,
-  deleteOrganization,
-  getOrganizationUsers,
-  // User management
-  getAllUsers,
-  getUserById,
-  updateUserStatus,
-  deleteUser,
-  getAllOrganizationNames,
-};
-
 // ==================== ROLE MANAGEMENT ====================
 
 // Get all roles across organizations
@@ -431,29 +387,6 @@ const deleteRole = async (req, res) => {
     console.error("Delete Role Error:", err);
     return catchResponse(res);
   }
-};
-
-module.exports = {
-  getDashboardStats,
-  getRecentActivity,
-  getGrowthTrends,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganizationStatus,
-  rejectOrganization,
-  deleteOrganization,
-  getOrganizationUsers,
-  // User management
-  getAllUsers,
-  getUserById,
-  updateUserStatus,
-  deleteUser,
-  getAllOrganizationNames,
-  // Role management
-  getAllRoles,
-  getRoleById,
-  updateRoleStatus,
-  deleteRole,
 };
 
 // ==================== GRIEVANCE MANAGEMENT ====================
@@ -549,32 +482,94 @@ const deleteGrievance = async (req, res) => {
   }
 };
 
-module.exports = {
-  getDashboardStats,
-  getRecentActivity,
-  getGrowthTrends,
-  getAllOrganizations,
-  getOrganizationById,
-  updateOrganizationStatus,
-  rejectOrganization,
-  deleteOrganization,
-  getOrganizationUsers,
-  // User management
-  getAllUsers,
-  getUserById,
-  updateUserStatus,
-  deleteUser,
-  getAllOrganizationNames,
-  // Role management
-  getAllRoles,
-  getRoleById,
-  updateRoleStatus,
-  deleteRole,
-  // Grievance management
-  getAllGrievances,
-  getGrievanceById,
-  updateGrievanceStatus,
-  deleteGrievance,
+// ==================== PROJECT MANAGEMENT ====================
+
+// Get all projects across organizations
+const getAllProjects = async (req, res) => {
+  try {
+    const response = await adminService.getAllProjects(req.query);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(
+      res,
+      { projects: response.data, pagination: response.pagination },
+      "Projects retrieved successfully"
+    );
+  } catch (err) {
+    console.error("Get All Projects Error:", err);
+    return catchResponse(res);
+  }
+};
+
+// Get project by ID
+const getProjectById = async (req, res) => {
+  try {
+    const response = await adminService.getProjectById(req.params.id);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    return successResponse(res, response.data, "Project retrieved successfully");
+  } catch (err) {
+    console.error("Get Project By ID Error:", err);
+    return catchResponse(res);
+  }
+};
+
+// Update project status
+const updateProjectStatus = async (req, res) => {
+  try {
+    const { is_active } = req.body;
+    if (typeof is_active !== "boolean") {
+      return errorResponse(res, 400, "is_active must be a boolean");
+    }
+    const response = await adminService.updateProjectStatus(req.params.id, is_active);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    
+    // Log audit
+    await auditService.logProjectAction(
+      is_active ? "PROJECT_ACTIVATED" : "PROJECT_DEACTIVATED",
+      response.data,
+      req
+    );
+    
+    return successResponse(
+      res,
+      response.data,
+      is_active ? "Project activated successfully" : "Project deactivated successfully"
+    );
+  } catch (err) {
+    console.error("Update Project Status Error:", err);
+    return catchResponse(res);
+  }
+};
+
+// Delete project
+const deleteProject = async (req, res) => {
+  try {
+    // Get project details before deletion for audit
+    const projectResponse = await adminService.getProjectById(req.params.id);
+    const response = await adminService.deleteProject(req.params.id);
+    if (!response.isSuccess) {
+      return errorResponse(res, response.code, response.message);
+    }
+    
+    // Log audit
+    if (projectResponse.isSuccess) {
+      await auditService.logProjectAction(
+        "PROJECT_DELETED",
+        projectResponse.data,
+        req
+      );
+    }
+    
+    return successResponse(res, null, response.message);
+  } catch (err) {
+    console.error("Delete Project Error:", err);
+    return catchResponse(res);
+  }
 };
 
 // ==================== AUDIT LOG MANAGEMENT ====================
@@ -658,9 +653,11 @@ const clearOldAuditLogs = async (req, res) => {
 };
 
 module.exports = {
+  // Dashboard
   getDashboardStats,
   getRecentActivity,
   getGrowthTrends,
+  // Organization management
   getAllOrganizations,
   getOrganizationById,
   updateOrganizationStatus,
@@ -683,6 +680,11 @@ module.exports = {
   getGrievanceById,
   updateGrievanceStatus,
   deleteGrievance,
+  // Project management
+  getAllProjects,
+  getProjectById,
+  updateProjectStatus,
+  deleteProject,
   // Audit log management
   getAuditLogs,
   getAuditLogStats,

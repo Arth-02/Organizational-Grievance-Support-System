@@ -39,7 +39,7 @@ const Login = () => {
         toast.success("Login successful!");
         if (response.role.name) {
 
-          navigate("/");
+          navigate("/dashboard");
         } else {
           toast.error("You are not authorized to access the page!");
           navigate("/login");

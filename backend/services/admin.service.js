@@ -6,6 +6,9 @@ const Department = require("../models/department.model");
 const Role = require("../models/role.model");
 const Grievance = require("../models/grievance.model");
 const AuditLog = require("../models/auditLog.model");
+const Project = require("../models/project.model");
+const Board = require("../models/board.model");
+const Task = require("../models/task.model");
 
 // Get dashboard statistics
 const getDashboardStats = async () => {
@@ -1127,6 +1130,202 @@ const clearOldAuditLogs = async (daysToKeep = 30) => {
   }
 };
 
+// ==================== PROJECT MANAGEMENT ====================
+
+// Get all projects across all organizations (for admin)
+const getAllProjects = async (query) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      name,
+      organization_id,
+      status,
+      project_type,
+      sort_by = "created_at",
+      order = "desc",
+    } = query;
+
+    const pageNumber = parseInt(page, 10) || 1;
+    const limitNumber = parseInt(limit, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const filter = { deleted_at: null };
+    if (name) filter.name = { $regex: name, $options: "i" };
+    if (organization_id && mongoose.isValidObjectId(organization_id)) {
+      filter.organization_id = new ObjectId(organization_id);
+    }
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+    if (project_type && project_type !== "all") {
+      filter.project_type = project_type;
+    }
+
+    const [projects, total] = await Promise.all([
+      Project.find(filter)
+        .sort({ [sort_by]: order === "desc" ? -1 : 1 })
+        .skip(skip)
+        .limit(limitNumber)
+        .populate("organization_id", "name")
+        .populate("manager", "firstname lastname username email")
+        .populate("created_by", "firstname lastname username")
+        .lean(),
+      Project.countDocuments(filter),
+    ]);
+
+    // Get task counts for each project
+    const projectsWithStats = await Promise.all(
+      projects.map(async (project) => {
+        const taskCount = await Task.countDocuments({ project_id: project._id });
+        const memberCount = project.members?.length || 0;
+        return { ...project, taskCount, memberCount };
+      })
+    );
+
+    const totalPages = Math.ceil(total / limitNumber);
+
+    return {
+      isSuccess: true,
+      data: projectsWithStats,
+      pagination: {
+        totalItems: total,
+        totalPages,
+        currentPage: pageNumber,
+        limit: limitNumber,
+        hasNextPage: pageNumber < totalPages,
+        hasPrevPage: pageNumber > 1,
+      },
+    };
+  } catch (err) {
+    console.error("Get All Projects Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
+// Get project by ID with full details (for admin)
+const getProjectById = async (id) => {
+  try {
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const project = await Project.findOne({ _id: id, deleted_at: null })
+      .populate("organization_id", "name email")
+      .populate("manager", "firstname lastname username email avatar")
+      .populate("members", "firstname lastname username email avatar")
+      .populate("created_by", "firstname lastname username email")
+      .lean();
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    // Get board with columns (task sections)
+    const board = await Board.findOne({ project_id: project._id, is_active: true }).lean();
+
+    // Get task counts per column/section
+    const taskCounts = await Task.aggregate([
+      { $match: { project_id: project._id } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+
+    // Map task counts to columns
+    const sections = board?.columns?.map((col) => {
+      const taskData = taskCounts.find((tc) => tc._id === col.key);
+      return {
+        key: col.key,
+        label: col.label,
+        order: col.order,
+        taskCount: taskData?.count || 0,
+      };
+    }) || [];
+
+    // Get tasks grouped by section with details
+    const tasksGrouped = {};
+    if (board?.columns) {
+      for (const col of board.columns) {
+        const tasks = await Task.find({ project_id: project._id, status: col.key })
+          .select("issue_key title priority type assignee due_date")
+          .populate("assignee", "firstname lastname username avatar")
+          .sort({ rank: 1 })
+          .limit(10)
+          .lean();
+        tasksGrouped[col.key] = tasks;
+      }
+    }
+
+    const totalTasks = taskCounts.reduce((sum, tc) => sum + tc.count, 0);
+
+    return {
+      isSuccess: true,
+      data: {
+        ...project,
+        board: board ? { name: board.name, columns: board.columns } : null,
+        sections,
+        tasksGrouped,
+        stats: {
+          totalTasks,
+          memberCount: project.members?.length || 0,
+          managerCount: project.manager?.length || 0,
+        },
+      },
+    };
+  } catch (err) {
+    console.error("Get Project By ID Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
+// Update project status
+const updateProjectStatus = async (id, is_active) => {
+  try {
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const newStatus = is_active ? "active" : "archived";
+    const project = await Project.findOneAndUpdate(
+      { _id: id, deleted_at: null },
+      { status: newStatus },
+      { new: true }
+    );
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    return { isSuccess: true, data: project };
+  } catch (err) {
+    console.error("Update Project Status Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
+// Delete project (soft delete)
+const deleteProject = async (id) => {
+  try {
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return { isSuccess: false, message: "Invalid project ID", code: 400 };
+    }
+
+    const project = await Project.findOneAndUpdate(
+      { _id: id, deleted_at: null },
+      { deleted_at: new Date(), status: "archived" },
+      { new: true }
+    );
+
+    if (!project) {
+      return { isSuccess: false, message: "Project not found", code: 404 };
+    }
+
+    return { isSuccess: true, message: "Project deleted successfully" };
+  } catch (err) {
+    console.error("Delete Project Error:", err.message);
+    return { isSuccess: false, message: "Internal server error", code: 500 };
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getRecentActivity,
@@ -1153,6 +1352,11 @@ module.exports = {
   getGrievanceById,
   updateGrievanceStatus,
   deleteGrievance,
+  // Project management
+  getAllProjects,
+  getProjectById,
+  updateProjectStatus,
+  deleteProject,
   // Audit log management
   getAuditLogs,
   getAuditLogStats,

@@ -166,6 +166,40 @@ const logGrievanceAction = async (action, grievance, req, metadata = {}) => {
   });
 };
 
+const logProjectAction = async (action, project, req, metadata = {}) => {
+  const requestInfo = getRequestInfo(req);
+  return createAuditLog({
+    action,
+    entity_type: "Project",
+    entity_id: project._id,
+    entity_name: project.name,
+    description: `Project "${project.name}" - ${action.replace(/_/g, " ").toLowerCase()}`,
+    ...requestInfo,
+    organization_id: project.organization_id || requestInfo.organization_id,
+    metadata,
+  });
+};
+
+const logLoginAction = async (user, req, metadata = {}) => {
+  const requestInfo = getRequestInfo(req);
+  const userName = (user.firstname && user.lastname) 
+    ? `${user.firstname} ${user.lastname}` 
+    : (user.username || "Unknown");
+  
+  return createAuditLog({
+    action: "USER_LOGIN",
+    entity_type: "User",
+    entity_id: user._id,
+    entity_name: userName,
+    description: `User "${userName}" logged in`,
+    performed_by: user._id,
+    organization_id: user.organization_id,
+    ip_address: requestInfo.ip_address,
+    user_agent: requestInfo.user_agent,
+    metadata,
+  });
+};
+
 module.exports = {
   createAuditLog,
   getRequestInfo,
@@ -174,4 +208,6 @@ module.exports = {
   logUserAction,
   logRoleAction,
   logGrievanceAction,
+  logProjectAction,
+  logLoginAction,
 };

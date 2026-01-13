@@ -221,7 +221,7 @@ const OrganizationSettings = () => {
           <Button
             variant="outline"
             className="mt-4"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
           >
             Go to Dashboard
           </Button>
@@ -547,7 +547,7 @@ const OrganizationSettings = () => {
                 <Button
                   variant="outline"
                   className="mt-6"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/dashboard")}
                 >
                   Go to Dashboard
                 </Button>

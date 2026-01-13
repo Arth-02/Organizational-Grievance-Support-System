@@ -123,7 +123,7 @@ const ProjectBoard = () => {
               {projectError?.data?.message || boardError?.data?.message || "Failed to load project"}
             </p>
           )}
-          <Button variant="outline" onClick={() => navigate("/")}>
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Go to Dashboard
           </Button>

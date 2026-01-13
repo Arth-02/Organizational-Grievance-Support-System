@@ -19,6 +19,9 @@ import { ThemeProvider } from "./components/ui/theme-provider";
 import { ModalProvider } from "./components/ui/RoutedModal";
 import Profile from "./components/page/profile/Profile";
 
+// Landing page (public)
+import LandingPage from "./components/page/landing/LandingPage";
+
 // Dashboard component
 import Dashboard from "./components/page/dashboard/Dashboard";
 
@@ -42,6 +45,8 @@ import AdminRolesList from "./components/admin/roles/AdminRolesList";
 import AdminRoleDetails from "./components/admin/roles/AdminRoleDetails";
 import AdminGrievancesList from "./components/admin/grievances/AdminGrievancesList";
 import AdminGrievanceDetails from "./components/admin/grievances/AdminGrievanceDetails";
+import AdminProjectsList from "./components/admin/projects/AdminProjectsList";
+import AdminProjectDetails from "./components/admin/projects/AdminProjectDetails";
 import AuditLogsList from "./components/admin/audit/AuditLogsList";
 import AuditLogDetails from "./components/admin/audit/AuditLogDetails";
 import AdminSettings from "./components/admin/settings/AdminSettings";
@@ -57,6 +62,9 @@ function App() {
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ModalProvider>
           <Routes location={background || location}>
+            {/* Public landing page */}
+            <Route path="/" element={<LandingPage />} />
+            
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterOrg />} />
             <Route
@@ -64,14 +72,13 @@ function App() {
               element={<SuperAdmin />}
             />
             <Route
-              path="/"
               element={
                 <PrivateRoute>
                   <Layout />
                 </PrivateRoute>
               }
             >
-              <Route index element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/grievances" element={<Grievances />} />
               <Route path="/grievances/add" element={<AddUpdateGrievance />} />
@@ -163,6 +170,8 @@ function App() {
               <Route path="roles/:id" element={<AdminRoleDetails />} />
               <Route path="grievances" element={<AdminGrievancesList />} />
               <Route path="grievances/:id" element={<AdminGrievanceDetails />} />
+              <Route path="projects" element={<AdminProjectsList />} />
+              <Route path="projects/:id" element={<AdminProjectDetails />} />
               <Route path="audit-logs" element={<AuditLogsList />} />
               <Route path="audit-logs/:id" element={<AuditLogDetails />} />
               <Route path="settings" element={<AdminSettings />} />

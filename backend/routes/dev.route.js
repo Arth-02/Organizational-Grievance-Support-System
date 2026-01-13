@@ -25,6 +25,11 @@ const {
   getGrievanceById,
   updateGrievanceStatus,
   deleteGrievance,
+  // Project management
+  getAllProjects,
+  getProjectById,
+  updateProjectStatus,
+  deleteProject,
   // Audit log management
   getAuditLogs,
   getAuditLogStats,
@@ -69,6 +74,12 @@ router.get("/grievances", checkRole([DEV]), getAllGrievances);
 router.get("/grievances/:id", checkRole([DEV]), getGrievanceById);
 router.patch("/grievances/:id/status", checkRole([DEV]), updateGrievanceStatus);
 router.delete("/grievances/:id", checkRole([DEV]), deleteGrievance);
+
+// Projects management
+router.get("/projects", checkRole([DEV]), getAllProjects);
+router.get("/projects/:id", checkRole([DEV]), getProjectById);
+router.patch("/projects/:id/status", checkRole([DEV]), updateProjectStatus);
+router.delete("/projects/:id", checkRole([DEV]), deleteProject);
 
 // Audit logs management
 router.get("/audit-logs", checkRole([DEV]), getAuditLogs);
