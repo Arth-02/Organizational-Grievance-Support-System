@@ -15,6 +15,9 @@ const {
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
 const {
+  checkSubscriptionLimit,
+} = require("../middlewares/subscription.middleware");
+const {
   CREATE_PROJECT,
   UPDATE_PROJECT,
   DELETE_PROJECT,
@@ -26,6 +29,7 @@ const upload = require("../utils/multer");
 router.post(
   "/create",
   checkPermission([CREATE_PROJECT.slug]),
+  checkSubscriptionLimit('projects'),
   upload.array("icon", 1),
   createProject
 );

@@ -6,6 +6,9 @@ import departmentSlice from "./features/departmentSlice";
 import organizationSlice from "./features/organizationSlice";
 import grievanceSlice from "./features/grievanceSlice";
 import projectSlice from "./features/projectSlice";
+import subscriptionSlice from "./features/subscriptionSlice";
+import paymentSlice from "./features/paymentSlice";
+import invoiceSlice from "./features/invoiceSlice";
 import { baseApi } from "./services/baseApi.service";
 
 export const store = configureStore({
@@ -16,6 +19,9 @@ export const store = configureStore({
     grievance: grievanceSlice,
     organization: organizationSlice,
     project: projectSlice,
+    subscription: subscriptionSlice,
+    payment: paymentSlice,
+    invoice: invoiceSlice,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>

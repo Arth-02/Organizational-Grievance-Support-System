@@ -39,6 +39,7 @@ import {
 import { useGetAllUserNamesQuery } from "@/services/user.service";
 import { createProjectSchema, updateProjectSchema } from "@/validators/project";
 import { cn } from "@/lib/utils";
+import UpgradePrompt from "@/components/ui/UpgradePrompt";
 
 const PROJECT_TYPE_OPTIONS = [
   { value: "software", label: "Software" },
@@ -86,6 +87,14 @@ export default function ProjectForm({ projectId, onSuccess }) {
   const [iconPreview, setIconPreview] = useState(null);
   const [iconFile, setIconFile] = useState(null);
   const iconInputRef = useRef(null);
+  
+  // Upgrade prompt state for subscription limit reached
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [upgradePromptData, setUpgradePromptData] = useState({
+    currentUsage: 0,
+    limit: 0,
+    currentPlan: "Starter",
+  });
 
   // Transform users data for MultiSelect
   const userOptions = useMemo(() => {
@@ -248,7 +257,17 @@ export default function ProjectForm({ projectId, onSuccess }) {
       }
     } catch (error) {
       console.error("Failed to save project:", error);
-      toast.error(error.data?.message || "Failed to save project");
+      // Check if this is a subscription limit error (403)
+      if (error?.status === 403 && error?.data?.code === "PROJECT_LIMIT_REACHED") {
+        setUpgradePromptData({
+          currentUsage: error.data.currentUsage || 0,
+          limit: error.data.limit || 0,
+          currentPlan: error.data.currentPlan || "Starter",
+        });
+        setUpgradePromptOpen(true);
+      } else {
+        toast.error(error.data?.message || "Failed to save project");
+      }
     }
   };
 
@@ -675,6 +694,17 @@ export default function ProjectForm({ projectId, onSuccess }) {
           </div>
         </form>
       </div>
+      
+      {/* Upgrade Prompt for Project Limit Reached */}
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        resourceType="projects"
+        currentUsage={upgradePromptData.currentUsage}
+        limit={upgradePromptData.limit}
+        currentPlan={upgradePromptData.currentPlan}
+        recommendedPlan="Professional"
+      />
     </RoutableModal>
   );
 }

@@ -12,6 +12,9 @@ const organizationSchema = Joi.object({
   pincode: Joi.string().trim().required(),
   phone: Joi.string().trim().required(),
   address: Joi.string().trim().required(),
+  // Plan selection fields - @requirements 9.3
+  selectedPlan: Joi.string().trim().valid('starter', 'professional', 'enterprise').default('starter'),
+  billingCycle: Joi.string().trim().valid('monthly', 'annual').default('monthly'),
 });
 
 const updateOrganizationSchema = Joi.object({

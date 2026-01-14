@@ -42,6 +42,7 @@ import { useCreateTaskMutation } from "@/services/task.service";
 import { useGetProjectMembersQuery } from "@/services/project.service";
 import { cn } from "@/lib/utils";
 import { useDropzone } from "react-dropzone";
+import UpgradePrompt from "@/components/ui/UpgradePrompt";
 
 // Task type configuration
 const TASK_TYPE_CONFIG = {
@@ -243,6 +244,14 @@ export default function TaskForm({
   const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
   const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
   const [isAssigneeSelectOpen, setIsAssigneeSelectOpen] = useState(false);
+  
+  // Upgrade prompt state for storage limit reached
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [upgradePromptData, setUpgradePromptData] = useState({
+    currentUsage: 0,
+    limit: 0,
+    currentPlan: "Starter",
+  });
 
   // API hooks
   const [createTask, { isLoading }] = useCreateTaskMutation();
@@ -439,7 +448,17 @@ export default function TaskForm({
       }
     } catch (error) {
       console.error("Failed to create task:", error);
-      toast.error(error.data?.message || "Failed to create task");
+      // Check if this is a storage limit error (403)
+      if (error?.status === 403 && error?.data?.code === "STORAGE_LIMIT_REACHED") {
+        setUpgradePromptData({
+          currentUsage: error.data.currentUsage || 0,
+          limit: error.data.limit || 0,
+          currentPlan: error.data.currentPlan || "Starter",
+        });
+        setUpgradePromptOpen(true);
+      } else {
+        toast.error(error.data?.message || "Failed to create task");
+      }
     }
   };
 
@@ -831,6 +850,17 @@ export default function TaskForm({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Upgrade Prompt for Storage Limit Reached */}
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        resourceType="storage"
+        currentUsage={upgradePromptData.currentUsage}
+        limit={upgradePromptData.limit}
+        currentPlan={upgradePromptData.currentPlan}
+        recommendedPlan="Professional"
+      />
     </Dialog>
   );
 }

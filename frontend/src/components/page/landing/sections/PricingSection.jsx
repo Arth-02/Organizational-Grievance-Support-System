@@ -15,6 +15,7 @@ import PricingCard from '../components/PricingCard';
 const pricingTiers = [
   {
     name: 'Starter',
+    planKey: 'starter',
     description: 'Perfect for small teams getting started',
     monthlyPrice: 0,
     annualPrice: 0,
@@ -27,10 +28,11 @@ const pricingTiers = [
     ],
     highlighted: false,
     ctaLabel: 'Get Started Free',
-    ctaHref: '/register',
+    ctaHref: '/register?plan=starter',
   },
   {
     name: 'Professional',
+    planKey: 'professional',
     description: 'For growing organizations',
     monthlyPrice: 29,
     annualPrice: 290, // ~17% discount
@@ -50,6 +52,7 @@ const pricingTiers = [
   },
   {
     name: 'Enterprise',
+    planKey: 'enterprise',
     description: 'For large organizations',
     monthlyPrice: null,
     annualPrice: null,
@@ -65,7 +68,7 @@ const pricingTiers = [
     ],
     highlighted: false,
     ctaLabel: 'Contact Sales',
-    ctaHref: '/contact',
+    ctaHref: '/contact?plan=enterprise',
   },
 ];
 
@@ -162,6 +165,10 @@ const PricingSection = () => {
           {pricingTiers.map((tier, index) => {
             const price = isAnnual ? tier.annualPrice : tier.monthlyPrice;
             const period = isAnnual ? '/year' : '/month';
+            // Add billing cycle to CTA href for non-contact-sales plans
+            const ctaHref = tier.ctaHref.includes('/register') 
+              ? `${tier.ctaHref}&billing=${isAnnual ? 'annual' : 'monthly'}`
+              : tier.ctaHref;
 
             return (
               <AnimatedSection
@@ -178,7 +185,7 @@ const PricingSection = () => {
                   features={tier.features}
                   highlighted={tier.highlighted}
                   ctaLabel={tier.ctaLabel}
-                  ctaHref={tier.ctaHref}
+                  ctaHref={ctaHref}
                 />
               </AnimatedSection>
             );

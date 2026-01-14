@@ -9,6 +9,11 @@ const projectRoutes = require("./project.route");
 const boardRoutes = require("./board.route");
 const taskRoutes = require("./task.route");
 const dashboardRoutes = require("./dashboard.route");
+const auditLogRoutes = require("./auditLog.route");
+const subscriptionRoutes = require("./subscription.routes");
+const paymentRoutes = require("./payment.routes");
+const invoiceRoutes = require("./invoice.routes");
+const usageRoutes = require("./usage.routes");
 
 router.use("/users", userRoutes);
 router.use("/roles", roleRoutes);
@@ -20,5 +25,10 @@ router.use("/projects", projectRoutes);
 router.use("/boards", boardRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/audit-logs", auditLogRoutes);
+router.use("/subscriptions", subscriptionRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/invoices", invoiceRoutes);
+router.use("/usage", usageRoutes);
 
 module.exports = router;

@@ -16,11 +16,15 @@ const upload = require("../utils/multer");
 const {
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
+const {
+  checkSubscriptionLimit,
+} = require("../middlewares/subscription.middleware");
 
 // Create a new task
 router.post(
   "/create",
   isLoggedIn,
+  checkSubscriptionLimit('storage'),
   upload.array("attachments", 5),
   createTask
 );
@@ -64,6 +68,7 @@ router.delete(
 router.post(
   "/:id/comments",
   isLoggedIn,
+  checkSubscriptionLimit('storage'),
   upload.array("attachments", 5),
   addComment
 );
@@ -86,6 +91,7 @@ router.delete(
 router.post(
   "/:id/attachments",
   isLoggedIn,
+  checkSubscriptionLimit('storage'),
   upload.array("attachments", 5),
   addAttachment
 );

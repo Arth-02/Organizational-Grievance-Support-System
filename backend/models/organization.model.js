@@ -73,6 +73,32 @@ const OrganizationSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    // Subscription-related fields
+    subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+    },
+    stripeCustomerId: {
+      type: String,
+      trim: true,
+    },
+    billingEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    // Selected plan during registration (used when organization is approved)
+    // @requirements 9.3
+    selectedPlan: {
+      type: String,
+      enum: ['starter', 'professional', 'enterprise'],
+      default: 'starter',
+    },
+    selectedBillingCycle: {
+      type: String,
+      enum: ['monthly', 'annual'],
+      default: 'monthly',
+    },
   },
   {
     timestamps: {

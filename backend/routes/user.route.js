@@ -23,6 +23,9 @@ const {
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
 const {
+  checkSubscriptionLimit,
+} = require("../middlewares/subscription.middleware");
+const {
   CREATE_USER,
   VIEW_USER,
   UPDATE_USER,
@@ -34,6 +37,7 @@ router.post("/login", login);
 router.post(
   "/create",
   checkPermission([CREATE_USER.slug]),
+  checkSubscriptionLimit('users'),
   upload.array("avatar", 1),
   createUser
 );

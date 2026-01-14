@@ -14,6 +14,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { toast } from "react-hot-toast";
 import AddUpdatePageLayout from "@/components/layout/AddUpdatePageLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import UpgradePrompt from "@/components/ui/UpgradePrompt";
 import {
   Command,
   CommandEmpty,
@@ -122,6 +123,14 @@ const AddUpdateEmployee = () => {
   const [isEmailAvailable, setIsEmailAvailable] = useState(undefined);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  
+  // Upgrade prompt state for subscription limit reached
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [upgradePromptData, setUpgradePromptData] = useState({
+    currentUsage: 0,
+    limit: 0,
+    currentPlan: "Starter",
+  });
 
   const handleFetchRole = (newId) => {
     setRoleId(newId);
@@ -358,8 +367,18 @@ const AddUpdateEmployee = () => {
         toast.success(response.message);
       }
       navigate("/employees");
-    } catch {
-      toast.error("Something went wrong");
+    } catch (error) {
+      // Check if this is a subscription limit error (403)
+      if (error?.status === 403 && error?.data?.code === "USER_LIMIT_REACHED") {
+        setUpgradePromptData({
+          currentUsage: error.data.currentUsage || 0,
+          limit: error.data.limit || 0,
+          currentPlan: error.data.currentPlan || "Starter",
+        });
+        setUpgradePromptOpen(true);
+      } else {
+        toast.error(error?.data?.message || "Something went wrong");
+      }
     }
   };
 
@@ -833,6 +852,17 @@ const AddUpdateEmployee = () => {
           </Button>
         </div>
       </form>
+      
+      {/* Upgrade Prompt for User Limit Reached */}
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        resourceType="users"
+        currentUsage={upgradePromptData.currentUsage}
+        limit={upgradePromptData.limit}
+        currentPlan={upgradePromptData.currentPlan}
+        recommendedPlan="Professional"
+      />
     </AddUpdatePageLayout>
   );
 };

@@ -6,6 +6,7 @@ const {
 } = require("../validators/organization.validator");
 const attachmentService = require("./attachment.service");
 const { isValidObjectId } = require("mongoose");
+const { subscriptionService } = require("./subscription.service");
 
 // Create Organization service
 const createOrganization = async (session, body, files) => {
@@ -29,6 +30,8 @@ const createOrganization = async (session, body, files) => {
       pincode,
       phone,
       address,
+      selectedPlan,
+      billingCycle,
     } = value;
 
     let existingOrganization = await Organization.findOne({ email }).session(
@@ -53,6 +56,10 @@ const createOrganization = async (session, body, files) => {
       pincode,
       phone,
       address,
+      // Store selected plan for use when organization is approved
+      // @requirements 9.3
+      selectedPlan: selectedPlan || 'starter',
+      selectedBillingCycle: billingCycle || 'monthly',
     });
 
     if (files && files.length > 0) {
@@ -72,6 +79,17 @@ const createOrganization = async (session, body, files) => {
       newOrg.logo_id = response.attachmentIds[0];
     }
     const newOrg = await newOrganization.save({ session });
+
+    // Auto-assign Starter plan to new organization
+    const subscriptionResult = await subscriptionService.assignStarterPlan(
+      newOrg._id.toString(),
+      session
+    );
+    if (!subscriptionResult.isSuccess) {
+      console.error('Failed to assign starter plan:', subscriptionResult.message);
+      // Don't fail organization creation, but log the error
+    }
+
     return { isSuccess: true, data: newOrg };
   } catch (err) {
     console.error("Error in createOrganization service", err);

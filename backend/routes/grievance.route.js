@@ -14,6 +14,9 @@ const {
   isLoggedIn,
 } = require("../middlewares/auth.middleware");
 const {
+  checkSubscriptionLimit,
+} = require("../middlewares/subscription.middleware");
+const {
   DELETE_GRIEVANCE,
   UPDATE_GRIEVANCE_ASSIGNEE,
   UPDATE_GRIEVANCE,
@@ -23,6 +26,7 @@ const router = require("express").Router();
 router.post(
   "/create",
   isLoggedIn,
+  checkSubscriptionLimit('storage'),
   upload.array("attachments", 5),
   createGrievance
 );
@@ -31,6 +35,7 @@ router.get("/details/:id", isLoggedIn, getGrievanceById);
 router.patch(
   "/update/attachment/:id",
   isLoggedIn,
+  checkSubscriptionLimit('storage'),
   upload.array("attachments", 5),
   updateGrievanceAttachment
 );

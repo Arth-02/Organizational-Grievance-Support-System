@@ -58,6 +58,7 @@ import {
   useAddAttachmentMutation,
   useRemoveAttachmentMutation,
 } from "@/services/task.service";
+import UpgradePrompt from "@/components/ui/UpgradePrompt";
 import { useGetProjectMembersQuery } from "@/services/project.service";
 import { useGetBoardsByProjectQuery } from "@/services/board.service";
 import EditableTitle from "../../ui/EditableTitle";
@@ -172,6 +173,14 @@ function TaskModal({ taskId: propTaskId, projectId, onClose }) {
   const [isPrioritySelectOpen, setIsPrioritySelectOpen] = useState(false);
   const [isTypeSelectOpen, setIsTypeSelectOpen] = useState(false);
   const [isAssigneeSelectOpen, setIsAssigneeSelectOpen] = useState(false);
+  
+  // Upgrade prompt state for storage limit reached
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [upgradePromptData, setUpgradePromptData] = useState({
+    currentUsage: 0,
+    limit: 0,
+    currentPlan: "Starter",
+  });
 
   // API hooks
   const [updateTask] = useUpdateTaskMutation();
@@ -341,7 +350,17 @@ function TaskModal({ taskId: propTaskId, projectId, onClose }) {
       toast.success("Attachment(s) uploaded successfully");
     } catch (error) {
       console.error("Failed to upload attachment:", error);
-      toast.error(error?.data?.message || "Failed to upload attachment");
+      // Check if this is a storage limit error (403)
+      if (error?.status === 403 && error?.data?.code === "STORAGE_LIMIT_REACHED") {
+        setUpgradePromptData({
+          currentUsage: error.data.currentUsage || 0,
+          limit: error.data.limit || 0,
+          currentPlan: error.data.currentPlan || "Starter",
+        });
+        setUpgradePromptOpen(true);
+      } else {
+        toast.error(error?.data?.message || "Failed to upload attachment");
+      }
     }
 
     // Reset file input
@@ -1107,6 +1126,17 @@ function TaskModal({ taskId: propTaskId, projectId, onClose }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Upgrade Prompt for Storage Limit Reached */}
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        resourceType="storage"
+        currentUsage={upgradePromptData.currentUsage}
+        limit={upgradePromptData.limit}
+        currentPlan={upgradePromptData.currentPlan}
+        recommendedPlan="Professional"
+      />
     </RoutableModal>
   );
 }

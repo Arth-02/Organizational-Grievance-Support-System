@@ -1,15 +1,16 @@
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addressDetailsSchema, organizationDetailsSchema } from "@/validators/users";
 import { useCreateOrganizationMutation } from "@/services/organization.service";
-import { Link } from "react-router-dom";
-import { Loader2, Building2, Mail, Phone, Globe, FileImage, MapPin, AlertCircle } from "lucide-react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Loader2, Building2, Mail, Phone, Globe, FileImage, MapPin, AlertCircle, Check, Sparkles } from "lucide-react";
 import AuthLayout from "./AuthLayout";
 import StepIndicator from "./StepIndicator";
 import AnimatedSection from "@/components/page/landing/components/AnimatedSection";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Check if user prefers reduced motion
@@ -33,11 +34,140 @@ const usePrefersReducedMotion = () => {
   return prefersReducedMotion;
 };
 
+/**
+ * Plan data for display during registration
+ * Matches backend subscription plans configuration
+ * @requirements 9.3
+ */
+const PLAN_DATA = {
+  starter: {
+    name: 'Starter',
+    description: 'Perfect for small teams getting started',
+    monthlyPrice: 0,
+    annualPrice: 0,
+    features: ['Up to 10 users', '3 active projects', '1GB storage', 'Basic grievance tracking'],
+    isFree: true,
+  },
+  professional: {
+    name: 'Professional',
+    description: 'For growing organizations',
+    monthlyPrice: 29,
+    annualPrice: 290,
+    features: ['Up to 50 users', 'Unlimited projects', '10GB storage', 'Advanced permissions', 'Audit logs', 'API access'],
+    isFree: false,
+    trialDays: 14,
+  },
+  enterprise: {
+    name: 'Enterprise',
+    description: 'For large organizations',
+    monthlyPrice: null,
+    annualPrice: null,
+    features: ['Unlimited users', 'Unlimited projects', 'Unlimited storage', 'SSO integration', 'Dedicated support'],
+    isFree: false,
+    isCustom: true,
+  },
+};
+
+/**
+ * SelectedPlanCard - Displays the selected plan during registration
+ * @requirements 9.3
+ */
+const SelectedPlanCard = ({ plan, billingCycle }) => {
+  if (!plan) return null;
+
+  const planInfo = PLAN_DATA[plan];
+  if (!planInfo) return null;
+
+  const price = billingCycle === 'annual' ? planInfo.annualPrice : planInfo.monthlyPrice;
+  const period = billingCycle === 'annual' ? '/year' : '/month';
+
+  return (
+    <div className="mb-6 p-4 rounded-lg border border-primary/30 bg-primary/5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+            <span className="text-sm font-medium text-muted-foreground">Selected Plan</span>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">{planInfo.name}</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">{planInfo.description}</p>
+        </div>
+        <div className="text-right">
+          {planInfo.isCustom ? (
+            <span className="text-lg font-bold text-foreground">Custom</span>
+          ) : planInfo.isFree ? (
+            <span className="text-lg font-bold text-foreground">Free</span>
+          ) : (
+            <>
+              <span className="text-lg font-bold text-foreground">${price}</span>
+              <span className="text-sm text-muted-foreground">{period}</span>
+            </>
+          )}
+        </div>
+      </div>
+      
+      {/* Trial badge for Professional plan */}
+      {planInfo.trialDays && (
+        <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+          {planInfo.trialDays}-day free trial included
+        </Badge>
+      )}
+
+      {/* Features preview */}
+      <div className="mt-3 pt-3 border-t border-primary/20">
+        <ul className="grid grid-cols-2 gap-1.5">
+          {planInfo.features.slice(0, 4).map((feature, index) => (
+            <li key={index} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Check className="h-3 w-3 text-primary shrink-0" aria-hidden="true" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Change plan link */}
+      <div className="mt-3 text-center">
+        <Link 
+          to="/#pricing" 
+          className="text-xs text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+        >
+          Change plan
+        </Link>
+      </div>
+    </div>
+  );
+};
+
 const RegisterOrg = () => {
   const [createOrganization, { isLoading }] = useCreateOrganizationMutation();
   const [step, setStep] = useState(1);
   const [animationDirection, setAnimationDirection] = useState("forward");
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Store step 1 data to preserve it when moving to step 2
+  const [step1Data, setStep1Data] = useState(null);
+
+  // Read plan and billing cycle from URL query parameters
+  // @requirements 9.3
+  const selectedPlan = useMemo(() => {
+    const plan = searchParams.get('plan');
+    // Validate plan is one of the valid options
+    if (plan && PLAN_DATA[plan]) {
+      return plan;
+    }
+    return 'starter'; // Default to starter plan
+  }, [searchParams]);
+
+  const billingCycle = useMemo(() => {
+    const billing = searchParams.get('billing');
+    // Validate billing cycle
+    if (billing === 'annual' || billing === 'monthly') {
+      return billing;
+    }
+    return 'monthly'; // Default to monthly
+  }, [searchParams]);
 
   // Step configuration for StepIndicator
   const steps = [
@@ -57,13 +187,31 @@ const RegisterOrg = () => {
 
   const onSubmit = async (data) => {
     if (step === 1) {
+      // Store step 1 data before moving to step 2
+      setStep1Data(data);
       setAnimationDirection("forward");
       setStep(2);
     } else {
       try {
-        const response = await createOrganization(data).unwrap();
+        // Merge step 1 data with step 2 data (excluding terms field which backend doesn't accept)
+        // eslint-disable-next-line no-unused-vars
+        const { terms, ...step2DataWithoutTerms } = data;
+        
+        // Include selected plan and billing cycle in the registration data
+        // The backend will use this to create the appropriate subscription after approval
+        const registrationData = {
+          ...step1Data,
+          ...step2DataWithoutTerms,
+          selectedPlan,
+          billingCycle,
+        };
+        
+        const response = await createOrganization(registrationData).unwrap();
         if (response) {
-          toast.success("Registration successful! Your organization is pending approval.");
+          const planName = PLAN_DATA[selectedPlan]?.name || 'Starter';
+          toast.success(`Registration successful! Your organization is pending approval. You'll be subscribed to the ${planName} plan once approved.`);
+          // Redirect to home page after successful registration
+          navigate('/');
         } else {
           toast.error("Something went wrong! Please try again later.");
         }
@@ -93,6 +241,11 @@ const RegisterOrg = () => {
         <p className="text-center text-muted-foreground mb-6">
           Create your organization account to get started
         </p>
+      </AnimatedSection>
+
+      {/* Selected Plan Display - @requirements 9.3 */}
+      <AnimatedSection animation="fade-up" delay={50}>
+        <SelectedPlanCard plan={selectedPlan} billingCycle={billingCycle} />
       </AnimatedSection>
 
       {/* Step Indicator */}
