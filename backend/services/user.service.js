@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 const {
   PERMISSIONS,
   SUPER_ADMIN,
+  ADMIN,
   DEFAULT_ADMIN_PERMISSIONS,
   VIEW_PERMISSION,
   VIEW_ROLE,
@@ -15,6 +16,7 @@ const {
   updateSelfUserSchema,
   changePasswordSchema,
   changeEmailSchema,
+  superAdminSchema,
 } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
 const { isValidObjectId } = require("mongoose");
@@ -263,15 +265,25 @@ const getUserDetails = async (user_id, userData) => {
     }
     let user;
     if (!user_id) {
+      console.log('organization_id', organization_id)
+      console.log('id', id)
       // Getting own profile - populate role, department, and organization
-      user = await User.findOne(query)
-        .populate("role")
-        .populate("department")
-        .populate({
+      const populateOptions = [
+        { path: "role" },
+        { path: "department" }
+      ];
+      
+      // Only populate organization if user has one (not DEV)
+      if (organization_id) {
+        populateOptions.push({
           path: "organization_id",
           select: "name logo_id",
           populate: { path: "logo_id", select: "url filename" },
-        })
+        });
+      }
+      
+      user = await User.findOne(query)
+        .populate(populateOptions)
         .select("-createdAt -updatedAt -is_deleted")
         .lean();
       if (user) {

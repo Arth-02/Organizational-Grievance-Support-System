@@ -305,7 +305,10 @@ class SubscriptionService {
         return subscriptionResult;
       }
 
-      // Get usage data
+      // Get usage data - ensure organizationId is a string for ObjectId conversion
+      const orgIdString = organizationId.toString();
+      const mongoose = require('mongoose');
+      
       const [userCount, projectCount, storageResult] = await Promise.all([
         User.countDocuments({ 
           organization_id: organizationId, 
@@ -316,7 +319,7 @@ class SubscriptionService {
           deleted_at: null 
         }),
         Attachment.aggregate([
-          { $match: { organization_id: require('mongoose').Types.ObjectId.createFromHexString(organizationId), is_active: true } },
+          { $match: { organization_id: new mongoose.Types.ObjectId(orgIdString), is_active: true } },
           { $group: { _id: null, totalBytes: { $sum: '$filesize' } } }
         ])
       ]);

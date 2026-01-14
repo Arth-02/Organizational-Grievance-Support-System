@@ -48,6 +48,11 @@ const RecentActivity = ({ activities = [], isLoading }) => {
               const Icon = activityIcons[activity.type] || Building2;
               const colorClass = activityColors[activity.type] || "bg-muted text-muted-foreground";
               
+              // Safely parse timestamp
+              const timestamp = activity.timestamp || activity.created_at || activity.createdAt;
+              const date = timestamp ? new Date(timestamp) : null;
+              const isValidDate = date && !isNaN(date.getTime());
+              
               return (
                 <div key={index} className="flex items-start gap-3">
                   <div className={`p-2.5 rounded-lg ${colorClass}`}>
@@ -59,7 +64,9 @@ const RecentActivity = ({ activities = [], isLoading }) => {
                       {activity.description}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                      {isValidDate 
+                        ? formatDistanceToNow(date, { addSuffix: true })
+                        : 'Recently'}
                     </p>
                   </div>
                 </div>

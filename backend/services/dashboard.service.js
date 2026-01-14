@@ -21,14 +21,65 @@ const getDashboardStats = async (user) => {
       ...new Set([...rolePermissions, ...(special_permissions || [])]),
     ];
 
+    const roleName = role?.name || "User";
+    const isDev = roleName === "DEV";
+
     // Stats object to build
     const stats = {
       user: {
         name: user.firstname ? `${user.firstname} ${user.lastname}` : user.username,
-        role: role?.name || "User",
+        role: roleName,
       },
     };
 
+    // For DEV role, show all data across all organizations
+    if (isDev) {
+      const Organization = require("../models/organization.model");
+      
+      const [
+        totalOrganizations,
+        pendingOrganizations,
+        approvedOrganizations,
+        totalUsers,
+        activeUsers,
+        totalDepartments,
+        totalRoles,
+        totalGrievances,
+        totalProjects,
+        totalTasks,
+      ] = await Promise.all([
+        Organization.countDocuments(),
+        Organization.countDocuments({ is_approved: false }),
+        Organization.countDocuments({ is_approved: true }),
+        User.countDocuments({ is_deleted: false }),
+        User.countDocuments({ is_deleted: false, is_active: true }),
+        Department.countDocuments({ deleted_at: null }),
+        Role.countDocuments({ deleted_at: null }),
+        Grievance.countDocuments(),
+        Project.countDocuments({ deleted_at: null }),
+        Task.countDocuments(),
+      ]);
+
+      stats.organizations = {
+        total: totalOrganizations,
+        pending: pendingOrganizations,
+        approved: approvedOrganizations,
+      };
+      stats.users = {
+        total: totalUsers,
+        active: activeUsers,
+        inactive: totalUsers - activeUsers,
+      };
+      stats.departments = { total: totalDepartments };
+      stats.roles = { total: totalRoles };
+      stats.grievances = { total: totalGrievances };
+      stats.projects = { total: totalProjects };
+      stats.tasks = { total: totalTasks };
+
+      return { isSuccess: true, data: stats };
+    }
+
+    // For regular users, filter by organization_id
     // Grievance stats - everyone can see their own grievances
     const grievanceBase = { organization_id };
     const [myGrievances, assignedGrievances, openGrievances] = await Promise.all([
@@ -48,7 +99,6 @@ const getDashboardStats = async (user) => {
     };
 
     // Task stats - only if user has tasks or VIEW_PROJECT
-    const taskBase = {};
     const hasProjectAccess = allPermissions.includes("VIEW_PROJECT");
 
     const [assignedTasks, overdueTasks, completedTasks] = await Promise.all([

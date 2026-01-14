@@ -239,10 +239,12 @@ const getOrganizationById = async (id) => {
     }
 
     // Get additional stats - use organization._id which is already an ObjectId
-    const [userCount, departmentCount, roleCount] = await Promise.all([
+    const [userCount, departmentCount, roleCount, projectCount, grievanceCount] = await Promise.all([
       User.countDocuments({ organization_id: organization._id, is_deleted: false }),
       Department.countDocuments({ organization_id: organization._id }),
       Role.countDocuments({ organization_id: organization._id, is_active: true }),
+      Project.countDocuments({ organization_id: organization._id, is_deleted: false }),
+      Grievance.countDocuments({ organization_id: organization._id }),
     ]);
 
     // Get recent users
@@ -252,12 +254,67 @@ const getOrganizationById = async (id) => {
       .select("username email firstname lastname is_active created_at")
       .lean();
 
+    // Get subscription and plan data if organization is approved
+    let subscriptionData = null;
+    let planData = null;
+    let usageLimits = null;
+    
+    if (organization.is_approved) {
+      // Try to get subscription data
+      const Subscription = require("../models/subscription.model");
+      const SubscriptionPlan = require("../models/subscriptionPlan.model");
+      
+      const subscription = await Subscription.findOne({ 
+        organization_id: organization._id 
+      }).lean();
+      
+      if (subscription) {
+        subscriptionData = subscription;
+        
+        // Get plan details
+        if (subscription.plan_id) {
+          planData = await SubscriptionPlan.findById(subscription.plan_id).lean();
+        }
+      }
+      
+      // Calculate usage limits based on plan
+      if (planData) {
+        usageLimits = {
+          users: {
+            used: userCount,
+            limit: planData.limits?.maxUsers || 'Unlimited',
+            percentage: planData.limits?.maxUsers ? Math.round((userCount / planData.limits.maxUsers) * 100) : 0
+          },
+          projects: {
+            used: projectCount,
+            limit: planData.limits?.maxProjects === -1 ? 'Unlimited' : (planData.limits?.maxProjects || 'Unlimited'),
+            percentage: planData.limits?.maxProjects > 0 ? Math.round((projectCount / planData.limits.maxProjects) * 100) : 0
+          },
+          departments: {
+            used: departmentCount,
+            limit: planData.limits?.maxDepartments === -1 ? 'Unlimited' : (planData.limits?.maxDepartments || 'Unlimited'),
+            percentage: planData.limits?.maxDepartments > 0 ? Math.round((departmentCount / planData.limits.maxDepartments) * 100) : 0
+          }
+        };
+      }
+    }
+
+    // Include selected plan from registration if not yet approved
+    const selectedPlanInfo = !organization.is_approved ? {
+      selectedPlan: organization.selectedPlan || 'starter',
+      selectedBillingCycle: organization.selectedBillingCycle || organization.billingCycle || 'monthly'
+    } : null;
+
     return {
       isSuccess: true,
       data: {
         ...organization,
-        stats: { userCount, departmentCount, roleCount },
+        stats: { userCount, departmentCount, roleCount, projectCount, grievanceCount },
         recentUsers,
+        subscription: subscriptionData,
+        plan: planData,
+        usageLimits,
+        selectedPlanInfo,
       },
     };
   } catch (err) {

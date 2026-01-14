@@ -38,19 +38,20 @@ const cardElementOptions = {
   style: {
     base: {
       fontSize: "16px",
-      color: "hsl(var(--foreground))",
-      fontFamily: "inherit",
+      color: "#ffffff",
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontSmoothing: "antialiased",
       "::placeholder": {
-        color: "hsl(var(--muted-foreground))",
+        color: "#6b7280",
       },
-      iconColor: "hsl(var(--primary))",
+      iconColor: "#22d3ee",
     },
     invalid: {
-      color: "hsl(var(--destructive))",
-      iconColor: "hsl(var(--destructive))",
+      color: "#ef4444",
+      iconColor: "#ef4444",
     },
   },
-  hidePostalCode: false,
+  hidePostalCode: true,
 };
 
 /**
@@ -63,13 +64,26 @@ const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
   const [cardError, setCardError] = useState(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isStripeReady, setIsStripeReady] = useState(false);
 
   const [addPaymentMethod] = useAddPaymentMethodMutation();
+
+  // Check when Stripe is ready
+  useEffect(() => {
+    if (stripe && elements) {
+      setIsStripeReady(true);
+    }
+  }, [stripe, elements]);
 
   // Handle card element changes
   const handleCardChange = (event) => {
     setCardError(event.error ? event.error.message : null);
     setCardComplete(event.complete);
+  };
+
+  // Handle card element ready
+  const handleCardReady = () => {
+    console.log("Stripe CardElement is ready");
   };
 
   // Handle form submission
@@ -129,19 +143,38 @@ const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
             <CreditCard className="h-4 w-4 text-primary" />
             Card Details
           </Label>
+          
+          {/* Loading state while Stripe loads */}
+          {!isStripeReady && (
+            <div className="p-4 rounded-lg border border-input bg-muted/30 flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Loading payment form...</span>
+            </div>
+          )}
+          
           <div
             className={cn(
-              "p-4 rounded-lg border bg-background transition-colors",
-              cardError ? "border-destructive" : "border-input",
-              "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+              "p-4 rounded-lg border bg-muted/30 transition-colors min-h-[50px]",
+              cardError ? "border-destructive" : "border-input hover:border-primary/50",
+              "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background",
+              !isStripeReady && "hidden"
             )}
           >
             <CardElement
               id="card-element"
               options={cardElementOptions}
               onChange={handleCardChange}
+              onReady={handleCardReady}
             />
           </div>
+          
+          {/* Helper text */}
+          {isStripeReady && !cardError && (
+            <p className="text-xs text-muted-foreground">
+              Enter your card number, expiry date, CVC, and postal code
+            </p>
+          )}
+          
           {cardError && (
             <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -189,7 +222,7 @@ const AddPaymentMethodForm = ({ onSuccess, onCancel }) => {
         </Button>
         <Button
           type="submit"
-          disabled={!stripe || !cardComplete || isProcessing}
+          disabled={!isStripeReady || !cardComplete || isProcessing}
           className="gap-2"
         >
           {isProcessing ? (

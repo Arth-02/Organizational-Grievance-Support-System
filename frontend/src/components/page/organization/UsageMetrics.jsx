@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
  * Displays user count, project count, and storage usage with progress bars
  * Color coding: green (< 60%), yellow (60-80%), red (> 80%)
  * 
+ * Uses pre-calculated data from backend when available (current, limit, percentage, unlimited)
+ * 
  * @requirements 9.2
  */
 const UsageMetrics = ({ usage, plan, isLoading }) => {
@@ -34,12 +36,6 @@ const UsageMetrics = ({ usage, plan, isLoading }) => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${units[i]}`;
-  };
-
-  // Calculate percentage
-  const calculatePercentage = (current, max) => {
-    if (max === -1 || max === 0) return 0; // Unlimited
-    return Math.min(Math.round((current / max) * 100), 100);
   };
 
   // Get color based on percentage
@@ -68,30 +64,37 @@ const UsageMetrics = ({ usage, plan, isLoading }) => {
     return "text-green-600";
   };
 
-  // Metrics configuration
+  // Metrics configuration - maps backend data structure directly
+  // Backend provides: { current, limit, percentage, unlimited } for each metric
   const metrics = [
     {
       key: "users",
       label: "Users",
       icon: Users,
-      current: usage?.userCount || 0,
-      max: plan?.limits?.maxUsers || 0,
+      current: usage?.users?.current ?? 0,
+      max: usage?.users?.limit ?? plan?.limits?.maxUsers ?? 0,
+      percentage: usage?.users?.percentage ?? 0,
+      isUnlimited: usage?.users?.unlimited ?? false,
       format: (v) => v.toString(),
     },
     {
       key: "projects",
       label: "Projects",
       icon: FolderKanban,
-      current: usage?.projectCount || 0,
-      max: plan?.limits?.maxProjects || 0,
+      current: usage?.projects?.current ?? 0,
+      max: usage?.projects?.limit ?? plan?.limits?.maxProjects ?? 0,
+      percentage: usage?.projects?.percentage ?? 0,
+      isUnlimited: usage?.projects?.unlimited ?? (usage?.projects?.limit === -1),
       format: (v) => v.toString(),
     },
     {
       key: "storage",
       label: "Storage",
       icon: HardDrive,
-      current: usage?.storageBytes || 0,
-      max: plan?.limits?.maxStorageBytes || 0,
+      current: usage?.storage?.current ?? 0,
+      max: usage?.storage?.limit ?? plan?.limits?.maxStorageBytes ?? 0,
+      percentage: usage?.storage?.percentage ?? 0,
+      isUnlimited: usage?.storage?.unlimited ?? false,
       format: formatStorage,
     },
   ];
@@ -132,8 +135,7 @@ const UsageMetrics = ({ usage, plan, isLoading }) => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {metrics.map((metric) => {
-            const isUnlimited = metric.max === -1;
-            const percentage = calculatePercentage(metric.current, metric.max);
+            const { isUnlimited, percentage } = metric;
             const progressColor = getProgressColor(percentage);
             const statusText = getStatusText(percentage, isUnlimited);
             const statusColorClass = getStatusColorClass(percentage, isUnlimited);
@@ -237,7 +239,7 @@ const UsageMetrics = ({ usage, plan, isLoading }) => {
               <div>
                 Current Plan: <span className="font-medium text-foreground capitalize">{plan.displayName || plan.name}</span>
               </div>
-              {metrics.some(m => calculatePercentage(m.current, m.max) >= 80 && m.max !== -1) && (
+              {metrics.some(m => m.percentage >= 80 && !m.isUnlimited) && (
                 <div className="flex items-center gap-1 text-orange-600">
                   <AlertTriangle className="h-4 w-4" />
                   <span>Some resources are nearing their limits</span>

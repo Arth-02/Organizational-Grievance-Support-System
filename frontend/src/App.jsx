@@ -22,6 +22,9 @@ import Profile from "./components/page/profile/Profile";
 // Landing page (public)
 import LandingPage from "./components/page/landing/LandingPage";
 
+// Contact Sales page (public)
+import ContactSales from "./components/page/contact/ContactSales";
+
 // Dashboard component
 import Dashboard from "./components/page/dashboard/Dashboard";
 
@@ -64,6 +67,9 @@ function App() {
           <Routes location={background || location}>
             {/* Public landing page */}
             <Route path="/" element={<LandingPage />} />
+            
+            {/* Public contact sales page */}
+            <Route path="/contact" element={<ContactSales />} />
             
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterOrg />} />

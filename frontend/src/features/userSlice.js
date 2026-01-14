@@ -73,7 +73,15 @@ const userSlice = createSlice({
       .addMatcher(
         baseApi.endpoints.createSuperAdmin.matchFulfilled,
         (state, action) => {
-          state.user = action.payload.data;
+          const data = action.payload;
+          state.user = data;
+          state.token = data.token;
+          state.role = { _id: data.role, name: 'SUPER_ADMIN' };
+          state.department = { _id: data.department };
+          state.organization = data.organization_id;
+          state.permissions = [];
+          // Save token to localStorage
+          saveToLocalStorage("token", state.token);
         }
       )
   },

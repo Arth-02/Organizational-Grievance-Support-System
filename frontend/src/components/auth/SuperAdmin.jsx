@@ -1,29 +1,52 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import { CustomInput } from "../ui/input";
 import { Button } from "../ui/button";
 import { useCallback, useState } from "react";
 import { superAdminSchema, superAdminSchemaWithOTP } from "@/validators/users";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { CustomOTPInput } from "../ui/input-otp";
-import { BadgeAlert, BadgeCheck, Loader2 } from "lucide-react";
+import { 
+  BadgeAlert, 
+  BadgeCheck, 
+  Loader2, 
+  User, 
+  Mail, 
+  Lock, 
+  Phone, 
+  IdCard,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ArrowLeft,
+  Shield
+} from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
 import { CustomTooltip } from "../ui/tooltip";
 import { useCreateSuperAdminMutation } from "@/services/organization.service";
 import { useOtpGenerateMutation } from "@/services/auth.service";
 import { useCheckEmailMutation, useCheckUsernameMutation } from "@/services/user.service";
+import AuthLayout from "./AuthLayout";
+import StepIndicator from "./StepIndicator";
+import AnimatedSection from "@/components/page/landing/components/AnimatedSection";
 
 const SuperAdmin = () => {
   const [superAdmin, { isLoading }] = useCreateSuperAdminMutation();
   const [generateOtp, { isLoading: isOTPGenerating }] = useOtpGenerateMutation();
+  const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
-  const [animationClass, setAnimationClass] = useState("");
+  const [animationDirection, setAnimationDirection] = useState("forward");
   const [formData, setFormData] = useState({});
 
   const [searchParams] = useSearchParams();
   const organizationId = searchParams.get("id");
+
+  // Step configuration for StepIndicator
+  const steps = [
+    { label: "Account", description: "Your details" },
+    { label: "Verify", description: "OTP verification" },
+  ];
 
   const {
     register,
@@ -61,13 +84,11 @@ const SuperAdmin = () => {
           toast.error("Error generating OTP. Please try again.");
           return;
         }
-        setAnimationClass("slide-enter");
-        setTimeout(() => {
-          setStep(2);
-          setAnimationClass("slide-enter-active");
-        }, 0);
-      } catch {
-        toast.error("Error generating OTP. Please try again.");
+        toast.success("OTP sent to organization email!");
+        setAnimationDirection("forward");
+        setStep(2);
+      } catch (error) {
+        toast.error(error?.data?.message || error?.message || "Error generating OTP. Please try again.");
       }
     }
   };
@@ -77,92 +98,169 @@ const SuperAdmin = () => {
       const allData = { ...formData, ...otpData, organization_id: organizationId };
       const response = await superAdmin(allData).unwrap();
       if (response) {
-        toast.success("Register successful!");
+        toast.success("Super Admin created successfully! Redirecting to dashboard...");
+        // Navigate to dashboard after successful creation
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
       } else {
         toast.error("Something went wrong! Please try again later.");
       }
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = error?.data?.message || error?.message || "Registration failed. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
   const handleBack = () => {
-    setAnimationClass("slide-back-enter");
-    setTimeout(() => {
-      setStep(1);
-      setAnimationClass("slide-back-enter-active");
-    }, 0);
+    setAnimationDirection("backward");
+    setStep(1);
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-7xl bg-preprimary rounded-[2.5rem]">
-        <div className="flex flex-col md:flex-row shadow-custom rounded-[2.5rem]">
-          <div className="md:w-2/5 hidden md:flex items-center justify-center">
-            <div className="max-w-md p-6 z-50">
-              <img
-                src="/images/super-admin.png"
-                alt="Meeting illustration"
-                className="w-full h-auto"
-              />
-            </div>
-          </div>
-          <div className="md:w-3/5 p-6 px-10 bg-white dark:bg-black rounded-[2.5rem]">
-            <h1 className="text-3xl font-bold my-6 mb-8">Super Admin</h1>
-            {step === 1 ? (
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
-              >
-                <SuperAdminDetailsForm register={register} errors={errors} setError={setError} clearErrors={clearErrors} />
-                <div className="flex justify-end !mt-8">
-                  <Button type="submit" disabled={isLoading || isOTPGenerating}>
-                    Next
-                    {(isLoading || isOTPGenerating) && (
-                      <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
-                    )}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <form
-                onSubmit={handleOtpSubmit(onOtpSubmit)}
-                className={`space-y-4 min-h-[500px] ${animationClass} z-10`}
-              >
-                <OTPForm
-                  control={otpControl}
-                  errors={otpErrors}
-                />
-                <div className="flex justify-between !mt-8">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleBack}
-                  >
-                    Back
-                  </Button>
-                  <Button type="submit" disabled={isLoading}>
-                    Register
-                    {isLoading && (
-                      <Loader2 className="mr-2 ml-4 animate-spin" size={20} />
-                    )}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
+  // Check if organization ID is provided
+  if (!organizationId) {
+    return (
+      <AuthLayout
+        illustration="/images/super-admin.png"
+        illustrationAlt="Super Admin illustration"
+        showBackLink={true}
+      >
+        <div className="text-center py-12">
+          <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Invalid Link</h2>
+          <p className="text-muted-foreground mb-6">
+            This page requires a valid organization ID. Please use the link provided in your approval email.
+          </p>
+          <Link to="/">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
         </div>
-      </div>
-    </div>
+      </AuthLayout>
+    );
+  }
+
+  return (
+    <AuthLayout
+      illustration="/images/super-admin.png"
+      illustrationAlt="Super Admin illustration"
+      showBackLink={true}
+      className="max-w-lg"
+    >
+      {/* Heading */}
+      <AnimatedSection animation="fade-up" delay={0}>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Shield className="h-8 w-8 text-primary" />
+          <h1 className="text-center text-4xl font-bold text-foreground">
+            Super Admin
+          </h1>
+        </div>
+        <p className="text-center text-muted-foreground mb-6">
+          Create your administrator account to manage your organization
+        </p>
+      </AnimatedSection>
+
+      {/* Step Indicator */}
+      <AnimatedSection animation="fade-up" delay={100}>
+        <StepIndicator
+          currentStep={step}
+          totalSteps={2}
+          steps={steps}
+          className="mb-8"
+        />
+      </AnimatedSection>
+
+      {step === 1 ? (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <SuperAdminDetailsForm 
+            register={register} 
+            errors={errors} 
+            setError={setError} 
+            clearErrors={clearErrors}
+            animationDirection={animationDirection}
+            isLoading={isLoading || isOTPGenerating}
+          />
+          
+          <AnimatedSection animation="fade-up" delay={500}>
+            <Button
+              type="submit"
+              className="w-full h-11"
+              disabled={isLoading || isOTPGenerating}
+            >
+              {(isLoading || isOTPGenerating) ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Sending OTP...</span>
+                </span>
+              ) : (
+                "Continue"
+              )}
+            </Button>
+          </AnimatedSection>
+        </form>
+      ) : (
+        <form onSubmit={handleOtpSubmit(onOtpSubmit)} className="space-y-5">
+          <OTPForm
+            control={otpControl}
+            errors={otpErrors}
+            animationDirection={animationDirection}
+          />
+          
+          <AnimatedSection animation="fade-up" delay={300}>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={isLoading}
+                className="flex-1 h-11"
+              >
+                Back
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 h-11"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Creating...</span>
+                  </span>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </div>
+          </AnimatedSection>
+        </form>
+      )}
+
+      {/* Help text */}
+      <AnimatedSection animation="fade-up" delay={600}>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          Need help?{" "}
+          <Link
+            to="/contact"
+            className="font-semibold text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+          >
+            Contact Support
+          </Link>
+        </p>
+      </AnimatedSection>
+    </AuthLayout>
   );
 };
 
-const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
-
+const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animationDirection, isLoading }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isUserNameAvailable, setIsUserNameAvailable] = useState(undefined);
   const [isEmailAvailable, setIsEmailAvailable] = useState(undefined);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [checkUsername, { isLoading: checkingUserName }] = useCheckUsernameMutation();
   const [checkEmail, { isLoading: checkingEmail }] = useCheckEmailMutation();
@@ -185,7 +283,7 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
         }
       }
     } catch (error) {
-      const errorMessages = error.message.join(", ");
+      const errorMessages = Array.isArray(error.message) ? error.message.join(", ") : error.message;
       setIsUserNameAvailable(false);
       setError("username", { type: "manual", message: errorMessages });
     }
@@ -204,7 +302,7 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
         }
       }
     } catch (error) {
-      const errorMessages = error.message.join(", ");
+      const errorMessages = Array.isArray(error.message) ? error.message.join(", ") : error.message;
       setIsEmailAvailable(false);
       setError("email", { type: "manual", message: errorMessages });
     }
@@ -214,128 +312,333 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors }) => {
   useDebounce(username, 500, checkIfUsernameExists);
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="First Name"
-          type="text"
-          placeholder="Enter your first name"
-          {...register("firstname")}
-          error={errors.firstname}
-        />
-        <CustomInput
-          label="Last Name"
-          type="text"
-          placeholder="Enter your last name"
-          {...register("lastname")}
-          error={errors.lastname}
-        />
+    <div
+      className={`space-y-5 transition-all duration-300 ease-in-out ${
+        animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"
+      }`}
+    >
+      {/* First Name & Last Name */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatedSection animation="fade-up" delay={200}>
+          <div className="space-y-2">
+            <label htmlFor="firstname" className="block text-sm font-semibold text-foreground">
+              First Name
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <User size={18} className={errors.firstname ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type="text"
+                id="firstname"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.firstname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="John"
+                {...register("firstname")}
+              />
+            </div>
+            {errors.firstname && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.firstname.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={250}>
+          <div className="space-y-2">
+            <label htmlFor="lastname" className="block text-sm font-semibold text-foreground">
+              Last Name
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <User size={18} className={errors.lastname ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type="text"
+                id="lastname"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lastname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="Doe"
+                {...register("lastname")}
+              />
+            </div>
+            {errors.lastname && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.lastname.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
       </div>
-      <div className="relative">
-        <CustomInput
-          type="text"
-          label="Username"
-          placeholder="Enter your username"
-          {...register("username", {
-            onChange: (e) => setUsername(e.target.value),
-          })}
-          error={errors.username}
-        />
-        {username && (
-          <div className="absolute right-2 top-8">
-            {
-              isUserNameAvailable === undefined || checkingUserName ? (
-                <Loader2 size={20} className="animate-spin text-primary" />
-              ) : (
-                isUserNameAvailable ? (
-                  <CustomTooltip className='bg-green-50 text-green-600 tracking-wide' content="Username is available">
-                    <BadgeCheck className="text-green-500 rounded-full overflow-hidden" size={20} />
+
+      {/* Username */}
+      <AnimatedSection animation="fade-up" delay={300}>
+        <div className="space-y-2">
+          <label htmlFor="username" className="block text-sm font-semibold text-foreground">
+            Username
+          </label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <User size={18} className={errors.username ? "text-red-500" : "text-muted-foreground"} />
+            </div>
+            <input
+              disabled={isLoading}
+              type="text"
+              id="username"
+              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.username ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+              placeholder="johndoe"
+              {...register("username", {
+                onChange: (e) => setUsername(e.target.value),
+              })}
+            />
+            {username && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {isUserNameAvailable === undefined || checkingUserName ? (
+                  <Loader2 size={18} className="animate-spin text-primary" />
+                ) : isUserNameAvailable ? (
+                  <CustomTooltip className="bg-green-50 text-green-600" content="Username is available">
+                    <BadgeCheck className="text-green-500" size={18} />
                   </CustomTooltip>
                 ) : (
-                  <CustomTooltip className='bg-red-50 text-red-500 tracking-wide' content={username.length < 3 ? 'Username must have atleast 3 character' : 'Username is not available'}>
-                    <BadgeAlert className="text-red-500 rounded-full" size={20} />
+                  <CustomTooltip className="bg-red-50 text-red-500" content={username.length < 3 ? "Username must have at least 3 characters" : "Username is not available"}>
+                    <BadgeAlert className="text-red-500" size={18} />
                   </CustomTooltip>
-                )
-              )
-            }
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <div className="relative">
-        <CustomInput
-          label="E-mail"
-          type="email"
-          placeholder="you@gmail.com"
-          {...register("email", {
-            onBlur: (e) => setEmail(e.target.value),
-          })}
-          error={errors.email}
-        />
-        {email && (
-          <div className="absolute right-2 top-8">
-            {
-              isEmailAvailable === undefined || checkingEmail ? (
-                <Loader2 size={20} className="animate-spin text-primary" />
-              ) : (
-                isEmailAvailable ? (
-                  <CustomTooltip className='bg-green-50 text-green-600 tracking-wide' content="Email is available">
-                    <BadgeCheck className="text-green-500 rounded-full overflow-hidden" size={20} />
+          {errors.username && (
+            <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+              <AlertCircle size={14} />
+              <span>{errors.username.message}</span>
+            </div>
+          )}
+        </div>
+      </AnimatedSection>
+
+      {/* Email */}
+      <AnimatedSection animation="fade-up" delay={350}>
+        <div className="space-y-2">
+          <label htmlFor="email" className="block text-sm font-semibold text-foreground">
+            Email
+          </label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <Mail size={18} className={errors.email ? "text-red-500" : "text-muted-foreground"} />
+            </div>
+            <input
+              disabled={isLoading}
+              type="email"
+              id="email"
+              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.email ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+              placeholder="john@example.com"
+              {...register("email", {
+                onBlur: (e) => setEmail(e.target.value),
+              })}
+            />
+            {email && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {isEmailAvailable === undefined || checkingEmail ? (
+                  <Loader2 size={18} className="animate-spin text-primary" />
+                ) : isEmailAvailable ? (
+                  <CustomTooltip className="bg-green-50 text-green-600" content="Email is available">
+                    <BadgeCheck className="text-green-500" size={18} />
                   </CustomTooltip>
                 ) : (
-                  <CustomTooltip className='bg-red-50 text-red-500 tracking-wide' content="Email is not available">
-                    <BadgeAlert className="text-red-500 rounded-full" size={20} />
+                  <CustomTooltip className="bg-red-50 text-red-500" content="Email is not available">
+                    <BadgeAlert className="text-red-500" size={18} />
                   </CustomTooltip>
-                )
-              )
-            }
+                )}
+              </div>
+            )}
           </div>
-        )}
+          {errors.email && (
+            <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+              <AlertCircle size={14} />
+              <span>{errors.email.message}</span>
+            </div>
+          )}
+        </div>
+      </AnimatedSection>
+
+      {/* Password & Confirm Password */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatedSection animation="fade-up" delay={400}>
+          <div className="space-y-2">
+            <label htmlFor="password" className="block text-sm font-semibold text-foreground">
+              Password
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Lock size={18} className={errors.password ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.password ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="••••••••"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.password && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.password.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={450}>
+          <div className="space-y-2">
+            <label htmlFor="confirmpassword" className="block text-sm font-semibold text-foreground">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Lock size={18} className={errors.confirmpassword ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmpassword"
+                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.confirmpassword ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="••••••••"
+                {...register("confirmpassword")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.confirmpassword && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.confirmpassword.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="Password"
-          type="password"
-          placeholder="Enter your password"
-          {...register("password")}
-          error={errors.password}
-        />
-        <CustomInput
-          label="Confirm-Password"
-          type="password"
-          placeholder="Enter your confirm password"
-          {...register("confirmpassword")}
-          error={errors.confirmpassword}
-        />
+
+      {/* Employee ID & Phone */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatedSection animation="fade-up" delay={500}>
+          <div className="space-y-2">
+            <label htmlFor="employee_id" className="block text-sm font-semibold text-foreground">
+              Employee ID
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <IdCard size={18} className={errors.employee_id ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type="text"
+                id="employee_id"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.employee_id ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="EMP001"
+                {...register("employee_id")}
+              />
+            </div>
+            {errors.employee_id && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.employee_id.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={550}>
+          <div className="space-y-2">
+            <label htmlFor="phone_number" className="block text-sm font-semibold text-foreground">
+              Phone Number
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Phone size={18} className={errors.phone_number ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                disabled={isLoading}
+                type="text"
+                id="phone_number"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.phone_number ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="1234567890"
+                {...register("phone_number")}
+              />
+            </div>
+            {errors.phone_number && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.phone_number.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <CustomInput
-          label="Employee-ID"
-          type="text"
-          placeholder="Enter your Employee-ID"
-          {...register("employee_id")}
-          error={errors.employee_id}
-        />
-        <CustomInput
-          label="Phone"
-          type="text"
-          placeholder="Enter your phone number"
-          {...register("phone_number")}
-          error={errors.phone_number}
-        />
-      </div>
-    </>
+    </div>
   );
 };
 
-const OTPForm = ({ control, errors }) => {
+const OTPForm = ({ control, errors, animationDirection }) => {
   return (
-    <CustomOTPInput
-      control={control}
-      name="otp"
-      label="Enter OTP"
-      maxLength={6}
-      error={errors.otp}
-    />
+    <div
+      className={`space-y-6 transition-all duration-300 ease-in-out ${
+        animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"
+      }`}
+    >
+      <AnimatedSection animation="fade-up" delay={200}>
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Verify Your Email
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            We&apos;ve sent a 6-digit verification code to your organization&apos;s email address.
+            Please enter it below.
+          </p>
+        </div>
+      </AnimatedSection>
+
+      <AnimatedSection animation="fade-up" delay={250}>
+        <CustomOTPInput
+          control={control}
+          name="otp"
+          label="Enter OTP"
+          maxLength={6}
+          error={errors.otp}
+        />
+      </AnimatedSection>
+
+      <AnimatedSection animation="fade-up" delay={300}>
+        <p className="text-center text-sm text-muted-foreground">
+          Didn&apos;t receive the code?{" "}
+          <button
+            type="button"
+            className="font-semibold text-primary hover:underline focus:outline-none"
+          >
+            Resend OTP
+          </button>
+        </p>
+      </AnimatedSection>
+    </div>
   );
 };
 

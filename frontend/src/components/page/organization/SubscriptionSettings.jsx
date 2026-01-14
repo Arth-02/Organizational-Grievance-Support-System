@@ -203,8 +203,8 @@ const SubscriptionSettings = () => {
                 <div>
                   <div className="text-2xl font-bold">
                     ${subscription?.billingCycle === "annual" 
-                      ? plan?.annualPrice 
-                      : plan?.monthlyPrice}
+                      ? plan?.annualPrice /100
+                      : plan?.monthlyPrice / 100}
                     <span className="text-sm font-normal text-muted-foreground">
                       /{subscription?.billingCycle === "annual" ? "year" : "month"}
                     </span>

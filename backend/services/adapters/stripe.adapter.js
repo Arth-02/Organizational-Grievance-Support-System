@@ -70,13 +70,23 @@ class StripeAdapter extends PaymentProviderAdapter {
    */
   async createCustomer(customerData) {
     try {
+      // Ensure organizationId is converted to string for Stripe metadata
+      const metadata = {
+        ...(customerData.organizationId && { organizationId: String(customerData.organizationId) }),
+        ...customerData.metadata
+      };
+      
+      // Convert any non-string metadata values to strings
+      Object.keys(metadata).forEach(key => {
+        if (metadata[key] !== null && metadata[key] !== undefined) {
+          metadata[key] = String(metadata[key]);
+        }
+      });
+
       const customer = await this.stripe.customers.create({
         email: customerData.email,
         name: customerData.name,
-        metadata: {
-          organizationId: customerData.organizationId,
-          ...customerData.metadata
-        }
+        metadata
       });
       return {
         customerId: customer.id,
@@ -94,11 +104,19 @@ class StripeAdapter extends PaymentProviderAdapter {
    */
   async createPaymentIntent(paymentData) {
     try {
+      // Ensure all metadata values are strings
+      const metadata = { ...(paymentData.metadata || {}) };
+      Object.keys(metadata).forEach(key => {
+        if (metadata[key] !== null && metadata[key] !== undefined) {
+          metadata[key] = String(metadata[key]);
+        }
+      });
+
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: paymentData.amount,
         currency: paymentData.currency || 'usd',
         customer: paymentData.customerId,
-        metadata: paymentData.metadata || {},
+        metadata,
         automatic_payment_methods: { enabled: true }
       });
       return {
@@ -138,12 +156,20 @@ class StripeAdapter extends PaymentProviderAdapter {
    */
   async createSubscription(subscriptionData) {
     try {
+      // Ensure all metadata values are strings
+      const metadata = { ...(subscriptionData.metadata || {}) };
+      Object.keys(metadata).forEach(key => {
+        if (metadata[key] !== null && metadata[key] !== undefined) {
+          metadata[key] = String(metadata[key]);
+        }
+      });
+
       const subscriptionParams = {
         customer: subscriptionData.customerId,
         items: [{ price: subscriptionData.priceId }],
         payment_behavior: 'default_incomplete',
         expand: ['latest_invoice.payment_intent'],
-        metadata: subscriptionData.metadata || {}
+        metadata
       };
 
       if (subscriptionData.trialDays && subscriptionData.trialDays > 0) {
