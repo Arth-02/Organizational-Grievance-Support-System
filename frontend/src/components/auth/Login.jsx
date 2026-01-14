@@ -2,11 +2,13 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
-import { Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Lock, User, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { loginSchema } from "@/validators/users";
 import { useUserLoginMutation } from "@/services/auth.service";
+import AuthLayout from "./AuthLayout";
+import AnimatedSection from "@/components/page/landing/components/AnimatedSection";
 
 const Login = () => {
   const {
@@ -38,7 +40,6 @@ const Login = () => {
       if (response) {
         toast.success("Login successful!");
         if (response.role.name) {
-
           navigate("/dashboard");
         } else {
           toast.error("You are not authorized to access the page!");
@@ -53,122 +54,204 @@ const Login = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center p-1 md:p-3">
-      <div className="w-full max-w-[950px] flex justify-center items-center bg-secondary/20 text-foreground p-5 px-5 md:px-10 rounded-xl">
-        <img
-          src="images/login-vector.png"
-          alt="logo"
-          className="h-[500px] hidden lg:block"
-        />
-        <div className="form-wrapper shadow-2xl px-5 md:px-8 max-w-[400px] w-full py-6 bg-background rounded-xl">
-          <h1 className="text-center text-4xl font-bold mt-4 mb-8">Welcome!</h1>
-          <form
-            className="w-full md:min-w-[300px]"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="mb-6">
-              <label
-                htmlFor="username"
-                className="block text-gray-700 font-semibold text-base mb-2"
-              >
-                Username / Email
-              </label>
-              <div className="relative">
-                <input
-                  disabled={isLoading}
-                  type="text"
-                  id="username"
-                  className={`peer w-full pl-7 pb-[2px] bg-transparent border-b-2 text-gray-700 focus:outline-none ${
-                    errors.username
-                      ? "border-red-500 text-red-500"
-                      : "border-gray-300 focus:border-primary focus:text-primary"
-                  }`}
-                  placeholder="Username or Email"
-                  {...register("username")}
-                />
-                <User
-                  size={19}
-                  className={`absolute left-0 top-[4px] ${
-                    errors.username
-                      ? "text-red-500"
-                      : "text-gray-400 peer-focus:text-primary"
-                  }`}
-                />
-              </div>
-              {errors.username && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.username.message}
-                </p>
-              )}
-            </div>
-            <div className="mb-8">
-              <label
-                htmlFor="password"
-                className="block text-gray-700 font-semibold text-base mb-2"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  disabled={isLoading}
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  className={`peer w-full pb-[2px] pl-7 bg-transparent border-b-2 focus:outline-none ${
-                    errors.password
-                      ? "border-red-500 text-red-500"
-                      : "border-gray-300 focus:border-primary focus:text-primary"
-                  }`}
-                  placeholder="Password"
-                  {...register("password")}
-                />
-                <Lock
-                  size={19}
-                  className={`absolute left-0 top-[4px] ${
-                    errors.password
-                      ? "text-red-500"
-                      : "text-gray-400 peer-focus:text-primary"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-1 top-[4px] text-gray-400 focus:outline-none"
-                >
-                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            <Button type="submit" className="w-full">
-              {isLoading ? (
-                <span>
-                  <Loader2 className="animate-spin" />
-                </span>
-              ) : (
-                "Login"
-              )}
-            </Button>
-          </form>
-          <div className="text-center my-4 flex justify-center items-center gap-3">
-            <span className="border border-b w-1/3 h-0 block border-gray-400 translate-y-[2px]"></span>
-            <span className="text-gray-600">or</span>
-            <span className="border border-b w-1/3 h-0 block border-gray-400 translate-y-[2px]"></span>
-          </div>
-          <div className="text-center flex justify-center">
-            <Link
-              to={"/register"}
-              className="font-bold text-xs text-primary hover:underline"
+    <AuthLayout
+      illustration="/images/login-vector.png"
+      illustrationAlt="Login illustration"
+      showBackLink={true}
+    >
+      {/* Heading with design system typography */}
+      <AnimatedSection animation="fade-up" delay={0}>
+        <h1 className="text-center text-4xl font-bold text-foreground mb-2">
+          Welcome!
+        </h1>
+        <p className="text-center text-muted-foreground mb-8">
+          Sign in to your account to continue
+        </p>
+      </AnimatedSection>
+
+      {/* Login Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Username/Email Field */}
+        <AnimatedSection animation="fade-up" delay={100}>
+          <div className="space-y-2">
+            <label
+              htmlFor="username"
+              className="block text-sm font-semibold text-foreground"
             >
-              Register Organization
-            </Link>
+              Username / Email
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <User
+                  size={18}
+                  className={
+                    errors.username
+                      ? "text-red-500"
+                      : "text-muted-foreground"
+                  }
+                  aria-hidden="true"
+                />
+              </div>
+              <input
+                disabled={isLoading}
+                type="text"
+                id="username"
+                className={`
+                  w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30
+                  text-foreground placeholder:text-muted-foreground
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  ${
+                    errors.username
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-border hover:border-muted-foreground/50 focus:border-primary"
+                  }
+                `}
+                placeholder="Enter your username or email"
+                aria-required="true"
+                aria-invalid={errors.username ? "true" : "false"}
+                aria-describedby="username-error"
+                {...register("username")}
+              />
+            </div>
+            <div
+              id="username-error"
+              className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5"
+              role="alert"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {errors.username && (
+                <>
+                  <AlertCircle size={14} aria-hidden="true" />
+                  <span>{errors.username.message}</span>
+                </>
+              )}
+            </div>
           </div>
+        </AnimatedSection>
+
+        {/* Password Field */}
+        <AnimatedSection animation="fade-up" delay={200}>
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-foreground"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Lock
+                  size={18}
+                  className={
+                    errors.password
+                      ? "text-red-500"
+                      : "text-muted-foreground"
+                  }
+                  aria-hidden="true"
+                />
+              </div>
+              <input
+                disabled={isLoading}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                className={`
+                  w-full h-11 pl-10 pr-12 rounded-lg border bg-muted/30
+                  text-foreground placeholder:text-muted-foreground
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  ${
+                    errors.password
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-border hover:border-muted-foreground/50 focus:border-primary"
+                  }
+                `}
+                placeholder="Enter your password"
+                aria-required="true"
+                aria-invalid={errors.password ? "true" : "false"}
+                aria-describedby="password-error"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="
+                  absolute right-3 top-1/2 -translate-y-1/2
+                  p-1 rounded-md
+                  text-muted-foreground hover:text-foreground
+                  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                  transition-colors duration-200
+                "
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} aria-hidden="true" />
+                ) : (
+                  <Eye size={18} aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            <div
+              id="password-error"
+              className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5"
+              role="alert"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {errors.password && (
+                <>
+                  <AlertCircle size={14} aria-hidden="true" />
+                  <span>{errors.password.message}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </AnimatedSection>
+
+        {/* Submit Button */}
+        <AnimatedSection animation="fade-up" delay={300}>
+          <Button
+            type="submit"
+            className="w-full h-11"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <span>Signing in...</span>
+              </span>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </AnimatedSection>
+      </form>
+
+      {/* Divider */}
+      <AnimatedSection animation="fade-up" delay={400}>
+        <div className="flex items-center gap-4 my-6">
+          <span className="flex-1 h-px bg-border" aria-hidden="true" />
+          <span className="text-sm text-muted-foreground">or</span>
+          <span className="flex-1 h-px bg-border" aria-hidden="true" />
         </div>
-      </div>
-    </div>
+      </AnimatedSection>
+
+      {/* Register Link */}
+      <AnimatedSection animation="fade-up" delay={500}>
+        <p className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+          >
+            Register Organization
+          </Link>
+        </p>
+      </AnimatedSection>
+    </AuthLayout>
   );
 };
 

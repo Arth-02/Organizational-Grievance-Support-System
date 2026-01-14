@@ -374,6 +374,15 @@
   animation: stepFadeIn 0.3s ease-out forwards;
 }
 
+/* Auth page step transition animations */
+.animate-slide-in-right {
+  animation: stepSlideInRight 0.3s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: stepSlideInLeft 0.3s ease-out forwards;
+}
+
 /* Step indicator styles */
 .step-indicator-circle {
   @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300;
