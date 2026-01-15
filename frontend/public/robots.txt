@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://org-x.vercel.app/sitemap.xml

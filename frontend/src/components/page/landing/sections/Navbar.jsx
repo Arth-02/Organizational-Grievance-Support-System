@@ -144,25 +144,25 @@ const Navbar = () => {
     >
       <nav className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo/Brand - Requirement 1.1 */}
-        <Link 
-          to="/" 
-          className="text-2xl font-bold text-primary hover:opacity-90 transition-opacity"
-          aria-label="OGSS Home"
-        >
-          OGSS
-        </Link>
+          <Link
+            to="/" 
+            className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent"
+            aria-label="OrgX Home"
+          >
+            OrgX
+          </Link>
 
         {/* Desktop Navigation Links - Requirement 1.2 */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
-              href={link.href}
+              to={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 

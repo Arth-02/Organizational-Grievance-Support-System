@@ -373,7 +373,7 @@ const rejectOrganization = async (id, reason) => {
         ${reason ? `<div class="alert alert-warning"><strong>Reason:</strong> ${reason}</div>` : ""}
         <p>If you believe this decision was made in error or if you have any questions, please contact our support team for further assistance.</p>
       `,
-      actionUrl: "mailto:support@ogss.com",
+      actionUrl: "mailto:support@orgx.com",
       actionText: "Contact Support",
       footerText: "We apologize for the inconvenience."
     });

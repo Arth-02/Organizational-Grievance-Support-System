@@ -143,7 +143,7 @@ const getEmailTemplate = (options) => {
     </div>
 
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} OGSS. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} OrgX. All rights reserved.</p>
       ${footerText ? `<p>${footerText}</p>` : ''}
     </div>
   </div>

@@ -159,9 +159,9 @@ const Footer = () => {
             <Link 
               to="/" 
               className="text-xl sm:text-2xl font-bold text-primary hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-              aria-label="OGSS Home"
+              aria-label="OrgX Home"
             >
-              OGSS
+              OrgX
             </Link>
             <p className="mt-3 sm:mt-4 text-muted-foreground text-xs sm:text-sm leading-relaxed max-w-xs">
               Streamline your organization&apos;s workflow with our comprehensive platform 
@@ -171,11 +171,11 @@ const Footer = () => {
             {/* Contact Info - Requirement 9.5 */}
             <address className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 not-italic">
               <a 
-                href="mailto:support@ogss.com" 
+                href="mailto:support@orgx.com" 
                 className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
               >
                 <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span>support@ogss.com</span>
+                <span>support@orgx.com</span>
               </a>
               <a 
                 href="tel:+1234567890" 
@@ -248,7 +248,7 @@ const Footer = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             {/* Copyright - Requirement 9.4 */}
             <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-              &copy; {currentYear} OGSS. All rights reserved.
+              &copy; {currentYear} OrgX. All rights reserved.
             </p>
 
             {/* Additional Bottom Links */}
