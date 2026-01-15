@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Linkedin, 
   Mail,
@@ -58,15 +58,15 @@ const footerLinks = {
   company: {
     title: 'Company',
     links: [
-      { label: 'About Us', href: '#about' },
+      { label: 'About Us', path: '/about' },
       { label: 'Blog', href: '#blog' },
     ],
   },
   legal: {
     title: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: '#privacy' },
-      { label: 'Terms of Service', href: '#terms' },
+      { label: 'Privacy Policy', path: '/privacy' },
+      { label: 'Terms of Service', path: '/terms' },
     ],
   },
 };
@@ -104,11 +104,20 @@ const socialLinks = [
  */
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLinkClick = (e, href) => {
     // Handle internal anchor links with smooth scroll
     if (href.startsWith('#')) {
       e.preventDefault();
+      
+      // If not on home page, navigate to home with hash
+      if (location.pathname !== '/') {
+        navigate(`/${href}`);
+        return;
+      }
+
       const targetId = href.replace('#', '');
       const element = document.getElementById(targetId);
       
@@ -196,17 +205,30 @@ const Footer = () => {
               <ul className="space-y-2 sm:space-y-3">
                 {column.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      onClick={(e) => handleLinkClick(e, link.href)}
-                      className={cn(
-                        'text-xs sm:text-sm text-muted-foreground',
-                        'hover:text-foreground transition-colors',
-                        'focus:outline-none   rounded'
-                      )}
-                    >
-                      {link.label}
-                    </a>
+                    {link.path ? (
+                      <Link
+                        to={link.path}
+                        className={cn(
+                          'text-xs sm:text-sm text-muted-foreground',
+                          'hover:text-foreground transition-colors',
+                          'focus:outline-none rounded'
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        onClick={(e) => link.href.startsWith('#') && handleLinkClick(e, link.href)}
+                        className={cn(
+                          'text-xs sm:text-sm text-muted-foreground',
+                          'hover:text-foreground transition-colors',
+                          'focus:outline-none rounded'
+                        )}
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -228,22 +250,20 @@ const Footer = () => {
             <nav aria-label="Legal links">
               <ul className="flex items-center gap-4 sm:gap-6">
                 <li>
-                  <a
-                    href="#privacy"
-                    onClick={(e) => handleLinkClick(e, '#privacy')}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none   rounded"
+                  <Link
+                    to="/privacy"
+                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none rounded"
                   >
                     Privacy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#terms"
-                    onClick={(e) => handleLinkClick(e, '#terms')}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none   rounded"
+                  <Link
+                    to="/terms"
+                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none rounded"
                   >
                     Terms
-                  </a>
+                  </Link>
                 </li> 
               </ul>
             </nav>

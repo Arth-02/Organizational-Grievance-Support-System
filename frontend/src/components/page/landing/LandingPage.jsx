@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import Navbar from './sections/Navbar';
+import { lazy, Suspense, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import HeroSection from './sections/HeroSection';
 
 // Lazy load sections that are below the fold for faster initial load
@@ -11,7 +11,6 @@ const PricingSection = lazy(() => import('./sections/PricingSection'));
 const TestimonialsSection = lazy(() => import('./sections/TestimonialsSection'));
 const StatsSection = lazy(() => import('./sections/StatsSection'));
 const CTASection = lazy(() => import('./sections/CTASection'));
-const Footer = lazy(() => import('./sections/Footer'));
 
 /**
  * Section loading fallback - minimal placeholder to prevent layout shift
@@ -59,6 +58,30 @@ const SectionFallback = ({ minHeight = '400px' }) => (
  * Requirements: All - Integrates all landing page requirements
  */
 const LandingPage = () => {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      // Small delay to ensure content is rendered/suspense resolved
+      const timer = setTimeout(() => {
+        const id = hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          const navbarHeight = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300); // 300ms delay to allow for page transitions/mounting
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hash]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Skip to main content link for keyboard accessibility - Requirement 11.2 */}
@@ -68,9 +91,6 @@ const LandingPage = () => {
       >
         Skip to main content
       </a>
-
-      {/* Navigation Bar - Fixed at top with scroll-aware styling */}
-      <Navbar />
 
       {/* Main Content - All sections rendered in order */}
       <main id="main-content">
@@ -114,11 +134,6 @@ const LandingPage = () => {
           <CTASection />
         </Suspense>
       </main>
-
-      {/* Footer - Comprehensive links, contact info, and legal */}
-      <Suspense fallback={<SectionFallback minHeight="400px" />}>
-        <Footer />
-      </Suspense>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -34,6 +34,8 @@ const Navbar = () => {
   const menuButtonRef = useRef(null);
   const firstMenuItemRef = useRef(null);
   const lastMenuItemRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Handle scroll detection for background styling
   // Using passive event listener for better scroll performance
@@ -58,6 +60,15 @@ const Navbar = () => {
   const handleNavClick = useCallback((e, href) => {
     e.preventDefault();
     const targetId = href.replace('#', '');
+    
+    // If not on home page, navigate to home with hash
+    if (location.pathname !== '/') {
+      navigate(`/${href}`);
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
+    // If on home page, scroll to section
     const element = document.getElementById(targetId);
     
     if (element) {
@@ -73,7 +84,7 @@ const Navbar = () => {
 
     // Close mobile menu after navigation
     setIsMobileMenuOpen(false);
-  }, []);
+  }, [location.pathname, navigate]);
 
   // Focus management and keyboard handling for mobile menu
   useEffect(() => {

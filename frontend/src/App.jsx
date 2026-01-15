@@ -3,6 +3,8 @@ import Login from "./components/auth/Login";
 import RegisterOrg from "./components/auth/RegisterOrg";
 import SuperAdmin from "./components/auth/SuperAdmin";
 import Layout from "./components/layout/Layout";
+import PublicLayout from "./components/layout/PublicLayout";
+import ScrollToTop from "./components/layout/ScrollToTop";
 import Employees from "./components/page/employees/Employees";
 import Departments from "./components/page/departments/Departments";
 import Roles from "./components/page/roles/Roles";
@@ -24,6 +26,9 @@ import LandingPage from "./components/page/landing/LandingPage";
 
 // Contact Sales page (public)
 import ContactSales from "./components/page/contact/ContactSales";
+import PrivacyPolicy from "./components/page/static/PrivacyPolicy";
+import TermsOfService from "./components/page/static/TermsOfService";
+import AboutUs from "./components/page/static/AboutUs";
 
 // Dashboard component
 import Dashboard from "./components/page/dashboard/Dashboard";
@@ -64,11 +69,17 @@ function App() {
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <ModalProvider>
+          <ScrollToTop />
           <Routes location={background || location}>
-            {/* Public landing page */}
-            <Route path="/" element={<LandingPage />} />
-            
-            {/* Public contact sales page */}
+            {/* Public layout used for landing and static pages to persist navbar */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/about" element={<AboutUs />} />
+            </Route>
+
+            {/* Public contact sales page - standalone */}
             <Route path="/contact" element={<ContactSales />} />
             
             <Route path="/login" element={<Login />} />
