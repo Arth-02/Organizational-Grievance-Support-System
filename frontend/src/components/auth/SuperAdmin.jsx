@@ -3,22 +3,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { useCallback, useState } from "react";
-import { superAdminSchema, superAdminSchemaWithOTP } from "@/validators/users";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { superAdminBaseSchema, superAdminSchemaWithOTP } from "@/validators/users";
+import { useSearchParams, Link } from "react-router-dom";
 import { CustomOTPInput } from "../ui/input-otp";
-import { 
-  BadgeAlert, 
-  BadgeCheck, 
-  Loader2, 
-  User, 
-  Mail, 
-  Lock, 
-  Phone, 
+import {
+  BadgeAlert,
+  BadgeCheck,
+  Loader2,
+  User,
+  Mail,
+  Lock,
+  Phone,
   IdCard,
   Eye,
   EyeOff,
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
   Shield
 } from "lucide-react";
 import useDebounce from "@/hooks/useDebounce";
@@ -30,13 +31,30 @@ import AuthLayout from "./AuthLayout";
 import StepIndicator from "./StepIndicator";
 import AnimatedSection from "@/components/page/landing/components/AnimatedSection";
 
+// Define schemas for each step
+const personalDetailsSchema = superAdminBaseSchema.pick({
+  firstname: true,
+  lastname: true,
+  employee_id: true,
+  phone_number: true,
+});
+
+const accountCredentialsSchema = superAdminBaseSchema.pick({
+  username: true,
+  email: true,
+  password: true,
+  confirmpassword: true,
+}).refine((data) => data.password === data.confirmpassword, {
+  message: "Passwords don't match",
+  path: ["confirmpassword"],
+});
+
 const SuperAdmin = () => {
   const [superAdmin, { isLoading }] = useCreateSuperAdminMutation();
   const [generateOtp, { isLoading: isOTPGenerating }] = useOtpGenerateMutation();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
-  const [animationDirection, setAnimationDirection] = useState("forward");
   const [formData, setFormData] = useState({});
 
   const [searchParams] = useSearchParams();
@@ -44,38 +62,18 @@ const SuperAdmin = () => {
 
   // Step configuration for StepIndicator
   const steps = [
-    { label: "Account", description: "Your details" },
-    { label: "Verify", description: "OTP verification" },
+    { label: "Personal", description: "Details" },
+    { label: "Account", description: "Credentials" },
+    { label: "Verify", description: "OTP Check" },
   ];
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    trigger,
-    setError,
-    clearErrors
-  } = useForm({
-    resolver: zodResolver(superAdminSchema)
-  });
+  const handleNext = async (stepData) => {
+    // Merge new data
+    const updatedData = { ...formData, ...stepData };
+    setFormData(updatedData);
 
-  const {
-    control: otpControl,
-    handleSubmit: handleOtpSubmit,
-    formState: { errors: otpErrors },
-  } = useForm({
-    resolver: zodResolver(superAdminSchemaWithOTP),
-    mode: "onSubmit",
-  });
-
-  const onSubmit = async (data) => {
-    if (step === 1) {
-      const isValid = await trigger();
-      if (!isValid) return;
-
-      // eslint-disable-next-line no-unused-vars
-      const { confirmpassword, ...dataWithoutConfirm } = data;
-      setFormData(dataWithoutConfirm);
+    if (step === 2) {
+      // If moving from step 2 to 3, trigger OTP generation
       try {
         const response = await generateOtp({
           organization_id: organizationId,
@@ -85,16 +83,25 @@ const SuperAdmin = () => {
           return;
         }
         toast.success("OTP sent to organization email!");
-        setAnimationDirection("forward");
-        setStep(2);
+        setStep(3);
       } catch (error) {
         toast.error(error?.data?.message || error?.message || "Error generating OTP. Please try again.");
+        return; // Stop progression if OTP fails
       }
+    } else {
+      // Standard progression for step 1
+      setStep((prev) => prev + 1);
     }
   };
 
-  const onOtpSubmit = async (otpData) => {
+  const handleBack = () => {
+    setStep((prev) => prev - 1);
+  };
+
+  const handleFinalSubmit = async (otpData) => {
     try {
+      //  Remove confirm Password
+      delete formData.confirmpassword;
       const allData = { ...formData, ...otpData, organization_id: organizationId };
       const response = await superAdmin(allData).unwrap();
       if (response) {
@@ -110,11 +117,6 @@ const SuperAdmin = () => {
       const errorMessage = error?.data?.message || error?.message || "Registration failed. Please try again.";
       toast.error(errorMessage);
     }
-  };
-
-  const handleBack = () => {
-    setAnimationDirection("backward");
-    setStep(1);
   };
 
   // Check if organization ID is provided
@@ -166,77 +168,37 @@ const SuperAdmin = () => {
       <AnimatedSection animation="fade-up" delay={100}>
         <StepIndicator
           currentStep={step}
-          totalSteps={2}
+          totalSteps={3}
           steps={steps}
           className="mb-8"
         />
       </AnimatedSection>
 
-      {step === 1 ? (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <SuperAdminDetailsForm 
-            register={register} 
-            errors={errors} 
-            setError={setError} 
-            clearErrors={clearErrors}
-            animationDirection={animationDirection}
-            isLoading={isLoading || isOTPGenerating}
+      <div>
+        {step === 1 && (
+          <PersonalDetailsForm
+            defaultValues={formData}
+            onNext={handleNext}
           />
-          
-          <AnimatedSection animation="fade-up" delay={500}>
-            <Button
-              type="submit"
-              className="w-full h-11"
-              disabled={isLoading || isOTPGenerating}
-            >
-              {(isLoading || isOTPGenerating) ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Sending OTP...</span>
-                </span>
-              ) : (
-                "Continue"
-              )}
-            </Button>
-          </AnimatedSection>
-        </form>
-      ) : (
-        <form onSubmit={handleOtpSubmit(onOtpSubmit)} className="space-y-5">
+        )}
+
+        {step === 2 && (
+          <AccountCredentialsForm
+            defaultValues={formData}
+            onNext={handleNext}
+            onBack={handleBack}
+            isProcessing={isOTPGenerating || isLoading}
+          />
+        )}
+
+        {step === 3 && (
           <OTPForm
-            control={otpControl}
-            errors={otpErrors}
-            animationDirection={animationDirection}
+            onSubmit={handleFinalSubmit}
+            onBack={handleBack}
+            isLoading={isLoading}
           />
-          
-          <AnimatedSection animation="fade-up" delay={300}>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBack}
-                disabled={isLoading}
-                className="flex-1 h-11"
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 h-11"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Creating...</span>
-                  </span>
-                ) : (
-                  "Create Account"
-                )}
-              </Button>
-            </div>
-          </AnimatedSection>
-        </form>
-      )}
+        )}
+      </div>
 
       {/* Help text */}
       <AnimatedSection animation="fade-up" delay={600}>
@@ -254,9 +216,137 @@ const SuperAdmin = () => {
   );
 };
 
-const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animationDirection, isLoading }) => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+/* --- Step 1: Personal Details --- */
+const PersonalDetailsForm = ({ defaultValues, onNext, animationDirection }) => {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(personalDetailsSchema),
+    defaultValues
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onNext)} className={`space-y-5 transition-all duration-300 ease-in-out ${animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"}`}>
+      {/* First Name & Last Name */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatedSection animation="fade-up" delay={250}>
+          <div className="space-y-2">
+            <label htmlFor="firstname" className="block text-sm font-semibold text-foreground">
+              First Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="firstname"
+                className={`w-full h-11 px-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.firstname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="John"
+                {...register("firstname")}
+              />
+            </div>
+            {errors.firstname && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.firstname.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={250}>
+          <div className="space-y-2">
+            <label htmlFor="lastname" className="block text-sm font-semibold text-foreground">
+              Last Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="lastname"
+                className={`w-full h-11 px-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.lastname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="Doe"
+                {...register("lastname")}
+              />
+            </div>
+            {errors.lastname && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.lastname.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+      </div>
+
+      {/* Employee ID & Phone */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <AnimatedSection animation="fade-up" delay={300}>
+          <div className="space-y-2">
+            <label htmlFor="employee_id" className="block text-sm font-semibold text-foreground">
+              Employee ID
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <IdCard size={18} className={errors.employee_id ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                type="text"
+                id="employee_id"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.employee_id ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="EMP001"
+                {...register("employee_id")}
+              />
+            </div>
+            {errors.employee_id && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.employee_id.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+        <AnimatedSection animation="fade-up" delay={300}>
+          <div className="space-y-2">
+            <label htmlFor="phone_number" className="block text-sm font-semibold text-foreground">
+              Phone Number
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Phone size={18} className={errors.phone_number ? "text-red-500" : "text-muted-foreground"} />
+              </div>
+              <input
+                type="text"
+                id="phone_number"
+                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.phone_number ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                placeholder="1234567890"
+                {...register("phone_number")}
+              />
+            </div>
+            {errors.phone_number && (
+              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
+                <AlertCircle size={14} />
+                <span>{errors.phone_number.message}</span>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+      </div>
+
+      <AnimatedSection animation="fade-up" delay={400}>
+        <Button type="submit" className="w-full h-11 mt-2">
+          Continue <ArrowRight size={16} className="ml-2" />
+        </Button>
+      </AnimatedSection>
+    </form>
+  );
+};
+
+/* --- Step 2: Account Credentials --- */
+const AccountCredentialsForm = ({ defaultValues, onNext, onBack, animationDirection, isProcessing }) => {
+  const { register, setError, clearErrors, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(accountCredentialsSchema),
+    defaultValues
+  });
+
+  const [username, setUsername] = useState(defaultValues.username || "");
+  const [email, setEmail] = useState(defaultValues.email || "");
   const [isUserNameAvailable, setIsUserNameAvailable] = useState(undefined);
   const [isEmailAvailable, setIsEmailAvailable] = useState(undefined);
   const [showPassword, setShowPassword] = useState(false);
@@ -312,70 +402,9 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
   useDebounce(username, 500, checkIfUsernameExists);
 
   return (
-    <div
-      className={`space-y-5 transition-all duration-300 ease-in-out ${
-        animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"
-      }`}
-    >
-      {/* First Name & Last Name */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <AnimatedSection animation="fade-up" delay={200}>
-          <div className="space-y-2">
-            <label htmlFor="firstname" className="block text-sm font-semibold text-foreground">
-              First Name
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <User size={18} className={errors.firstname ? "text-red-500" : "text-muted-foreground"} />
-              </div>
-              <input
-                disabled={isLoading}
-                type="text"
-                id="firstname"
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.firstname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
-                placeholder="John"
-                {...register("firstname")}
-              />
-            </div>
-            {errors.firstname && (
-              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
-                <AlertCircle size={14} />
-                <span>{errors.firstname.message}</span>
-              </div>
-            )}
-          </div>
-        </AnimatedSection>
-
-        <AnimatedSection animation="fade-up" delay={250}>
-          <div className="space-y-2">
-            <label htmlFor="lastname" className="block text-sm font-semibold text-foreground">
-              Last Name
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <User size={18} className={errors.lastname ? "text-red-500" : "text-muted-foreground"} />
-              </div>
-              <input
-                disabled={isLoading}
-                type="text"
-                id="lastname"
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lastname ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
-                placeholder="Doe"
-                {...register("lastname")}
-              />
-            </div>
-            {errors.lastname && (
-              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
-                <AlertCircle size={14} />
-                <span>{errors.lastname.message}</span>
-              </div>
-            )}
-          </div>
-        </AnimatedSection>
-      </div>
-
+    <form onSubmit={handleSubmit(onNext)} className={`space-y-5 transition-all duration-300 ease-in-out ${animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"}`}>
       {/* Username */}
-      <AnimatedSection animation="fade-up" delay={300}>
+      <AnimatedSection animation="fade-up" delay={400}>
         <div className="space-y-2">
           <label htmlFor="username" className="block text-sm font-semibold text-foreground">
             Username
@@ -385,10 +414,9 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
               <User size={18} className={errors.username ? "text-red-500" : "text-muted-foreground"} />
             </div>
             <input
-              disabled={isLoading}
               type="text"
               id="username"
-              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.username ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.username ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
               placeholder="johndoe"
               {...register("username", {
                 onChange: (e) => setUsername(e.target.value),
@@ -420,7 +448,7 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
       </AnimatedSection>
 
       {/* Email */}
-      <AnimatedSection animation="fade-up" delay={350}>
+      <AnimatedSection animation="fade-up" delay={450}>
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-semibold text-foreground">
             Email
@@ -430,10 +458,9 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
               <Mail size={18} className={errors.email ? "text-red-500" : "text-muted-foreground"} />
             </div>
             <input
-              disabled={isLoading}
               type="email"
               id="email"
-              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.email ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+              className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.email ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
               placeholder="john@example.com"
               {...register("email", {
                 onBlur: (e) => setEmail(e.target.value),
@@ -466,7 +493,7 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
 
       {/* Password & Confirm Password */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <AnimatedSection animation="fade-up" delay={400}>
+        <AnimatedSection animation="fade-up" delay={500}>
           <div className="space-y-2">
             <label htmlFor="password" className="block text-sm font-semibold text-foreground">
               Password
@@ -476,10 +503,9 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
                 <Lock size={18} className={errors.password ? "text-red-500" : "text-muted-foreground"} />
               </div>
               <input
-                disabled={isLoading}
                 type={showPassword ? "text" : "password"}
                 id="password"
-                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.password ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.password ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
                 placeholder="••••••••"
                 {...register("password")}
               />
@@ -500,7 +526,7 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
           </div>
         </AnimatedSection>
 
-        <AnimatedSection animation="fade-up" delay={450}>
+        <AnimatedSection animation="fade-up" delay={550}>
           <div className="space-y-2">
             <label htmlFor="confirmpassword" className="block text-sm font-semibold text-foreground">
               Confirm Password
@@ -510,10 +536,9 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
                 <Lock size={18} className={errors.confirmpassword ? "text-red-500" : "text-muted-foreground"} />
               </div>
               <input
-                disabled={isLoading}
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmpassword"
-                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.confirmpassword ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
+                className={`w-full h-11 pl-10 pr-10 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.confirmpassword ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
                 placeholder="••••••••"
                 {...register("confirmpassword")}
               />
@@ -535,73 +560,35 @@ const SuperAdminDetailsForm = ({ register, errors, setError, clearErrors, animat
         </AnimatedSection>
       </div>
 
-      {/* Employee ID & Phone */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <AnimatedSection animation="fade-up" delay={500}>
-          <div className="space-y-2">
-            <label htmlFor="employee_id" className="block text-sm font-semibold text-foreground">
-              Employee ID
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <IdCard size={18} className={errors.employee_id ? "text-red-500" : "text-muted-foreground"} />
-              </div>
-              <input
-                disabled={isLoading}
-                type="text"
-                id="employee_id"
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.employee_id ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
-                placeholder="EMP001"
-                {...register("employee_id")}
-              />
-            </div>
-            {errors.employee_id && (
-              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
-                <AlertCircle size={14} />
-                <span>{errors.employee_id.message}</span>
-              </div>
+      <AnimatedSection animation="fade-up" delay={500}>
+        <div className="flex gap-3 pt-4">
+          <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-11">Back</Button>
+          <Button type="submit" disabled={isProcessing} className="flex-1 h-11">
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Sending OTP...</span>
+              </span>
+            ) : (
+              <>Next Step <ArrowRight size={16} className="ml-2" /></>
             )}
-          </div>
-        </AnimatedSection>
+          </Button>
+        </div>
+      </AnimatedSection>
 
-        <AnimatedSection animation="fade-up" delay={550}>
-          <div className="space-y-2">
-            <label htmlFor="phone_number" className="block text-sm font-semibold text-foreground">
-              Phone Number
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Phone size={18} className={errors.phone_number ? "text-red-500" : "text-muted-foreground"} />
-              </div>
-              <input
-                disabled={isLoading}
-                type="text"
-                id="phone_number"
-                className={`w-full h-11 pl-10 pr-4 rounded-lg border bg-muted/30 text-foreground placeholder:text-muted-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.phone_number ? "border-red-500" : "border-border hover:border-muted-foreground/50 focus:border-primary"}`}
-                placeholder="1234567890"
-                {...register("phone_number")}
-              />
-            </div>
-            {errors.phone_number && (
-              <div className="flex items-center gap-1.5 text-red-500 text-xs mt-1.5" role="alert">
-                <AlertCircle size={14} />
-                <span>{errors.phone_number.message}</span>
-              </div>
-            )}
-          </div>
-        </AnimatedSection>
-      </div>
-    </div>
+    </form>
   );
 };
 
-const OTPForm = ({ control, errors, animationDirection }) => {
+/* --- Step 3: OTP Verification --- */
+const OTPForm = ({ onSubmit, onBack, animationDirection, isLoading }) => {
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(superAdminSchemaWithOTP),
+    mode: "onSubmit",
+  });
+
   return (
-    <div
-      className={`space-y-6 transition-all duration-300 ease-in-out ${
-        animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"
-      }`}
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 transition-all duration-300 ease-in-out ${animationDirection === "forward" ? "animate-slide-in-right" : "animate-slide-in-left"}`}>
       <AnimatedSection animation="fade-up" delay={200}>
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -638,7 +625,35 @@ const OTPForm = ({ control, errors, animationDirection }) => {
           </button>
         </p>
       </AnimatedSection>
-    </div>
+
+      <AnimatedSection animation="fade-up" delay={350}>
+        <div className="flex gap-3 mt-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={isLoading}
+            className="flex-1 h-11"
+          >
+            Back
+          </Button>
+          <Button
+            type="submit"
+            className="flex-1 h-11"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Creating Account...</span>
+              </span>
+            ) : (
+              "Create Account"
+            )}
+          </Button>
+        </div>
+      </AnimatedSection>
+    </form>
   );
 };
 

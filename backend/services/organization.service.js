@@ -76,7 +76,7 @@ const createOrganization = async (session, body, files) => {
           code: response.code,
         };
       }
-      newOrg.logo_id = response.attachmentIds[0];
+      newOrganization.logo_id = response.attachmentIds[0];
     }
     const newOrg = await newOrganization.save({ session });
 

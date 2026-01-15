@@ -26,7 +26,7 @@ const InputOTPSlot = React.forwardRef(({ index, className, error, ...props }, re
     <div
       ref={ref}
       className={cn(
-        "relative flex h-9 w-9 items-center justify-center border first:rounded-l-md last:rounded-r-md bg-secondary/15 text-sm transition-all",
+        "relative flex h-10 w-10 items-center justify-center border first:rounded-l-md last:rounded-r-md bg-secondary/15 text-lg transition-all",
         isActive && "z-10 ring-2 ring-primary",
         error && !isActive && "border-red-500 border-r-0 last:border-r text-red-500",
         className
@@ -54,7 +54,7 @@ const CustomOTPInput = React.forwardRef(({ label, error, maxLength = 6, control,
   })
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 w-fit mx-auto">
       {label && (
         <label htmlFor={props.id} className="block text-sm font-medium">
           {label}

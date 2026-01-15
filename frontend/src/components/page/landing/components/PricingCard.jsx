@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 /**
  * PricingCard - Reusable component for displaying pricing tiers
@@ -108,12 +109,12 @@ const PricingCard = ({
           highlighted && 'shadow-md'
         )}
       >
-        <a 
-          href={ctaHref}
+        <Link
+          to={ctaHref}
           aria-label={`${ctaLabel} for ${name} plan`}
         >
           {ctaLabel}
-        </a>
+        </Link>
       </Button>
 
       {/* Features list */}

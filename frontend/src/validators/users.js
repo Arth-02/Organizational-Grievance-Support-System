@@ -34,7 +34,7 @@ export const addressDetailsSchema = z.object({
   }),
 });
 
-export const superAdminSchema = z
+export const superAdminBaseSchema = z
   .object({
     firstname: z.string().min(1, { message: "Firstname is required" }),
     lastname: z.string().min(1, { message: "Lastname is required" }),
@@ -53,7 +53,9 @@ export const superAdminSchema = z
       .string()
       .regex(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
       .optional(),
-  })
+  });
+
+export const superAdminSchema = superAdminBaseSchema
   .refine((data) => data.password === data.confirmpassword, {
     message: "Passwords don't match",
     path: ["confirmpassword"],
@@ -61,5 +63,4 @@ export const superAdminSchema = z
 
 export const superAdminSchemaWithOTP = z.object({
   otp: z.string().min(6, { message: "OTP must be 6 characters long" }),
-  ...superAdminSchema.shape,
 });
