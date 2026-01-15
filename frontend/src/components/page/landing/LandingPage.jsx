@@ -5,6 +5,7 @@ import HeroSection from './sections/HeroSection';
 // Lazy load sections that are below the fold for faster initial load
 // Requirement 10.6: Loading time under 3 seconds
 const FeaturesSection = lazy(() => import('./sections/FeaturesSection'));
+const ShowcaseSection = lazy(() => import('./sections/ShowcaseSection'));
 const HowItWorksSection = lazy(() => import('./sections/HowItWorksSection'));
 const PricingSection = lazy(() => import('./sections/PricingSection'));
 const TestimonialsSection = lazy(() => import('./sections/TestimonialsSection'));
@@ -40,12 +41,13 @@ const SectionFallback = ({ minHeight = '400px' }) => (
  * 1. Navbar (fixed at top)
  * 2. Hero Section
  * 3. Features Section
- * 4. How It Works Section
- * 5. Pricing Section
- * 6. Testimonials Section
- * 7. Stats Section
- * 8. CTA Section
- * 9. Footer
+ * 4. Showcase Section
+ * 5. How It Works Section
+ * 6. Pricing Section
+ * 7. Testimonials Section
+ * 8. Stats Section
+ * 9. CTA Section
+ * 10. Footer
  * 
  * Accessibility Features (Requirements 11.1-11.5):
  * - Semantic HTML structure with proper landmarks
@@ -80,6 +82,11 @@ const LandingPage = () => {
         <Suspense fallback={<SectionFallback minHeight="600px" />}>
           {/* Features Section - Showcase of platform capabilities */}
           <FeaturesSection />
+        </Suspense>
+
+        <Suspense fallback={<SectionFallback minHeight="800px" />}>
+          {/* Showcase Section - Interactive tabbed preview */}
+          <ShowcaseSection />
         </Suspense>
 
         <Suspense fallback={<SectionFallback minHeight="500px" />}>

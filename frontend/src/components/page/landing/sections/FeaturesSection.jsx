@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import {
   FolderKanban,
   MessageSquareWarning,
@@ -6,12 +8,10 @@ import {
   Building,
   Paperclip,
 } from 'lucide-react';
-import AnimatedSection from '../components/AnimatedSection';
 import FeatureCard from '../components/FeatureCard';
 
 /**
  * Feature data for the 6 core platform capabilities
- * Requirements: 3.1, 3.2 - Showcase at least 6 core features with icons and descriptions
  */
 const features = [
   {
@@ -53,69 +53,115 @@ const features = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
 /**
- * FeaturesSection - Showcase of platform capabilities
- *
- * Responsive Design (Requirement 10.1):
- * - Mobile (320px-767px): Single column, smaller padding
- * - Tablet (768px-1023px): 2-column grid
- * - Desktop (1024px+): 3-column grid
- *
- * Requirements:
- * - 3.1: Showcase at least 6 core features with icons and descriptions
- * - 3.2: Highlight specific features (Project Management, Grievance Tracking, etc.)
- * - 3.4: Include visual mockups or illustrations for each major feature
- * - 3.5: Scroll-triggered sequential animation
- * - 3.6: Responsive grid layout
- * - 11.1: WCAG 2.1 AA accessibility standards
- * - 11.3: Proper ARIA labels and semantic HTML
+ * FeaturesSection - Showcase of platform capabilities with staggered animations
  */
 const FeaturesSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
     <section 
       id="features" 
-      className="py-12 sm:py-16 md:py-20 bg-muted/30"
+      className="py-12 sm:py-16 md:py-24 bg-muted/30 relative overflow-hidden"
       aria-labelledby="features-heading"
     >
-      <div className="container mx-auto px-4 sm:px-6">
+       {/* Background Decoration */}
+       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+            rotate: [0, 20, 0]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] transform translate-x-1/2" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.4, 0.3],
+            x: [0, 30, 0]
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[10%] left-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[80px] transform -translate-x-1/2" 
+        />
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Section Header */}
-        <AnimatedSection animation="fade-up" className="text-center mb-10 sm:mb-12 md:mb-16">
-          <h2 
+        <div className="text-center mb-10 sm:mb-12 md:mb-16 max-w-3xl mx-auto">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
             id="features-heading"
-            className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 tracking-tight"
           >
             Everything You Need to{' '}
-            <span className="text-primary">Succeed</span>
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
+              Succeed
+            </span>
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-lg sm:text-xl text-muted-foreground"
+          >
             Powerful features designed to streamline your organization&apos;s
             workflow and boost team productivity.
-          </p>
-        </AnimatedSection>
+          </motion.p>
+        </div>
 
-        {/* Features Grid - Requirement 3.6: Responsive grid layout */}
-        <div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
+        {/* Features Grid */}
+        <motion.div 
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
           role="list"
           aria-label="Platform features"
         >
-          {features.map((feature, index) => (
-            /* Requirement 3.5: Sequential animation on scroll */
-            <AnimatedSection
+          {features.map((feature) => (
+            <motion.div
               key={feature.title}
-              animation="fade-up"
-              delay={index * 100}
-              threshold={0.1}
+              variants={itemVariants}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              className="h-full"
             >
               <FeatureCard
                 icon={feature.icon}
                 title={feature.title}
                 description={feature.description}
                 highlight={feature.highlight}
+                className="h-full bg-background/50 backdrop-blur-sm border-border/50 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
               />
-            </AnimatedSection>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

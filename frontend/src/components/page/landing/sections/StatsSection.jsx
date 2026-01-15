@@ -1,6 +1,6 @@
+import { motion } from 'framer-motion';
 import { Building2, CheckCircle2, MessageSquare, ThumbsUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import AnimatedSection from '../components/AnimatedSection';
 import StatCard from '../components/StatCard';
 
 /**
@@ -34,18 +34,27 @@ const stats = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 100 },
+  },
+};
+
 /**
  * StatsSection - Displays platform statistics with animated counters
- * 
- * Responsive Design (Requirement 10.1):
- * - Mobile (320px-767px): 2-column grid with smaller padding
- * - Tablet (768px-1023px): 2-column grid with medium padding
- * - Desktop (1024px+): 4-column grid with full padding
- * 
- * Requirements: 
- * - 7.1, 7.2, 7.4 - Statistics section with key metrics in visually appealing layout
- * - 11.1: WCAG 2.1 AA accessibility standards
- * - 11.3: Proper ARIA labels and semantic HTML
  */
 const StatsSection = () => {
   return (
@@ -58,46 +67,67 @@ const StatsSection = () => {
       )}
       aria-labelledby="stats-heading"
     >
-      {/* Background decorative elements - hidden from screen readers */}
+      {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-0 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl" 
+        />
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+          className="absolute bottom-0 right-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl" 
+        />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Section header */}
-        <AnimatedSection animation="fade-up" className="text-center mb-8 sm:mb-12">
-          <h2 
+        <div className="text-center mb-8 sm:mb-12">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
             id="stats-heading"
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4"
           >
             Trusted by Organizations Worldwide
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto"
+          >
             Join thousands of teams who have transformed their workflow with our platform
-          </p>
-        </AnimatedSection>
+          </motion.p>
+        </div>
 
         {/* Stats grid */}
-        <div 
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto"
           role="list"
           aria-label="Platform statistics"
         >
-          {stats.map((stat, index) => (
-            <AnimatedSection
+          {stats.map((stat) => (
+            <motion.div
               key={stat.label}
-              animation="scale-up"
-              delay={index * 100}
+              variants={itemVariants}
             >
               <StatCard
                 value={stat.value}
                 suffix={stat.suffix}
                 label={stat.label}
               />
-            </AnimatedSection>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

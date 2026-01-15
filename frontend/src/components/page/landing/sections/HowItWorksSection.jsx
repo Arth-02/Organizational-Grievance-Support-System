@@ -1,14 +1,13 @@
+import { motion } from 'framer-motion';
 import {
   Building2,
   Users,
   FolderKanban,
   Rocket,
 } from 'lucide-react';
-import AnimatedSection from '../components/AnimatedSection';
 
 /**
  * Steps data for the "How It Works" workflow
- * Requirements: 4.1, 4.2 - Include 3-4 numbered steps covering the workflow
  */
 const steps = [
   {
@@ -41,35 +40,66 @@ const steps = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: 'easeOut' },
+  },
+};
+
+const lineVariants = {
+  hidden: { scaleX: 0, opacity: 0 },
+  visible: { 
+    scaleX: 1, 
+    opacity: 1, 
+    transition: { duration: 1, delay: 0.5, ease: "easeInOut" } 
+  },
+};
+
 /**
  * StepCard - Individual step display component
- * Accessibility: Uses semantic HTML with proper ARIA attributes
  */
 const StepCard = ({ step, isLast }) => {
   const Icon = step.icon;
 
   return (
-    <article 
+    <motion.article 
+      variants={itemVariants}
       className="relative flex flex-col items-center text-center group"
       role="listitem"
       aria-labelledby={`step-${step.number}-title`}
     >
       {/* Step Number Badge */}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+      <motion.div 
+        whileHover={{ scale: 1.1 }}
+        className="absolute -top-3 left-1/2 -translate-x-1/2 z-10"
+      >
         <span 
-          className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-primary-foreground bg-primary rounded-full shadow-lg"
+          className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-primary-foreground bg-primary rounded-full shadow-lg ring-4 ring-background"
           aria-label={`Step ${step.number}`}
         >
           {step.number}
         </span>
-      </div>
+      </motion.div>
 
       {/* Icon Container */}
       <div 
-        className="w-20 h-20 mb-4 mt-4 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-105"
+        className="w-20 h-20 mb-4 mt-4 rounded-2xl bg-primary/10 flex items-center justify-center transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-105 group-hover:shadow-lg"
         aria-hidden="true"
       >
-        <Icon className="w-10 h-10 text-primary" />
+        <Icon className="w-10 h-10 text-primary transition-transform duration-300 group-hover:-rotate-6" />
       </div>
 
       {/* Content */}
@@ -83,92 +113,132 @@ const StepCard = ({ step, isLast }) => {
         {step.description}
       </p>
 
-      {/* Connector Line - Requirement 4.3: Visual flow connectors - decorative */}
+      {/* Connector Line */}
       {!isLast && (
         <div 
-          className="hidden lg:block absolute top-16 left-[calc(50%+60px)] w-[calc(100%-60px)] h-0.5"
+          className="hidden lg:block absolute top-14 left-[60%] w-[80%] h-0.5 pointer-events-none z-0"
           aria-hidden="true"
         >
-          <div className="w-full h-full bg-gradient-to-r from-primary/40 to-primary/10 relative">
-            {/* Arrow indicator */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-primary/40 rotate-45" />
-          </div>
+           <motion.div 
+             className="w-full h-full bg-gradient-to-r from-primary/30 to-primary/10 origin-left"
+             variants={lineVariants}
+           />
+           <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-primary/30 rotate-45" 
+           />
         </div>
       )}
-    </article>
+    </motion.article>
   );
 };
 
 /**
  * HowItWorksSection - Step-by-step workflow guide
- *
- * Responsive Design (Requirement 10.1):
- * - Mobile (320px-767px): Single column, vertical flow
- * - Tablet (768px-1023px): 2-column grid
- * - Desktop (1024px+): 4-column grid with horizontal connectors
- *
- * Requirements:
- * - 4.1: Include a "How It Works" section with 3-4 numbered steps
- * - 4.2: Cover steps: Register Organization, Set Up Teams & Roles, Create Projects & Boards, Track & Collaborate
- * - 4.3: Steps connected with visual flow indicators (lines or arrows)
- * - 4.4: Include relevant icons or illustrations for each step
- * - 11.1: WCAG 2.1 AA accessibility standards
- * - 11.3: Proper ARIA labels and semantic HTML
  */
 const HowItWorksSection = () => {
   return (
     <section 
       id="how-it-works" 
-      className="py-12 sm:py-16 md:py-20 bg-background"
+      className="py-12 sm:py-16 md:py-20 bg-background overflow-hidden relative"
       aria-labelledby="how-it-works-heading"
     >
+      {/* Animated Background Gradients */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+            rotate: [0, 45, 0]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+            x: [0, 50, 0]
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-[40%] -left-[10%] w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.4, 0.3],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute -bottom-[20%] right-[20%] w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-[80px]" 
+        />
+      </div>
       <div className="container mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <AnimatedSection animation="fade-up" className="text-center mb-10 sm:mb-12 md:mb-16">
-          <h2 
+        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
             id="how-it-works-heading"
             className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4"
           >
             How It <span className="text-primary">Works</span>
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto"
+          >
             Get your organization up and running in four simple steps. 
             Our intuitive platform makes onboarding a breeze.
-          </p>
-        </AnimatedSection>
+          </motion.p>
+        </div>
 
         {/* Steps Grid */}
-        <div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-6 relative"
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4 relative"
           role="list"
           aria-label="Getting started steps"
         >
           {steps.map((step, index) => (
-            <AnimatedSection
-              key={step.number}
-              animation="fade-up"
-              delay={index * 150}
-              threshold={0.1}
-            >
-              <StepCard step={step} isLast={index === steps.length - 1} />
-            </AnimatedSection>
+             <StepCard 
+               key={step.number} 
+               step={step} 
+               isLast={index === steps.length - 1} 
+             />
           ))}
-        </div>
+        </motion.div>
 
-        {/* Mobile Flow Indicator - decorative */}
-        <div className="lg:hidden flex justify-center mt-8" aria-hidden="true">
+        {/* Mobile Flow Indicator */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 1 }}
+          className="lg:hidden flex justify-center mt-8" 
+          aria-hidden="true"
+        >
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <span>Scroll through steps</span>
             <div className="flex gap-1">
               {steps.map((_, index) => (
                 <div
                   key={index}
-                  className="w-2 h-2 rounded-full bg-primary/40"
+                  className="w-1.5 h-1.5 rounded-full bg-primary/40"
                 />
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

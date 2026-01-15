@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { 
   Linkedin, 
-  Mail, 
-  Phone,
+  Mail,
   MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -54,29 +53,13 @@ const footerLinks = {
     links: [
       { label: 'Features', href: '#features' },
       { label: 'Pricing', href: '#pricing' },
-      { label: 'Integrations', href: '#integrations' },
-      { label: 'Changelog', href: '#changelog' },
-      { label: 'Roadmap', href: '#roadmap' },
     ],
   },
   company: {
     title: 'Company',
     links: [
       { label: 'About Us', href: '#about' },
-      { label: 'Careers', href: '#careers' },
       { label: 'Blog', href: '#blog' },
-      { label: 'Press', href: '#press' },
-      { label: 'Partners', href: '#partners' },
-    ],
-  },
-  resources: {
-    title: 'Resources',
-    links: [
-      { label: 'Documentation', href: '#docs' },
-      { label: 'Help Center', href: '#help' },
-      { label: 'API Reference', href: '#api' },
-      { label: 'Community', href: '#community' },
-      { label: 'Webinars', href: '#webinars' },
     ],
   },
   legal: {
@@ -84,9 +67,6 @@ const footerLinks = {
     links: [
       { label: 'Privacy Policy', href: '#privacy' },
       { label: 'Terms of Service', href: '#terms' },
-      { label: 'Cookie Policy', href: '#cookies' },
-      { label: 'Security', href: '#security' },
-      { label: 'GDPR', href: '#gdpr' },
     ],
   },
 };
@@ -158,7 +138,7 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link 
               to="/" 
-              className="text-xl sm:text-2xl font-bold text-primary hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+              className="text-xl sm:text-2xl font-bold text-primary hover:opacity-90 transition-opacity focus:outline-none   rounded"
               aria-label="OrgX Home"
             >
               OrgX
@@ -171,22 +151,15 @@ const Footer = () => {
             {/* Contact Info - Requirement 9.5 */}
             <address className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 not-italic">
               <a 
-                href="mailto:support@orgx.com" 
-                className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                href="mailto:justicejunction1111@gmail.com" 
+                className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none   rounded"
               >
                 <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span>support@orgx.com</span>
-              </a>
-              <a 
-                href="tel:+1234567890" 
-                className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-              >
-                <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span>+1 (234) 567-890</span>
+                <span>justicejunction1111@gmail.com</span>
               </a>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-                <span>San Francisco, CA</span>
+                <span>Ahmedabad, Gujarat, India</span>
               </div>
             </address>
 
@@ -202,7 +175,7 @@ const Footer = () => {
                       className={cn(
                         'p-1.5 sm:p-2 rounded-lg text-muted-foreground inline-flex',
                         'hover:text-foreground hover:bg-muted transition-all',
-                        'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+                        'focus:outline-none  '
                       )}
                       aria-label={`Follow us on ${social.label}`}
                     >
@@ -229,7 +202,7 @@ const Footer = () => {
                       className={cn(
                         'text-xs sm:text-sm text-muted-foreground',
                         'hover:text-foreground transition-colors',
-                        'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded'
+                        'focus:outline-none   rounded'
                       )}
                     >
                       {link.label}
@@ -258,7 +231,7 @@ const Footer = () => {
                   <a
                     href="#privacy"
                     onClick={(e) => handleLinkClick(e, '#privacy')}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none   rounded"
                   >
                     Privacy
                   </a>
@@ -267,20 +240,11 @@ const Footer = () => {
                   <a
                     href="#terms"
                     onClick={(e) => handleLinkClick(e, '#terms')}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none   rounded"
                   >
                     Terms
                   </a>
-                </li>
-                <li>
-                  <a
-                    href="#cookies"
-                    onClick={(e) => handleLinkClick(e, '#cookies')}
-                    className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                  >
-                    Cookies
-                  </a>
-                </li>
+                </li> 
               </ul>
             </nav>
           </div>
