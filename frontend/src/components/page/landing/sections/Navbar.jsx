@@ -136,21 +136,34 @@ const Navbar = () => {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        'fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-in-out',
         isScrolled
-          ? 'bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-sm'
-          : 'bg-transparent'
+          ? 'top-4 w-[90%] md:w-[95%] max-w-5xl rounded-full border border-slate-200/20 dark:border-slate-800/40 bg-background/60 backdrop-blur-xl shadow-lg supports-[backdrop-filter]:bg-background/40'
+          : 'top-0 w-full max-w-[100vw] rounded-none border-b border-transparent bg-transparent'
       )}
     >
-      <nav className="container mx-auto px-4 h-20 flex items-center justify-between">
+      <nav className={cn(
+        "container px-4 flex items-center justify-between transition-all duration-500",
+        isScrolled ? "h-16" : "h-20"
+      )}>
         {/* Logo/Brand - Requirement 1.1 */}
-          <Link
-            to="/" 
-            className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent"
-            aria-label="OrgX Home"
-          >
+        <Link
+          to="/" 
+          className="flex items-center gap-2 group"
+          aria-label="OrgX Home"
+        >
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+            <div className="absolute inset-0 rounded-lg bg-primary/20 blur opacity-0 group-hover:opacity-100 transition-opacity" />
+            <img 
+              src="/header-logo.png" 
+              alt="OrgX Logo" 
+              className="h-6 w-6 object-contain relative z-10"
+            />
+          </div>
+          <span className="text-xl font-bold bg-[linear-gradient(to_right,#3258cd,#3581d0,#3bb0b3,#4fc097,#7fcf78)] bg-clip-text text-transparent">
             OrgX
-          </Link>
+          </span>
+        </Link>
 
         {/* Desktop Navigation Links - Requirement 1.2 */}
         <div className="hidden md:flex items-center gap-8">
@@ -159,7 +172,7 @@ const Navbar = () => {
               key={link.href}
               to={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hover:bg-muted/50 px-3 py-2 rounded-md"
             >
               {link.label}
             </Link>
@@ -206,16 +219,17 @@ const Navbar = () => {
         aria-modal="true"
         aria-label="Navigation menu"
         className={cn(
-          'md:hidden fixed inset-x-0 top-20 bottom-0 bg-background/95 backdrop-blur-lg transition-all duration-300 ease-in-out',
+          'md:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-2xl transition-all duration-300 ease-in-out',
           isMobileMenuOpen
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 -translate-y-4 pointer-events-none'
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         )}
         aria-hidden={!isMobileMenuOpen}
+        style={{ top: '0px' }} // Override to ensure full coverage
       >
-        <div className="container mx-auto px-4 py-6 flex flex-col gap-6">
+        <div className="container mx-auto px-4 pt-28 pb-6 flex flex-col gap-6 h-full overflow-y-auto">
           {/* Mobile Navigation Links */}
-          <nav className="flex flex-col gap-4" aria-label="Mobile navigation">
+          <nav className="flex flex-col gap-2" aria-label="Mobile navigation">
             {navLinks.map((link, index) => (
               <a
                 key={link.href}
@@ -223,10 +237,10 @@ const Navbar = () => {
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
                 className={cn(
-                  'text-lg font-medium text-muted-foreground hover:text-foreground transition-all py-2 border-b border-border/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded',
-                  isMobileMenuOpen && 'animate-in fade-in slide-in-from-left-4'
+                  'text-2xl font-bold text-muted-foreground hover:text-foreground transition-all py-3 px-4 rounded-xl hover:bg-muted/50',
+                  isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'
                 )}
-                style={{ animationDelay: `${index * 50}ms` }}
+                style={{ transitionDelay: `${index * 100}ms` }}
                 tabIndex={isMobileMenuOpen ? 0 : -1}
               >
                 {link.label}
