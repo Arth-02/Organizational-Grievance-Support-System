@@ -401,6 +401,8 @@ async function handleInvoicePaymentFailed(stripeInvoice) {
   }
 }
 
+const { getEmailTemplate } = require('../utils/emailTemplate');
+
 /**
  * Notify organization admin about payment failure
  * @param {string} organizationId - Organization ID
@@ -422,45 +424,24 @@ async function notifyPaymentFailure(organizationId, payment, paymentDetails) {
       currency: currency.toUpperCase()
     }).format(amount / 100);
 
-    const subject = 'Payment Failed - Action Required';
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-      </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: #dc3545; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0;">Payment Failed</h1>
+    const emailContent = getEmailTemplate({
+      title: "Payment Failed",
+      content: `
+        <div class="alert alert-critical">
+          <strong>Action Required:</strong> We were unable to process your payment of ${formattedAmount}.
         </div>
-        
-        <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-          <p>Hello ${organization.name},</p>
-          
-          <p>We were unable to process your payment of <strong>${formattedAmount}</strong>.</p>
-          
-          <p>Please update your payment method to avoid any interruption to your service.</p>
-          
-          ${paymentDetails?.next_payment_attempt ? `
+        <p>Hello ${organization.name},</p>
+        <p>Please update your payment method to avoid any interruption to your service.</p>
+        ${paymentDetails?.next_payment_attempt ? `
           <p>We will automatically retry the payment on ${new Date(paymentDetails.next_payment_attempt * 1000).toLocaleDateString()}.</p>
-          ` : ''}
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || ''}/settings/subscription" 
-               style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Update Payment Method
-            </a>
-          </div>
-          
-          <p style="color: #666; font-size: 12px;">
-            If you have any questions, please contact our support team.
-          </p>
-        </div>
-      </body>
-      </html>
-    `;
+        ` : ''}
+      `,
+      actionUrl: `${process.env.FRONTEND_URL || ''}/settings/subscription`,
+      actionText: "Update Payment Method",
+      footerText: "If you have any questions, please contact our support team."
+    });
 
-    await sendEmail(recipientEmail, subject, html);
+    await sendEmail(recipientEmail, "Payment Failed - Action Required", emailContent);
     console.log(`Payment failure notification sent to ${recipientEmail}`);
   } catch (error) {
     console.error('Error sending payment failure notification:', error);
@@ -480,43 +461,22 @@ async function notifySubscriptionCancelled(organizationId) {
     const recipientEmail = organization.billingEmail || organization.email;
     if (!recipientEmail) return;
 
-    const subject = 'Subscription Cancelled';
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-      </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: #6c757d; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0;">Subscription Cancelled</h1>
+    const emailContent = getEmailTemplate({
+      title: "Subscription Cancelled",
+      content: `
+        <p>Hello ${organization.name},</p>
+        <p>Your subscription has been cancelled. You will continue to have access to your data in read-only mode.</p>
+        <div class="alert alert-info">
+          If you'd like to reactivate your subscription, you can do so at any time from your account settings.
         </div>
-        
-        <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-          <p>Hello ${organization.name},</p>
-          
-          <p>Your subscription has been cancelled. You will continue to have access to your data in read-only mode.</p>
-          
-          <p>If you'd like to reactivate your subscription, you can do so at any time from your account settings.</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || ''}/settings/subscription" 
-               style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Reactivate Subscription
-            </a>
-          </div>
-          
-          <p>We're sorry to see you go. If there's anything we could have done better, please let us know.</p>
-          
-          <p style="color: #666; font-size: 12px;">
-            Thank you for being a customer.
-          </p>
-        </div>
-      </body>
-      </html>
-    `;
+        <p>We're sorry to see you go. If there's anything we could have done better, please let us know.</p>
+      `,
+      actionUrl: `${process.env.FRONTEND_URL || ''}/settings/subscription`,
+      actionText: "Reactivate Subscription",
+      footerText: "Thank you for being a customer."
+    });
 
-    await sendEmail(recipientEmail, subject, html);
+    await sendEmail(recipientEmail, "Subscription Cancelled", emailContent);
     console.log(`Subscription cancellation notification sent to ${recipientEmail}`);
   } catch (error) {
     console.error('Error sending subscription cancellation notification:', error);

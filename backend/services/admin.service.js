@@ -365,15 +365,23 @@ const rejectOrganization = async (id, reason) => {
 
     // Send rejection email
     const { sendEmail } = require("../utils/mail");
+    const { getEmailTemplate } = require("../utils/emailTemplate");
+    const emailContent = getEmailTemplate({
+      title: "Organization Application Rejected",
+      content: `
+        <p>We regret to inform you that your application for organization <strong>${organization.name}</strong> has been rejected.</p>
+        ${reason ? `<div class="alert alert-warning"><strong>Reason:</strong> ${reason}</div>` : ""}
+        <p>If you believe this decision was made in error or if you have any questions, please contact our support team for further assistance.</p>
+      `,
+      actionUrl: "mailto:support@ogss.com",
+      actionText: "Contact Support",
+      footerText: "We apologize for the inconvenience."
+    });
+
     await sendEmail(
       organization.email,
       "Organization Application Rejected",
-      `
-        <h1>Your organization application has been rejected</h1>
-        <p>Organization: ${organization.name}</p>
-        ${reason ? `<p>Reason: ${reason}</p>` : ""}
-        <p>If you believe this is an error, please contact support.</p>
-      `
+      emailContent
     );
 
     // Delete the organization

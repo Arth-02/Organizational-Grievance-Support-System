@@ -677,19 +677,18 @@ class UsageNotificationService {
    * @private
    */
   static async _sendEmailNotification(users, resourceType, thresholdType, usage) {
+    const { getEmailTemplate } = require('../utils/emailTemplate');
     const subject = thresholdType === 'critical'
-      ? `⚠️ ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} Limit Reached`
-      : `📊 ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} Usage Warning`;
+      ? `${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} Limit Reached`
+      : `${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} Usage Warning`;
 
     const message = this._getNotificationMessage(resourceType, thresholdType, usage);
     
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: ${thresholdType === 'critical' ? '#dc2626' : '#f59e0b'};">
-          ${subject}
-        </h2>
+    const emailContent = getEmailTemplate({
+      title: subject,
+      content: `
         <p>${message}</p>
-        <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+        <div class="alert ${thresholdType === 'critical' ? 'alert-critical' : 'alert-warning'}">
           <p style="margin: 0;"><strong>Current Usage:</strong> ${usage.current}</p>
           <p style="margin: 8px 0 0;"><strong>Limit:</strong> ${usage.limit}</p>
           <p style="margin: 8px 0 0;"><strong>Usage:</strong> ${usage.percentage}%</p>
@@ -698,18 +697,15 @@ class UsageNotificationService {
           ? '<p style="color: #dc2626;"><strong>Action Required:</strong> Please upgrade your plan or remove unused resources to continue adding new items.</p>'
           : '<p>Consider upgrading your plan to avoid hitting limits.</p>'
         }
-        <p style="margin-top: 24px;">
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/settings/subscription" 
-             style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-            Manage Subscription
-          </a>
-        </p>
-      </div>
-    `;
+      `,
+      actionUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/settings/subscription`,
+      actionText: "Manage Subscription",
+      footerText: "We will notify you again if usage increases."
+    });
 
     for (const user of users) {
       try {
-        await sendEmail(user.email, subject, html);
+        await sendEmail(user.email, subject, emailContent);
       } catch (error) {
         console.error(`Error sending email to ${user.email}:`, error);
       }

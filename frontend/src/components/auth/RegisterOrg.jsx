@@ -185,11 +185,6 @@ const RegisterOrg = () => {
         </p>
       </AnimatedSection>
 
-      {/* Selected Plan Display - @requirements 9.3 */}
-      <AnimatedSection animation="fade-up" delay={50}>
-        <SelectedPlanCard plan={selectedPlan} billingCycle={billingCycle} />
-      </AnimatedSection>
-
       {/* Step Indicator */}
       <AnimatedSection animation="fade-up" delay={100}>
         <StepIndicator

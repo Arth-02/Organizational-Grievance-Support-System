@@ -589,10 +589,23 @@ const sendOTPEmail = async (organization_id) => {
     }, 300000);
 
     // Send OTP to email
+    const { getEmailTemplate } = require("../utils/emailTemplate");
+    const emailContent = getEmailTemplate({
+      title: "Email Verification",
+      content: `
+        <p>Your One-Time Password (OTP) for verification is:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #6366f1;">${otp}</span>
+        </div>
+        <p>This OTP is valid for 5 minutes. Please do not share this code with anyone.</p>
+      `,
+      footerText: "If you did not request this OTP, please ignore this email."
+    });
+
     const isMailSent = await sendEmail(
       organization.email,
       "Email Verification",
-      `<h1>Your OTP is ${otp}</h1>`
+      emailContent
     );
     if (!isMailSent) {
       return { isSuccess: false, message: "Failed to send OTP", code: 500 };

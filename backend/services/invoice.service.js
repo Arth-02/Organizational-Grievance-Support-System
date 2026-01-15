@@ -928,7 +928,16 @@ class InvoiceService {
    * @returns {string} HTML email content
    * @private
    */
+
+   /**
+   * Generate HTML email template for invoice
+   * @param {Object} invoiceData - Invoice data
+   * @param {string} type - Email type ('new', 'paid', 'reminder')
+   * @returns {Object} { subject, html }
+   * @private
+   */
   _generateInvoiceEmailHtml(invoiceData, type = 'new') {
+    const { getEmailTemplate } = require('../utils/emailTemplate');
     const { invoiceNumber, amount, currency, status, dueDate, paidAt, organization, lineItems, invoicePdfUrl } = invoiceData;
     
     const formattedAmount = this._formatCurrency(amount, currency);
@@ -937,110 +946,100 @@ class InvoiceService {
 
     let subject = '';
     let headerText = '';
-    let statusColor = '#666';
+    let statusClass = 'alert-info';
+    let statusMessage = '';
 
     switch (type) {
       case 'paid':
         subject = `Payment Received - Invoice ${invoiceNumber}`;
         headerText = 'Thank you for your payment!';
-        statusColor = '#28a745';
+        statusClass = 'alert-info'; // Using info for success/paid as green isn't default
+        statusMessage = `Payment of ${formattedAmount} received on ${formattedPaidAt}.`;
         break;
       case 'reminder':
         subject = `Payment Reminder - Invoice ${invoiceNumber}`;
         headerText = 'Payment Reminder';
-        statusColor = '#ffc107';
+        statusClass = 'alert-warning';
+        statusMessage = `This is a reminder that invoice ${invoiceNumber} is due on ${formattedDueDate}.`;
         break;
       case 'new':
       default:
         subject = `New Invoice - ${invoiceNumber}`;
         headerText = 'New Invoice';
-        statusColor = '#007bff';
+        statusClass = 'alert-info';
+        statusMessage = `A new invoice has been generated for your account.`;
         break;
     }
 
     const lineItemsHtml = lineItems && lineItems.length > 0
       ? lineItems.map(item => `
           <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.description || 'Item'}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity || 1}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${this._formatCurrency(item.amount || 0, currency)}</td>
+            <td>${item.description || 'Item'}</td>
+            <td style="text-align: center;">${item.quantity || 1}</td>
+            <td style="text-align: right;">${this._formatCurrency(item.amount || 0, currency)}</td>
           </tr>
         `).join('')
-      : '<tr><td colspan="3" style="padding: 10px; text-align: center;">No items</td></tr>';
+      : '<tr><td colspan="3" style="text-align: center;">No items</td></tr>';
 
-    return {
-      subject,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">${headerText}</h1>
-          </div>
-          
-          <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <table style="width: 100%;">
-                <tr>
-                  <td><strong>Invoice Number:</strong></td>
-                  <td style="text-align: right;">${invoiceNumber}</td>
-                </tr>
-                <tr>
-                  <td><strong>Status:</strong></td>
-                  <td style="text-align: right;"><span style="color: ${statusColor}; font-weight: bold;">${status.toUpperCase()}</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Due Date:</strong></td>
-                  <td style="text-align: right;">${formattedDueDate}</td>
-                </tr>
-                ${formattedPaidAt ? `
-                <tr>
-                  <td><strong>Paid On:</strong></td>
-                  <td style="text-align: right;">${formattedPaidAt}</td>
-                </tr>
-                ` : ''}
-              </table>
-            </div>
+    const content = `
+      <p>Hello ${organization.name || 'Customer'},</p>
+      
+      <div class="alert ${statusClass}">
+        <strong>${headerText}</strong><br>
+        ${statusMessage}
+      </div>
 
-            <h3 style="border-bottom: 2px solid #667eea; padding-bottom: 10px;">Invoice Details</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <thead>
-                <tr style="background: #f8f9fa;">
-                  <th style="padding: 10px; text-align: left;">Description</th>
-                  <th style="padding: 10px; text-align: center;">Qty</th>
-                  <th style="padding: 10px; text-align: right;">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${lineItemsHtml}
-              </tbody>
-              <tfoot>
-                <tr style="background: #f8f9fa; font-weight: bold;">
-                  <td colspan="2" style="padding: 15px; text-align: right;">Total:</td>
-                  <td style="padding: 15px; text-align: right; font-size: 18px; color: #667eea;">${formattedAmount}</td>
-                </tr>
-              </tfoot>
-            </table>
+      <table class="data-table">
+        <tr>
+          <td><strong>Invoice Number:</strong></td>
+          <td style="text-align: right;">${invoiceNumber}</td>
+        </tr>
+        <tr>
+          <td><strong>Status:</strong></td>
+          <td style="text-align: right;"><span style="font-weight: bold; text-transform: uppercase;">${status}</span></td>
+        </tr>
+        <tr>
+          <td><strong>Due Date:</strong></td>
+          <td style="text-align: right;">${formattedDueDate}</td>
+        </tr>
+        ${formattedPaidAt ? `
+        <tr>
+          <td><strong>Paid On:</strong></td>
+          <td style="text-align: right;">${formattedPaidAt}</td>
+        </tr>
+        ` : ''}
+      </table>
 
-            ${invoicePdfUrl ? `
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${invoicePdfUrl}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Download Invoice PDF</a>
-            </div>
-            ` : ''}
+      <h3>Invoice Details</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th style="text-align: center;">Qty</th>
+            <th style="text-align: right;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lineItemsHtml}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight: bold; background-color: #f9fafb;">
+            <td colspan="2" style="text-align: right; padding: 12px;">Total:</td>
+            <td style="text-align: right; padding: 12px; font-size: 18px; color: #6366f1;">${formattedAmount}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
 
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
-              <p>If you have any questions about this invoice, please contact our support team.</p>
-              <p>Thank you for your business!</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    };
+    const html = getEmailTemplate({
+      title: headerText,
+      content,
+      actionUrl: invoicePdfUrl,
+      actionText: "Download Invoice PDF",
+      footerText: "Thank you for your business!"
+    });
+
+    return { subject, html };
   }
 
   /**

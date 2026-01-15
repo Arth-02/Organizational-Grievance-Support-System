@@ -69,15 +69,23 @@ const approveOrganization = async (req, res) => {
       planMessage = '<p>You selected the Enterprise plan. Our sales team will contact you shortly to set up your custom plan.</p>';
     }
 
+    const { getEmailTemplate } = require("../utils/emailTemplate");
+    const emailContent = getEmailTemplate({
+      title: "Organization Verified",
+      content: `
+        <p>Congratulations! Your organization has been successfully verified.</p>
+        ${planMessage}
+        <p>You can now proceed to set up your super admin account and start using our platform.</p>
+      `,
+      actionUrl: `${process.env.CLIENT_URL}/organization/super-admin/create?id=${organization._id}`,
+      actionText: "Create Admin Account",
+      footerText: "Welcome to our platform!"
+    });
+
     const isMailSend = await sendEmail(
       organization.email,
       "Organization Verified",
-      `
-                  <h1>Your organization has been verified</h1>
-                  ${planMessage}
-                  <p>Please click the link below to create your admin account</p>
-                  <a href="${process.env.CLIENT_URL}/organization/super-admin/create?id=${organization._id}">Create Admin Account</a>
-                 `
+      emailContent
     );
 
     if (!isMailSend) {

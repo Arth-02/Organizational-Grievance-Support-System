@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import { useCallback, useState } from "react";
 import { superAdminBaseSchema, superAdminSchemaWithOTP } from "@/validators/users";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { CustomOTPInput } from "../ui/input-otp";
 import {
   BadgeAlert,
@@ -105,7 +105,9 @@ const SuperAdmin = () => {
       const allData = { ...formData, ...otpData, organization_id: organizationId };
       const response = await superAdmin(allData).unwrap();
       if (response) {
-        toast.success("Super Admin created successfully! Redirecting to dashboard...");
+        toast.success("Super Admin created successfully!");
+        // set token in localStorage
+        localStorage.setItem("token", response.token);
         // Navigate to dashboard after successful creation
         setTimeout(() => {
           navigate("/dashboard");
